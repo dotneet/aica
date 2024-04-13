@@ -1,0 +1,21 @@
+{
+  "name": "ai-code-analyzer",
+  "module": "src/main.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/main.ts",
+    "build": "bun build --compile --outfile dist/aica src/main.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@orama/orama": "^2.0.15",
+    "@orama/plugin-data-persistence": "^2.0.15",
+    "@orama/plugin-parsedoc": "^2.0.15",
+    "@orama/plugin-secure-proxy": "^2.0.15"
+  }
+}

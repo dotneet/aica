@@ -1,0 +1,7 @@
+# data.csv のフォーマット
+
+```csv
+id,age,name
+1,20,Alice
+2,21,Bob
+```

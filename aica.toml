@@ -1,0 +1,60 @@
+[source]
+includeSuffixPatterns = [
+    ".js",
+    ".ts",
+    ".jsx",
+    ".tsx",
+    ".java",
+    ".dart",
+    ".kt",
+    ".scala",
+    ".go",
+    ".rs",
+    ".zig",
+    ".rb",
+    ".php",
+    ".py",
+]
+
+excludePatterns = [
+    "node_modules/**",
+    "vendor/**",
+    "tmp/**",
+    "dist/**",
+    "out/**",
+    "test/**",
+    "tests/**",
+    "spec/**",
+    "specs/**",
+    "doc/**",
+    "docs/**",
+    "**/*.test.ts",
+]
+
+[knowledge.fixture]
+files = ["testdata/docs/spec.txt"]
+
+[knowledge.search]
+directory = "testdata/src"
+glob = ["**/*.ts"]
+persistentFilePath = "knowledge.db"
+excludePatterns = [
+    "node_modules/**",
+    "vendor/**",
+    "tmp/**",
+    "dist/**",
+    "out/**",
+]
+
+[prompt]
+system = "You are a QA engineer reviewing code for bugs."
+rules = [
+    "Provide list of critical or high risk bugs and security issues.",
+    "Use JSON format to return the issues.",
+    "Only provide when you are convinced that it is a bug absolutely.",
+    "No need to output low risk bugs and error handling problems.",
+    "Provide up to 5 issues.",
+    "Use Japanese for the description text.",
+]
+
+user = "Identify and list any critical bugs in the code below, with brief explanations for each."
