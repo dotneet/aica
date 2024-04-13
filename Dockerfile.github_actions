@@ -8,4 +8,4 @@ COPY src /app/src
 RUN bun install
 RUN bun run build:actions
 
-CMD ["./dist/actions-runner"]
+CMD ["/app/dist/actions-runner"]
