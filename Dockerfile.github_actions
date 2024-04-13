@@ -1,0 +1,11 @@
+FROM oven/bun:1.1.3
+
+WORKDIR /app
+COPY package.json .
+COPY tsconfig.json .
+COPY bun.lockb .
+COPY src /app/src
+RUN bun install
+RUN bun run build:actions
+
+CMD ["/app/dist/actions-runner"]

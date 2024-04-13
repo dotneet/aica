@@ -28,7 +28,7 @@ export type Knowledge = {
   documentSearch?: KnowledgeSearch;
 };
 
-interface Config {
+export type Config = {
   llm: LLMConfig;
   embedding: EmbeddingConfig;
   knowledge?: Knowledge;
@@ -41,7 +41,7 @@ interface Config {
     includePatterns: string[];
     excludePatterns: string[];
   };
-}
+};
 
 const defaultConfig: Config = {
   llm: {

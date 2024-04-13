@@ -3,7 +3,8 @@ import fs from "node:fs";
 import {
   Issue,
   analyzeCodeForBugs,
-  buildAnalyzeContext,
+  createAnalyzeContext,
+  createAnalyzeContextFromConfig,
   getCodesAroundIssue,
 } from "analyze";
 import { sendToSlack } from "slack";
@@ -38,61 +39,7 @@ async function main(values: any, positionals: any) {
     const config = readConfig(configFilePath);
     const targetDir = values.dir || ".";
 
-    const knowledgeTextFiles = config.knowledge?.fixture?.files || [];
-    const knowledgeTexts = knowledgeTextFiles.map((f) =>
-      fs.readFileSync(f, "utf8")
-    );
-
-    const embeddingProducer = new EmbeddingProducer(
-      config.llm.apiKey,
-      config.llm.embeddingModel
-    );
-    let codeSearchDatabase: KnowledgeDatabase | null;
-    if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
-      const {
-        directory,
-        persistentFilePath,
-        includePatterns,
-        excludePatterns,
-      } = config.knowledge.codeSearch;
-      codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-        directory,
-        persistentFilePath,
-        includePatterns,
-        excludePatterns,
-        embeddingProducer
-      );
-    }
-
-    let documentSearchDatabase: KnowledgeDatabase | null;
-    if (
-      config.knowledge?.documentSearch &&
-      config.knowledge.documentSearch.directory
-    ) {
-      const {
-        directory,
-        persistentFilePath,
-        includePatterns,
-        excludePatterns,
-      } = config.knowledge.documentSearch;
-      documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-        directory,
-        persistentFilePath,
-        includePatterns,
-        excludePatterns,
-        embeddingProducer
-      );
-    }
-
-    const context = buildAnalyzeContext(
-      knowledgeTexts,
-      codeSearchDatabase,
-      documentSearchDatabase,
-      config.llm,
-      config.prompt.system,
-      config.prompt.rules,
-      config.prompt.user
-    );
+    const context = await createAnalyzeContextFromConfig(config);
 
     const sources: Source[] = [];
     const shouldNotifySlack = values.slack === true;

@@ -1,21 +1,50 @@
 import path from "path";
 import Bun from "bun";
 import fs from "node:fs";
+import { FileChange } from "utility/parse-diff";
+
+export enum SourceType {
+  Text,
+  File,
+  PullRequestDiff,
+}
 
 export class Source {
-  constructor(readonly path: string, readonly content: string) {}
+  constructor(
+    readonly type: SourceType,
+    readonly path: string,
+    readonly content: string,
+    readonly fileChange: FileChange | null = null
+  ) {}
+
+  get targetSourceContent(): string {
+    if (this.type === SourceType.PullRequestDiff) {
+      return this.content;
+    } else {
+      return `file: ${this.path}\n\n` + this.contentWithLineNumbers;
+    }
+  }
 
   get contentWithLineNumbers(): string {
     return this.appendLineNumbers(this.content);
   }
 
   static fromText(filePath: string, content: string): Source {
-    return new Source(filePath, content);
+    return new Source(SourceType.Text, filePath, content, null);
   }
 
   static fromFile(filePath: string): Source {
     const content = fs.readFileSync(filePath, "utf8");
-    return new Source(filePath, content);
+    return new Source(SourceType.File, filePath, content, null);
+  }
+
+  static fromPullRequestDiff(change: FileChange): Source {
+    return new Source(
+      SourceType.PullRequestDiff,
+      change.filename,
+      change.changes.join("\n"),
+      change
+    );
   }
 
   private appendLineNumbers(code: string): string {
