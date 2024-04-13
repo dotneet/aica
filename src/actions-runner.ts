@@ -36,9 +36,7 @@ async function main() {
       },
     });
     const diffString = response.data as unknown as string;
-    console.log(diffString);
     const fileChanges = parseDiff(diffString);
-    console.log(fileChanges);
     const sources: Source[] = [];
     for (const fileChange of fileChanges) {
       const source = Source.fromPullRequestDiff(fileChange);
@@ -53,9 +51,6 @@ async function main() {
       allIssues.push(...result);
     }
     const table = createGitHubStyleTableFromIssues(allIssues);
-    console.log(table);
-    // post the result to the pull request as an comment
-    /*
     const comment = "## Bug Report\n\n" + table;
     await octokit.request(
       "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
@@ -66,7 +61,6 @@ async function main() {
         body: comment,
       }
     );
-    */
   } catch (error) {
     core.setFailed(error.message);
   }
