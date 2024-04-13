@@ -1,21 +1,18 @@
 import core from "@actions/core";
 import github from "@actions/github";
+import { readConfig } from "config";
 
 try {
-  const time = new Date().toTimeString();
-  core.setOutput("time", time);
-  github.context.eventName;
   const token = core.getInput("github-token", { required: true });
   const octokit = github.getOctokit(token);
-  octokit.rest.issues.createComment({
-    owner: github.context.repo.owner,
-    repo: github.context.repo.repo,
-    issue_number: github.context.issue.number,
-    body: "test",
-  });
-  // Get the JSON webhook payload for the event that triggered the workflow
-  const payload = JSON.stringify(github.context.payload, undefined, 2);
-  console.log(`The event payload: ${payload}`);
+  const model = Bun.env.OPENAI_MODEL || "gpt-4-turbo-2024-04-09";
+
+  const config = readConfig(null);
+  if (!config.llm.apiKey) {
+    throw new Error("OPENAI_API_KEY is required");
+  }
+
+  // TODO: Implement the action
 } catch (error) {
   core.setFailed(error.message);
 }
