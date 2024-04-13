@@ -1,39 +1,43 @@
-import { parseArgs } from "util";
-import fs from "node:fs";
 import {
   Issue,
   analyzeCodeForBugs,
-  createAnalyzeContext,
   createAnalyzeContextFromConfig,
   getCodesAroundIssue,
 } from "analyze";
+import yargs from "yargs";
+import { readConfig } from "config";
 import { sendToSlack } from "slack";
 import { Source, SourceFinder } from "source";
-import { readConfig } from "config";
-import { KnowledgeDatabase, CodeSearchDatabaseOrama } from "knowledge/database";
-import { EmbeddingProducer } from "embedding";
 
-const { values, positionals } = parseArgs({
-  args: Bun.argv,
-  options: {
-    config: {
-      type: "string",
-    },
-    repository: {
-      type: "string",
-    },
-    dir: {
-      type: "string",
-    },
-    slack: {
-      type: "boolean",
-    },
-  },
-  strict: true,
-  allowPositionals: true,
-});
+const argv = yargs(process.argv.slice(2))
+  .option("config", {
+    describe: "設定ファイルのパス",
+    type: "string",
+  })
+  .command("reviews [<pattern>]", "レビューの実行", (yargs: any) => {
+    return yargs
+      .option("repository", {
+        describe: "リポジトリのパス",
+        type: "string",
+      })
+      .option("dir", {
+        describe: "ディレクトリのパス",
+        type: "string",
+      })
+      .option("slack", {
+        describe: "Slackに通知するかどうか",
+        type: "boolean",
+      })
+      .positional("pattern", {
+        describe: "検索パターン",
+        type: "string",
+      });
+  })
+  .strict()
+  .help()
+  .parse();
 
-async function main(values: any, positionals: any) {
+async function reviews(values: any) {
   try {
     const configFilePath = values.config || null;
     const config = readConfig(configFilePath);
@@ -48,9 +52,9 @@ async function main(values: any, positionals: any) {
       config.source.includePatterns,
       config.source.excludePatterns
     );
-    if (positionals.length > 2) {
+    if (values.pattern) {
       sources.push(
-        ...(await sourceFinder.getSources(targetDir, positionals[2]))
+        ...(await sourceFinder.getSources(targetDir, values.pattern))
       );
     } else {
       const repositoryDir = values.repository || ".";
@@ -90,4 +94,19 @@ function printIssue(issue: Issue) {
   console.log("");
 }
 
-await main(values, positionals);
+const values = {
+  config: argv.config,
+  repository: argv.repository,
+  dir: argv.dir,
+  slack: argv.slack,
+  pattern: argv.pattern,
+};
+
+const subcommand = argv._[0];
+switch (subcommand) {
+  case "reviews":
+    reviews(values);
+    break;
+  default:
+    console.error("Unknown subcommand:", subcommand);
+}

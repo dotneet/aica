@@ -19,6 +19,7 @@
     "@orama/orama": "^2.0.15",
     "@orama/plugin-data-persistence": "^2.0.15",
     "@orama/plugin-parsedoc": "^2.0.15",
-    "@orama/plugin-secure-proxy": "^2.0.15"
+    "@orama/plugin-secure-proxy": "^2.0.15",
+    "yargs": "^17.7.2"
   }
 }
