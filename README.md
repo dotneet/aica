@@ -19,6 +19,7 @@ So, I decided to create a new tool with the following characteristics.
 - [x] Prompt customization
 - [x] Slack notification
 - [x] Single binary executable by `bun build --compile`
+- [x] GitHub Actions integration. (See [wiki page](https://github.com/dotneet/aica/wiki/GitHub-Actions-Settings) to setup actions.)
 
 ## Usage
 
