@@ -1,7 +1,12 @@
-import { LLMConfig } from "config";
-import { KnowledgeDatabase } from "./knowledge/database";
-import { Source } from "source";
+import { Config, LLMConfig } from "config";
+import fs from "fs";
+import {
+  CodeSearchDatabaseOrama,
+  KnowledgeDatabase,
+} from "./knowledge/database";
+import { Source, SourceType } from "source";
 import { LLM } from "llm";
+import { EmbeddingProducer } from "embedding";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
@@ -12,6 +17,58 @@ export type AnalyzeContext = {
   rules: string[];
   userPrompt: string;
 };
+
+export async function buildAnalyzeContextFromConfig(
+  config: Config
+): Promise<AnalyzeContext> {
+  const knowledgeTextFiles = config.knowledge?.fixture?.files || [];
+  const knowledgeTexts = knowledgeTextFiles.map((f) =>
+    fs.readFileSync(f, "utf8")
+  );
+
+  const embeddingProducer = new EmbeddingProducer(
+    config.llm.apiKey,
+    config.llm.embeddingModel
+  );
+  let codeSearchDatabase: KnowledgeDatabase | null;
+  if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
+    const { directory, persistentFilePath, includePatterns, excludePatterns } =
+      config.knowledge.codeSearch;
+    codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
+      directory,
+      persistentFilePath,
+      includePatterns,
+      excludePatterns,
+      embeddingProducer
+    );
+  }
+
+  let documentSearchDatabase: KnowledgeDatabase | null;
+  if (
+    config.knowledge?.documentSearch &&
+    config.knowledge.documentSearch.directory
+  ) {
+    const { directory, persistentFilePath, includePatterns, excludePatterns } =
+      config.knowledge.documentSearch;
+    documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
+      directory,
+      persistentFilePath,
+      includePatterns,
+      excludePatterns,
+      embeddingProducer
+    );
+  }
+
+  return buildAnalyzeContext(
+    knowledgeTexts,
+    codeSearchDatabase,
+    documentSearchDatabase,
+    config.llm,
+    config.prompt.system,
+    config.prompt.rules,
+    config.prompt.user
+  );
+}
 
 export function buildAnalyzeContext(
   knowledgeTexts: string[],
@@ -36,6 +93,7 @@ export function buildAnalyzeContext(
 
 export type Issue = {
   source: Source;
+  file: string;
   line: number;
   level: "critical" | "high";
   description: string;
@@ -53,6 +111,7 @@ export function getCodesAroundIssue(
 
 type ResponseIssue = {
   line: number;
+  file: string;
   level: "critical" | "high";
   description: string;
 };
@@ -122,8 +181,8 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
   
     Response JSON Format:"""
     {"issues": [
-      {"line": 5, "level": "critical", "description": "The attribute target=\"_blank\" must be used in conjunction with rel=\"noreferrer\"."},
-      {"line": 10, "level": "high", "description": "The function foo() should use parameter y instead of x."},
+      {"line": 5, "file": "hoge.html", "level": "critical", "description": "The attribute target=\"_blank\" must be used in conjunction with rel=\"noreferrer\"."},
+      {"line": 10, "file": "foo.js", "level": "high", "description": "The function foo() should use parameter y instead of x."},
     ]}
     """
 
@@ -145,26 +204,28 @@ function generatePromptWithCode(
   userPrompt: string,
   knowledgeText: string
 ): string {
-  const codeWithLineNumbers = source.contentWithLineNumbers;
+  const targetSourceContent = source.targetSourceContent;
+  if (source.type === SourceType.PullRequestDiff) {
+    userPrompt += "\n the code format is a pull request diff.";
+  }
+
   return `${userPrompt}
 
   Target Source:
   =====
-  ${codeWithLineNumbers}
-  Please list each issue along with a brief explanation of why it is considered a critical bug:
-
-  Target Source:
-  =====
-  ${codeWithLineNumbers}
+  %TARGET_SOURCE%
   =====
 
   You can use the knowledge below to help your task.
 
   Knowledge:
   =====
-  ${knowledgeText}
+  %KNOWLEDGE_TEXT%
   =====
-  `;
+  `
+    .replace(/\n +/g, "\n")
+    .replace("%TARGET_SOURCE%", targetSourceContent)
+    .replace("%KNOWLEDGE_TEXT%", knowledgeText);
 }
 
 function buildIssuesFromResponse(source: Source, response: string): Issue[] {
