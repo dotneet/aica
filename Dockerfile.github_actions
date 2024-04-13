@@ -5,6 +5,6 @@ COPY package.json .
 COPY bun.lockb .
 COPY src .
 RUN bun install
-RUN bun build:actions
+RUN bun run build:actions
 
 CMD ["./dist/actions-runner"]
