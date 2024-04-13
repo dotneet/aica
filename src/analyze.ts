@@ -18,7 +18,7 @@ export type AnalyzeContext = {
   userPrompt: string;
 };
 
-export async function buildAnalyzeContextFromConfig(
+export async function createAnalyzeContextFromConfig(
   config: Config
 ): Promise<AnalyzeContext> {
   const knowledgeTextFiles = config.knowledge?.fixture?.files || [];
@@ -59,7 +59,7 @@ export async function buildAnalyzeContextFromConfig(
     );
   }
 
-  return buildAnalyzeContext(
+  return createAnalyzeContext(
     knowledgeTexts,
     codeSearchDatabase,
     documentSearchDatabase,
@@ -70,7 +70,7 @@ export async function buildAnalyzeContextFromConfig(
   );
 }
 
-export function buildAnalyzeContext(
+export function createAnalyzeContext(
   knowledgeTexts: string[],
   codeSearchDatabase: KnowledgeDatabase | null,
   documentSearchDatabase: KnowledgeDatabase | null,
@@ -206,7 +206,8 @@ function generatePromptWithCode(
 ): string {
   const targetSourceContent = source.targetSourceContent;
   if (source.type === SourceType.PullRequestDiff) {
-    userPrompt += "\n the code format is a pull request diff.";
+    userPrompt +=
+      "\n the target source is diff format. '-' means removed, '+' means added.";
   }
 
   return `${userPrompt}

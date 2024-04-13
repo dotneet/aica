@@ -3,8 +3,8 @@ import fs from "node:fs";
 import {
   Issue,
   analyzeCodeForBugs,
-  buildAnalyzeContext,
-  buildAnalyzeContextFromConfig,
+  createAnalyzeContext,
+  createAnalyzeContextFromConfig,
   getCodesAroundIssue,
 } from "analyze";
 import { sendToSlack } from "slack";
@@ -39,7 +39,7 @@ async function main(values: any, positionals: any) {
     const config = readConfig(configFilePath);
     const targetDir = values.dir || ".";
 
-    const context = await buildAnalyzeContextFromConfig(config);
+    const context = await createAnalyzeContextFromConfig(config);
 
     const sources: Source[] = [];
     const shouldNotifySlack = values.slack === true;

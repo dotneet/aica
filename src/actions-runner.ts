@@ -3,7 +3,7 @@ import github from "@actions/github";
 import {
   Issue,
   analyzeCodeForBugs,
-  buildAnalyzeContextFromConfig,
+  createAnalyzeContextFromConfig,
 } from "analyze";
 import { readConfig } from "config";
 import { createGitHubStyleTableFromIssues } from "github";
@@ -23,7 +23,8 @@ async function main() {
     }
 
     const payload = github.context.payload;
-    console.log("Payload", JSON.stringify(payload, null, 2));
+    // console.log("Payload", JSON.stringify(payload, null, 2));
+
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
     const [owner, repo] = fullRepoName.split("/");
     const pull_number = payload.pull_request.number;
@@ -44,7 +45,7 @@ async function main() {
       sources.push(source);
     }
 
-    const context = await buildAnalyzeContextFromConfig(config);
+    const context = await createAnalyzeContextFromConfig(config);
     const allIssues: Issue[] = [];
     for (const source of sources) {
       console.log(`Analyzing ${source.fileChange.filename}`);
