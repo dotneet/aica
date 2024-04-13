@@ -1,6 +1,7 @@
 {
   "name": "ai-code-analyzer",
   "module": "src/main.ts",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
@@ -8,7 +9,8 @@
     "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/yargs": "^17.0.32"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"

@@ -5,7 +5,7 @@
       "*": ["src/*"]
     },
     "lib": ["ESNext", "DOM"],
-    "types": ["bun-types", "@types/bun"],
+    "types": ["bun-types", "@types/bun", "@types/yargs"],
     "target": "ESNext",
     "module": "ESNext",
     "jsx": "react-jsx",
@@ -19,7 +19,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"]
 }

@@ -9,33 +9,53 @@ import { readConfig } from "config";
 import { sendToSlack } from "slack";
 import { Source, SourceFinder } from "source";
 
+import pkg from "../package.json";
+
 const argv = yargs(process.argv.slice(2))
   .option("config", {
-    describe: "設定ファイルのパス",
+    describe: "path to config file",
     type: "string",
   })
-  .command("reviews [<pattern>]", "レビューの実行", (yargs: any) => {
+  .version(pkg.version)
+  .command(
+    "commit-message",
+    "generate commit message based on diff to HEAD",
+    (yargs: any) => {
+      return yargs
+        .options({
+          repository: {
+            describe: "path to git repository",
+            type: "string",
+          },
+        })
+        .strict()
+        .help();
+    }
+  )
+  .command("reviews [<pattern>]", "run code review", (yargs: any) => {
     return yargs
-      .option("repository", {
-        describe: "リポジトリのパス",
-        type: "string",
-      })
-      .option("dir", {
-        describe: "ディレクトリのパス",
-        type: "string",
-      })
-      .option("slack", {
-        describe: "Slackに通知するかどうか",
-        type: "boolean",
+      .options({
+        repository: {
+          describe: "path to git repository",
+          type: "string",
+        },
+        dir: {
+          describe: "path to directory",
+          type: "string",
+        },
+        slack: {
+          describe: "notify slack",
+          type: "boolean",
+        },
       })
       .positional("pattern", {
-        describe: "検索パターン",
+        describe: "search pattern",
         type: "string",
       });
   })
   .strict()
   .help()
-  .parse();
+  .parseSync();
 
 async function reviews(values: any) {
   try {
@@ -88,6 +108,24 @@ async function reviews(values: any) {
   }
 }
 
+async function commitMessage(values: any) {
+  // get diff from HEAD
+  const result = Bun.spawn({
+    cmd: ["git", "diff", "HEAD"],
+    cwd: values.repository || ".",
+    stdout: "pipe",
+  });
+  const text = await new Response(result.stdout).text();
+  const config = readConfig(values.config);
+  const context = await createAnalyzeContextFromConfig(config);
+  const content = await context.llm.generate(
+    "You are an senior software engineer.",
+    `Generate one-line commit message based on given diff.\nResponse must be less than 120 characters.\n\ndiff: \n ${text}`,
+    false
+  );
+  console.log(content);
+}
+
 function printIssue(issue: Issue) {
   console.log(`Line ${issue.line} ${issue.level} - ${issue.description}`);
   console.log(getCodesAroundIssue(issue));
@@ -106,6 +144,9 @@ const subcommand = argv._[0];
 switch (subcommand) {
   case "reviews":
     reviews(values);
+    break;
+  case "commit-message":
+    commitMessage(values);
     break;
   default:
     console.error("Unknown subcommand:", subcommand);

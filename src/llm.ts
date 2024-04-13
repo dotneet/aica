@@ -9,12 +9,17 @@ interface GPTResponse {
 export class LLM {
   constructor(private openaiApiKey: string, private model: string) {}
 
-  public async generate(systemPrompt: string, prompt: string): Promise<string> {
+  public async generate(
+    systemPrompt: string,
+    prompt: string,
+    jsonMode: boolean
+  ): Promise<string> {
     const responseObject = await this.fetchOpenAIResponse(
       this.openaiApiKey,
       this.model,
       systemPrompt,
-      prompt
+      prompt,
+      jsonMode
     );
     return responseObject.choices[0].message.content;
   }
@@ -23,8 +28,15 @@ export class LLM {
     openaiApiKey: string,
     model: string,
     systemPrompt: string,
-    prompt: string
+    prompt: string,
+    jsonMode: boolean
   ): Promise<GPTResponse> {
+    let additionalBody = {};
+    if (jsonMode) {
+      additionalBody = {
+        response_format: { type: "json_object" },
+      };
+    }
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -44,7 +56,7 @@ export class LLM {
           },
         ],
         temperature: 0.2,
-        response_format: { type: "json_object" },
+        ...additionalBody,
       }),
     });
     return await response.json();
