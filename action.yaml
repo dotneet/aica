@@ -1,0 +1,8 @@
+name: "aica"
+description: "review a pull request with AI"
+branding:
+  icon: "zap"
+  color: "yellow"
+runs:
+  using: "docker"
+  image: "Dockerfile.github_actions"
