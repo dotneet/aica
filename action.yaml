@@ -1,8 +1,8 @@
-name: "aica"
-description: "review a pull request with AI"
+name: "aica - AI Code Analyzer"
+description: "Reviews a pull request and codebase with AI"
 branding:
-  icon: "zap"
-  color: "yellow"
+  icon: "droplet"
+  color: "blue"
 runs:
   using: "docker"
   image: "Dockerfile.github_actions"
