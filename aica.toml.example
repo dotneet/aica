@@ -1,5 +1,5 @@
 [source]
-includeSuffixPatterns = [
+suffixes = [
     ".js",
     ".ts",
     ".jsx",
@@ -32,12 +32,13 @@ excludePatterns = [
 ]
 
 [knowledge.fixture]
+# these files are embedded in an user prompt as a knowledge always.
 files = ["testdata/docs/spec.txt"]
 
 [knowledge.search]
 directory = "testdata/src"
-glob = ["**/*.ts"]
 persistentFilePath = "knowledge.db"
+includePatterns = ["**/*.ts"]
 excludePatterns = [
     "node_modules/**",
     "vendor/**",
@@ -54,7 +55,6 @@ rules = [
     "Only provide when you are convinced that it is a bug absolutely.",
     "No need to output low risk bugs and error handling problems.",
     "Provide up to 5 issues.",
-    "Use Japanese for the description text.",
 ]
 
 user = "Identify and list any critical bugs in the code below, with brief explanations for each."

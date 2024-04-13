@@ -1,21 +1,25 @@
-import { Orama, create, insert, searchVector } from "@orama/orama";
+import { Orama, create, insert, search } from "@orama/orama";
 import { persist, restore } from "@orama/plugin-data-persistence";
 import { Glob } from "bun";
 import { EmbeddingProducer } from "embedding";
 
 import path from "node:path";
 import fs from "node:fs";
+import {
+  extractDefinitionSymbols,
+  extractReferenceSymbols,
+} from "./extract-symbols";
 
 const schema = {
   path: "string",
   content: "string",
-  embedding: "vector[1536]",
+  symbols: "string[]",
 } as const;
 
 export interface KnowledgeDatabase {
   populate(
     directory: string,
-    globPatterns: string[],
+    includePatterns: string[],
     excludePatterns: string[]
   ): Promise<void>;
   insert(path: string, content: string): Promise<void>;
@@ -41,12 +45,12 @@ export class KnowledgeDatabaseOrama implements KnowledgeDatabase {
 
   async populate(
     directory: string,
-    globPatterns: string[],
+    includePatterns: string[],
     excludePatterns: string[]
   ): Promise<void> {
     const excludeGlobs = excludePatterns.map((pattern) => new Glob(pattern));
-    for (const globPattern of globPatterns) {
-      const glob = new Glob(globPattern);
+    for (const includePattern of includePatterns) {
+      const glob = new Glob(includePattern);
       for await (const file of glob.scan(directory)) {
         if (excludeGlobs.some((excludeGlob) => excludeGlob.match(file))) {
           continue;
@@ -58,35 +62,34 @@ export class KnowledgeDatabaseOrama implements KnowledgeDatabase {
   }
 
   async insert(path: string, content: string) {
-    const chunks = this.splitIntoChunks(content);
-    for (const chunk of chunks) {
-      const embedding = await this.embeddingProducer.getEmbedding(chunk);
-      await insert(this.db, {
-        path: path,
-        content: chunk,
-        embedding: embedding,
-      });
-    }
+    const symbols = extractDefinitionSymbols(content);
+    await insert(this.db, {
+      path: path,
+      content: content,
+      symbols: symbols,
+    });
   }
 
   async search(
     content: string,
     limit: number = 5
   ): Promise<{ content: string; path: string }[]> {
-    const vector = await this.embeddingProducer.getEmbedding(content);
-    const result = await searchVector(this.db, {
-      mode: "vector",
-      vector: {
-        value: vector,
-        property: "embedding",
-      },
-      similarity: 0.01,
+    const symbols = extractReferenceSymbols(content);
+    const result = await search(this.db, {
+      mode: "fulltext",
+      term: symbols.join(" "),
+      properties: ["symbols"],
+      exact: false,
       limit: limit,
     });
     return result.hits.map((hit) => {
+      let content = hit.document.content;
+      if (content.length > 4000) {
+        content = content.substring(0, 4000) + "...";
+      }
       return {
         path: hit.document.path,
-        content: hit.document.content,
+        content: content,
       };
     });
   }
@@ -103,27 +106,5 @@ export class KnowledgeDatabaseOrama implements KnowledgeDatabase {
     const JSONIndex = fs.readFileSync(path, "utf8");
     const db: Orama<typeof schema> = await restore("json", JSONIndex);
     return new KnowledgeDatabaseOrama(db, embeddingProducer);
-  }
-
-  private splitIntoChunks(text: string): string[] {
-    const blocks = text.split(/\n\n+/);
-    const chunks: string[] = [];
-    const chunkSize = 200;
-    let sumLines = 0;
-    let chunk = "";
-    for (const block of blocks) {
-      const lines = block.split(/\n+/);
-      sumLines += lines.length;
-      chunk += block + "\n\n";
-      if (sumLines > chunkSize) {
-        chunks.push(chunk);
-        chunk = "";
-        sumLines = 0;
-      }
-    }
-    if (chunk.length > 0) {
-      chunks.push(chunk);
-    }
-    return chunks;
   }
 }

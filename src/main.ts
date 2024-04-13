@@ -15,6 +15,9 @@ import { EmbeddingProducer } from "embedding";
 const { values, positionals } = parseArgs({
   args: Bun.argv,
   options: {
+    config: {
+      type: "string",
+    },
     repository: {
       type: "string",
     },
@@ -31,7 +34,8 @@ const { values, positionals } = parseArgs({
 
 async function main(values: any, positionals: any) {
   try {
-    const config = readConfig();
+    const configFilePath = values.config || null;
+    const config = readConfig(configFilePath);
     const targetDir = values.dir || ".";
 
     let db: KnowledgeDatabase | null;
@@ -44,8 +48,12 @@ async function main(values: any, positionals: any) {
       fs.readFileSync(f, "utf8")
     );
     if (config.knowledge?.search && config.knowledge.search.directory) {
-      const { directory, glob, persistentFilePath, excludePatterns } =
-        config.knowledge.search;
+      const {
+        directory,
+        includePatterns,
+        persistentFilePath,
+        excludePatterns,
+      } = config.knowledge.search;
       if (fs.existsSync(persistentFilePath)) {
         db = await KnowledgeDatabaseOrama.load(
           persistentFilePath,
@@ -53,7 +61,7 @@ async function main(values: any, positionals: any) {
         );
       } else {
         db = await KnowledgeDatabaseOrama.create(embeddingProducer);
-        await db.populate(directory, glob, excludePatterns);
+        await db.populate(directory, includePatterns, excludePatterns);
         if (persistentFilePath) {
           await db.save(persistentFilePath);
           console.warn(
@@ -76,7 +84,7 @@ async function main(values: any, positionals: any) {
     const shouldNotifySlack = values.slack === true;
 
     const sourceFinder = new SourceFinder(
-      config.source.includeSuffixPatterns,
+      config.source.suffixes,
       config.source.excludePatterns
     );
     if (positionals.length > 2) {

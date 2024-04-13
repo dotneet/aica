@@ -8,8 +8,8 @@ export type LLMSettings = {
 
 export type KnowledgeSearch = {
   directory: string;
-  glob: string[];
   persistentFilePath: string;
+  includePatterns: string[];
   excludePatterns: string[];
 };
 
@@ -29,7 +29,7 @@ interface Config {
     user: string;
   };
   source: {
-    includeSuffixPatterns: string[];
+    suffixes: string[];
     excludePatterns: string[];
   };
 }
@@ -52,7 +52,7 @@ const defaultConfig: Config = {
     user: "Identify and list any critical bugs in the code below, with brief explanations for each.",
   },
   source: {
-    includeSuffixPatterns: [
+    suffixes: [
       ".js",
       ".ts",
       ".jsx",
@@ -81,9 +81,9 @@ const defaultConfig: Config = {
       files: [],
     },
     search: {
-      directory: ".",
-      glob: ["**/*.{ts,tsx,js,jsx,scala,go,rb,php,py}"],
+      directory: "",
       persistentFilePath: "./knowledge.db",
+      includePatterns: ["**/*.{txt,md,ts,tsx,js,jsx,scala,go,rb,php,py}"],
       excludePatterns: [
         "node_modules/**",
         "vendor/**",
@@ -96,11 +96,15 @@ const defaultConfig: Config = {
 };
 
 export function readConfig(path: string | null): Config {
-  if (!path) {
-    return defaultConfig;
-  }
-  if (!fs.existsSync(path)) {
-    throw new Error(`Config file not found: ${path}`);
+  if (path) {
+    if (!fs.existsSync(path)) {
+      throw new Error(`Config file not found: ${path}`);
+    }
+  } else {
+    if (!fs.existsSync("./aica.toml")) {
+      return defaultConfig;
+    }
+    path = "./aica.toml";
   }
   const file = fs.readFileSync(path);
   const config = Bun.TOML.parse(file.toString()) as Config;
