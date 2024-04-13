@@ -1,9 +1,16 @@
 import fs from "node:fs";
+import { deepAssign } from "utility/deep-assign";
 
-export type LLMSettings = {
+export type LLMConfig = {
+  provider: "openai";
   model: string;
   embeddingModel: string;
-  openAiApiKey: string;
+  apiKey: string;
+};
+export type EmbeddingConfig = {
+  provider: "openai";
+  model: string;
+  apiKey: string;
 };
 
 export type KnowledgeSearch = {
@@ -17,11 +24,13 @@ export type Knowledge = {
   fixture?: {
     files: string[];
   };
-  search?: KnowledgeSearch;
+  codeSearch?: KnowledgeSearch;
+  documentSearch?: KnowledgeSearch;
 };
 
 interface Config {
-  llm: LLMSettings;
+  llm: LLMConfig;
+  embedding: EmbeddingConfig;
   knowledge?: Knowledge;
   prompt: {
     system: string;
@@ -29,16 +38,22 @@ interface Config {
     user: string;
   };
   source: {
-    suffixes: string[];
+    includePatterns: string[];
     excludePatterns: string[];
   };
 }
 
 const defaultConfig: Config = {
   llm: {
+    provider: "openai",
     model: Bun.env.OPENAI_MODEL || "gpt-4-turbo-2024-04-09",
     embeddingModel: "text-embedding-3-small",
-    openAiApiKey: Bun.env.OPENAI_API_KEY || "",
+    apiKey: Bun.env.OPENAI_API_KEY || "",
+  },
+  embedding: {
+    provider: "openai",
+    model: "text-embedding-3-small",
+    apiKey: Bun.env.OPENAI_API_KEY || "",
   },
   prompt: {
     system: "You are a QA engineer reviewing code for bugs.",
@@ -52,16 +67,8 @@ const defaultConfig: Config = {
     user: "Identify and list any critical bugs in the code below, with brief explanations for each.",
   },
   source: {
-    suffixes: [
-      ".js",
-      ".ts",
-      ".jsx",
-      ".tsx",
-      ".scala",
-      ".go",
-      ".rb",
-      ".php",
-      ".py",
+    includePatterns: [
+      "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
     ],
     excludePatterns: [
       "node_modules/**",
@@ -80,10 +87,22 @@ const defaultConfig: Config = {
     fixture: {
       files: [],
     },
-    search: {
+    codeSearch: {
       directory: "",
-      persistentFilePath: "./knowledge.db",
+      persistentFilePath: "./knowledge-src.db",
       includePatterns: ["**/*.{txt,md,ts,tsx,js,jsx,scala,go,rb,php,py}"],
+      excludePatterns: [
+        "node_modules/**",
+        "vendor/**",
+        "tmp/**",
+        "dist/**",
+        "out/**",
+      ],
+    },
+    documentSearch: {
+      directory: "",
+      persistentFilePath: "./knowledge-docs.db",
+      includePatterns: ["**/*.{txt,md,html,adoc}"],
       excludePatterns: [
         "node_modules/**",
         "vendor/**",
@@ -108,8 +127,5 @@ export function readConfig(path: string | null): Config {
   }
   const file = fs.readFileSync(path);
   const config = Bun.TOML.parse(file.toString()) as Config;
-  return {
-    ...defaultConfig,
-    ...config,
-  };
+  return deepAssign(defaultConfig, config);
 }

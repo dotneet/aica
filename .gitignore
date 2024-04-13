@@ -1,7 +1,8 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
 # App
-knowledge.db
+knowledge-src.db
+knowledge-doc.db
 aica.toml
 tmp/
 

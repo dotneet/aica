@@ -1,4 +1,5 @@
 import path from "path";
+import Bun from "bun";
 import fs from "node:fs";
 
 export class Source {
@@ -28,15 +29,14 @@ export class Source {
   }
 }
 
-import Bun from "bun";
-
 export class SourceFinder {
+  private includePatternGlobs: Bun.Glob[];
   private excludePatternGlobs: Bun.Glob[];
 
-  constructor(
-    private readonly suffixPatterns: string[],
-    private readonly excludePatterns: string[]
-  ) {
+  constructor(includePatterns: string[], excludePatterns: string[]) {
+    this.includePatternGlobs = includePatterns.map(
+      (pattern) => new Bun.Glob(pattern)
+    );
     this.excludePatternGlobs = excludePatterns.map(
       (pattern) => new Bun.Glob(pattern)
     );
@@ -77,8 +77,8 @@ export class SourceFinder {
   applyFilters(rootDir: string, sources: Source[]): Source[] {
     sources = sources.filter((source) => {
       const relativePath = path.relative(rootDir, source.path);
-      return this.suffixPatterns.some((suffix) =>
-        relativePath.endsWith(suffix)
+      return this.includePatternGlobs.some((include) =>
+        include.match(relativePath)
       );
     });
     sources = sources.filter((source) => {

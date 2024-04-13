@@ -1,19 +1,13 @@
-import { LLMSettings } from "config";
+import { LLMConfig } from "config";
 import { KnowledgeDatabase } from "./knowledge/database";
 import { Source } from "source";
-
-interface GPTResponse {
-  choices: {
-    message: {
-      content: string;
-    };
-  }[];
-}
+import { LLM } from "llm";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
-  knowledgeDatabase: KnowledgeDatabase | null;
-  llmSettings: LLMSettings;
+  codeSearchDatabase: KnowledgeDatabase | null;
+  documentSearchDatabase: KnowledgeDatabase | null;
+  llm: LLM;
   systemPrompt: string;
   rules: string[];
   userPrompt: string;
@@ -21,16 +15,19 @@ export type AnalyzeContext = {
 
 export function buildAnalyzeContext(
   knowledgeTexts: string[],
-  knowledgeDatabase: KnowledgeDatabase | null,
-  llmSettings: LLMSettings,
+  codeSearchDatabase: KnowledgeDatabase | null,
+  documentSearchDatabase: KnowledgeDatabase | null,
+  llmSettings: LLMConfig,
   systemPrompt: string,
   rules: string[],
   userPrompt: string
 ): AnalyzeContext {
+  const llm = new LLM(llmSettings.apiKey, llmSettings.model);
   return {
     knowledgeTexts,
-    knowledgeDatabase,
-    llmSettings,
+    codeSearchDatabase,
+    documentSearchDatabase,
+    llm,
     systemPrompt,
     rules,
     userPrompt,
@@ -64,19 +61,9 @@ export async function analyzeCodeForBugs(
   context: AnalyzeContext,
   source: Source
 ): Promise<Issue[]> {
+  const knowledgeText = await createKnowledgeText(context, source);
+
   const rules = context.rules;
-  const knowledges =
-    (await context.knowledgeDatabase?.search(source.content, 5)) ?? [];
-  const knowledgeTextFromDb = knowledges
-    .filter((k) => k.path !== source.path) // Exclude the same file
-    .map((k) => {
-      return `## path:${k.path}\n${k.content}`;
-    })
-    .join("\n\n");
-
-  const knowledgeText =
-    [...context.knowledgeTexts].join("\n\n") + knowledgeTextFromDb;
-
   const systemPrompt = generateSystemPrompt(context.systemPrompt, rules);
   const prompt = generatePromptWithCode(
     source,
@@ -85,17 +72,44 @@ export async function analyzeCodeForBugs(
   );
 
   try {
-    const response = await fetchOpenAIResponse(
-      context.llmSettings.openAiApiKey,
-      context.llmSettings.model,
-      systemPrompt,
-      prompt
-    );
+    const response = await context.llm.generate(systemPrompt, prompt);
     return buildIssuesFromResponse(source, response);
   } catch (error) {
     console.error("Error:", error);
     return [];
   }
+}
+
+async function createKnowledgeText(
+  context: AnalyzeContext,
+  source: Source
+): Promise<string> {
+  const codeKnowledges =
+    (await context.codeSearchDatabase?.search(source.content, 3)) ?? [];
+
+  const knowledgeTextFromDb = codeKnowledges
+    .filter((k) => k.path !== source.path) // Exclude the same file
+    .map((k) => {
+      return `## path:${k.path}\n${k.content}`;
+    })
+    .join("\n\n");
+
+  const documentKnowledges =
+    (await context.documentSearchDatabase?.search(source.content, 3)) ?? [];
+
+  const documentKnowledgeTexts = documentKnowledges
+    .map((k) => {
+      return `## path:${k.path}\n${k.content}`;
+    })
+    .join("\n\n");
+
+  const knowledgeText =
+    [...context.knowledgeTexts].join("\n\n") +
+    knowledgeTextFromDb +
+    "\n\n" +
+    documentKnowledgeTexts;
+
+  return knowledgeText;
 }
 
 function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
@@ -153,43 +167,8 @@ function generatePromptWithCode(
   `;
 }
 
-async function fetchOpenAIResponse(
-  openaiApiKey: string,
-  model: string,
-  systemPrompt: string,
-  prompt: string
-): Promise<GPTResponse> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${openaiApiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-    }),
-  });
-  return response.json();
-}
-
-function buildIssuesFromResponse(
-  source: Source,
-  response: GPTResponse
-): Issue[] {
-  const issues = JSON.parse(response.choices[0].message.content)
-    .issues as ResponseIssue[];
+function buildIssuesFromResponse(source: Source, response: string): Issue[] {
+  const issues = JSON.parse(response).issues as ResponseIssue[];
   return issues.map((issue) => ({
     ...issue,
     source,

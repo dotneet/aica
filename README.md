@@ -21,5 +21,8 @@ bun install
 To run:
 
 ```bash
+export OPENAI_API_KEY=your_api_key
+export OPENAI_MODEL=gpt-4-turbo-2024-04-09 # optional
+
 bun run src/main.ts <glob-pattern>
 ```

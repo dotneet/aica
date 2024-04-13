@@ -9,7 +9,7 @@ import {
 import { sendToSlack } from "slack";
 import { Source, SourceFinder } from "source";
 import { readConfig } from "config";
-import { KnowledgeDatabase, KnowledgeDatabaseOrama } from "knowledge/database";
+import { KnowledgeDatabase, CodeSearchDatabaseOrama } from "knowledge/database";
 import { EmbeddingProducer } from "embedding";
 
 const { values, positionals } = parseArgs({
@@ -38,42 +38,56 @@ async function main(values: any, positionals: any) {
     const config = readConfig(configFilePath);
     const targetDir = values.dir || ".";
 
-    let db: KnowledgeDatabase | null;
-    const embeddingProducer = new EmbeddingProducer(
-      config.llm.openAiApiKey,
-      config.llm.embeddingModel
-    );
     const knowledgeTextFiles = config.knowledge?.fixture?.files || [];
     const knowledgeTexts = knowledgeTextFiles.map((f) =>
       fs.readFileSync(f, "utf8")
     );
-    if (config.knowledge?.search && config.knowledge.search.directory) {
+
+    const embeddingProducer = new EmbeddingProducer(
+      config.llm.apiKey,
+      config.llm.embeddingModel
+    );
+    let codeSearchDatabase: KnowledgeDatabase | null;
+    if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
       const {
         directory,
-        includePatterns,
         persistentFilePath,
+        includePatterns,
         excludePatterns,
-      } = config.knowledge.search;
-      if (fs.existsSync(persistentFilePath)) {
-        db = await KnowledgeDatabaseOrama.load(
-          persistentFilePath,
-          embeddingProducer
-        );
-      } else {
-        db = await KnowledgeDatabaseOrama.create(embeddingProducer);
-        await db.populate(directory, includePatterns, excludePatterns);
-        if (persistentFilePath) {
-          await db.save(persistentFilePath);
-          console.warn(
-            "skip saving knowledge database due to the lack of persistentFilePath in the config."
-          );
-        }
-        console.log("Knowledge database populated.");
-      }
+      } = config.knowledge.codeSearch;
+      codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
+        directory,
+        persistentFilePath,
+        includePatterns,
+        excludePatterns,
+        embeddingProducer
+      );
     }
+
+    let documentSearchDatabase: KnowledgeDatabase | null;
+    if (
+      config.knowledge?.documentSearch &&
+      config.knowledge.documentSearch.directory
+    ) {
+      const {
+        directory,
+        persistentFilePath,
+        includePatterns,
+        excludePatterns,
+      } = config.knowledge.documentSearch;
+      documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
+        directory,
+        persistentFilePath,
+        includePatterns,
+        excludePatterns,
+        embeddingProducer
+      );
+    }
+
     const context = buildAnalyzeContext(
       knowledgeTexts,
-      db,
+      codeSearchDatabase,
+      documentSearchDatabase,
       config.llm,
       config.prompt.system,
       config.prompt.rules,
@@ -84,7 +98,7 @@ async function main(values: any, positionals: any) {
     const shouldNotifySlack = values.slack === true;
 
     const sourceFinder = new SourceFinder(
-      config.source.suffixes,
+      config.source.includePatterns,
       config.source.excludePatterns
     );
     if (positionals.length > 2) {

@@ -10,12 +10,6 @@ import {
   extractReferenceSymbols,
 } from "./extract-symbols";
 
-const schema = {
-  path: "string",
-  content: "string",
-  symbols: "string[]",
-} as const;
-
 export interface KnowledgeDatabase {
   populate(
     directory: string,
@@ -30,17 +24,61 @@ export interface KnowledgeDatabase {
   save(path: string): Promise<void>;
 }
 
-export class KnowledgeDatabaseOrama implements KnowledgeDatabase {
+export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
+  static schema = {
+    path: "string",
+    content: "string",
+    symbols: "string[]",
+  } as const;
+
   constructor(
-    private db: Orama<typeof schema>,
+    private db: Orama<typeof CodeSearchDatabaseOrama.schema>,
     private embeddingProducer: EmbeddingProducer
   ) {}
 
   static async create(embeddingProducer: EmbeddingProducer) {
-    const db: Orama<typeof schema> = await create({
-      schema: schema,
+    const db: Orama<typeof CodeSearchDatabaseOrama.schema> = await create({
+      schema: CodeSearchDatabaseOrama.schema,
     });
-    return new KnowledgeDatabaseOrama(db, embeddingProducer);
+    return new CodeSearchDatabaseOrama(db, embeddingProducer);
+  }
+
+  static async load(
+    path: string,
+    embeddingProducer: EmbeddingProducer
+  ): Promise<CodeSearchDatabaseOrama> {
+    const JSONIndex = fs.readFileSync(path, "utf8");
+    const db: Orama<typeof CodeSearchDatabaseOrama.schema> = await restore(
+      "json",
+      JSONIndex
+    );
+    return new CodeSearchDatabaseOrama(db, embeddingProducer);
+  }
+
+  static async fromSettings(
+    directory: string,
+    persistentFilePath: string,
+    includePatterns: string[],
+    excludePatterns: string[],
+    embeddingProducer: EmbeddingProducer
+  ): Promise<CodeSearchDatabaseOrama> {
+    if (fs.existsSync(persistentFilePath)) {
+      return await CodeSearchDatabaseOrama.load(
+        persistentFilePath,
+        embeddingProducer
+      );
+    } else {
+      const db = await CodeSearchDatabaseOrama.create(embeddingProducer);
+      await db.populate(directory, includePatterns, excludePatterns);
+      if (persistentFilePath) {
+        await db.save(persistentFilePath);
+      } else {
+        console.warn(
+          "skip saving knowledge database due to the lack of persistentFilePath in the config."
+        );
+      }
+      return db;
+    }
   }
 
   async populate(
@@ -98,13 +136,120 @@ export class KnowledgeDatabaseOrama implements KnowledgeDatabase {
     const JSONIndex = await persist(this.db, "json");
     fs.writeFileSync(path, JSONIndex);
   }
+}
+
+export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
+  static schema = {
+    path: "string",
+    content: "string",
+    embedding: "vector[1536]",
+  } as const;
+
+  constructor(
+    private db: Orama<typeof DocumentSearchDatabaseOrama.schema>,
+    private embeddingProducer: EmbeddingProducer
+  ) {}
+
+  static async create(embeddingProducer: EmbeddingProducer) {
+    const db: Orama<typeof DocumentSearchDatabaseOrama.schema> = await create({
+      schema: DocumentSearchDatabaseOrama.schema,
+    });
+    return new DocumentSearchDatabaseOrama(db, embeddingProducer);
+  }
 
   static async load(
     path: string,
     embeddingProducer: EmbeddingProducer
-  ): Promise<KnowledgeDatabaseOrama> {
+  ): Promise<DocumentSearchDatabaseOrama> {
     const JSONIndex = fs.readFileSync(path, "utf8");
-    const db: Orama<typeof schema> = await restore("json", JSONIndex);
-    return new KnowledgeDatabaseOrama(db, embeddingProducer);
+    const db: Orama<typeof DocumentSearchDatabaseOrama.schema> = await restore(
+      "json",
+      JSONIndex
+    );
+    return new DocumentSearchDatabaseOrama(db, embeddingProducer);
+  }
+
+  static async fromSettings(
+    directory: string,
+    persistentFilePath: string,
+    includePatterns: string[],
+    excludePatterns: string[],
+    embeddingProducer: EmbeddingProducer
+  ): Promise<DocumentSearchDatabaseOrama> {
+    if (fs.existsSync(persistentFilePath)) {
+      return await DocumentSearchDatabaseOrama.load(
+        persistentFilePath,
+        embeddingProducer
+      );
+    } else {
+      const db = await DocumentSearchDatabaseOrama.create(embeddingProducer);
+      await db.populate(directory, includePatterns, excludePatterns);
+      if (persistentFilePath) {
+        await db.save(persistentFilePath);
+        console.warn(
+          "skip saving knowledge database due to the lack of persistentFilePath in the config."
+        );
+      }
+      console.log("Knowledge database populated.");
+      return db;
+    }
+  }
+
+  async populate(
+    directory: string,
+    includePatterns: string[],
+    excludePatterns: string[]
+  ): Promise<void> {
+    const excludeGlobs = excludePatterns.map((pattern) => new Glob(pattern));
+    for (const includePattern of includePatterns) {
+      const glob = new Glob(includePattern);
+      for await (const file of glob.scan(directory)) {
+        if (excludeGlobs.some((excludeGlob) => excludeGlob.match(file))) {
+          continue;
+        }
+        const absPath = path.join(directory, file);
+        await this.insert(absPath, fs.readFileSync(absPath, "utf8"));
+      }
+    }
+  }
+
+  async insert(path: string, content: string) {
+    const embedding = await this.embeddingProducer.getEmbedding(content);
+    await insert(this.db, {
+      path: path,
+      content: content,
+      embedding: embedding,
+    });
+  }
+
+  async search(
+    content: string,
+    limit: number = 3
+  ): Promise<{ content: string; path: string }[]> {
+    const embedding = await this.embeddingProducer.getEmbedding(content);
+    const result = await search(this.db, {
+      mode: "vector",
+      vector: {
+        value: embedding,
+        property: "embedding",
+      },
+      similarity: 0.1,
+      limit: limit,
+    });
+    return result.hits.map((hit) => {
+      let content = hit.document.content;
+      if (content.length > 4000) {
+        content = content.substring(0, 4000) + "...";
+      }
+      return {
+        path: hit.document.path,
+        content: content,
+      };
+    });
+  }
+
+  async save(path: string) {
+    const JSONIndex = await persist(this.db, "json");
+    fs.writeFileSync(path, JSONIndex);
   }
 }

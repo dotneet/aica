@@ -1,19 +1,6 @@
 [source]
-suffixes = [
-    ".js",
-    ".ts",
-    ".jsx",
-    ".tsx",
-    ".java",
-    ".dart",
-    ".kt",
-    ".scala",
-    ".go",
-    ".rs",
-    ".zig",
-    ".rb",
-    ".php",
-    ".py",
+includePatterns = [
+    "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
 ]
 
 excludePatterns = [
@@ -35,10 +22,13 @@ excludePatterns = [
 # these files are embedded in an user prompt as a knowledge always.
 files = ["testdata/docs/spec.txt"]
 
-[knowledge.search]
+[knowledge.codeSearch]
+# code search provides symbol based search for the given directory.
 directory = "testdata/src"
-persistentFilePath = "knowledge.db"
-includePatterns = ["**/*.ts"]
+persistentFilePath = "knowledge-src.db"
+includePatterns = [
+    "**/*.{ts,js,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
+]
 excludePatterns = [
     "node_modules/**",
     "vendor/**",
@@ -46,6 +36,20 @@ excludePatterns = [
     "dist/**",
     "out/**",
 ]
+
+[knowledge.documentSearch]
+# document search provides vector based search for the given directory.
+directory = "testdata/docs"
+persistentFilePath = "knowledge-doc.db"
+includePatterns = ["**/*.{md,txt,adoc,html}"]
+excludePatterns = [
+    "node_modules/**",
+    "vendor/**",
+    "tmp/**",
+    "dist/**",
+    "out/**",
+]
+
 
 [prompt]
 system = "You are a QA engineer reviewing code for bugs."
