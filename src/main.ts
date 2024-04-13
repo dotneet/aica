@@ -109,13 +109,30 @@ async function reviews(values: any) {
 }
 
 async function commitMessage(values: any) {
-  // get diff from HEAD
-  const result = Bun.spawn({
-    cmd: ["git", "diff", "HEAD"],
-    cwd: values.repository || ".",
+  const cwd = values.repository || ".";
+  // check if cwd is a git repository
+  const revParseResult = Bun.spawn({
+    cmd: ["git", "rev-parse", "--is-inside-work-tree"],
+    cwd,
     stdout: "pipe",
   });
-  const text = await new Response(result.stdout).text();
+  await revParseResult.exited;
+  const isGitRepository = revParseResult.exitCode === 0;
+  if (!isGitRepository) {
+    console.error("Not a git repository.");
+    return;
+  }
+
+  const result = Bun.spawn({
+    cmd: ["git", "diff", "HEAD"],
+    cwd,
+    stdout: "pipe",
+  });
+  const text = (await new Response(result.stdout).text()).trim();
+  if (text === "") {
+    console.log("No diff found.");
+    return;
+  }
   const config = readConfig(values.config);
   const context = await createAnalyzeContextFromConfig(config);
   const content = await context.llm.generate(
