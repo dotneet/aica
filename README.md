@@ -43,7 +43,7 @@ export OPENAI_MODEL=gpt-4-turbo-2024-04-09 # optional
 ### Review
 
 ```bash
-# review the diff to HEAD
+# review the diff from HEAD
 aica review
 
 # review specific files
@@ -56,13 +56,13 @@ aica review "src/**/*.ts"
 ### Summary Changes
 
 ```bash
-# summarize the diff to HEAD
+# summarize the diff from HEAD
 aica summary-diff
 ```
 
 ### Generate Commit Message
 
 ```bash
-# generate a one-line commit message based on the diff to HEAD
+# generate a one-line commit message based on the diff from HEAD
 aica commit-message
 ```

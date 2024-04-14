@@ -13,7 +13,7 @@ const argv = yargs(process.argv.slice(2))
   .version(pkg.version)
   .command(
     "commit-message",
-    "generate commit message based on diff to HEAD",
+    "generate a commit message based on the diff from HEAD",
     (yargs: any) => {
       return yargs
         .options({
@@ -26,7 +26,7 @@ const argv = yargs(process.argv.slice(2))
         .help();
     }
   )
-  .command("summary-diff", "summarize the changes to HEAD", (yargs: any) => {
+  .command("summary-diff", "summarize the diff from HEAD", (yargs: any) => {
     return yargs
       .options({
         dir: {
