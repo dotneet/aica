@@ -42,9 +42,6 @@ export async function summarizeCode(
     '''`.replace(/^ +/gm, "");
 
   const userPrompt = `${context.userPrompt}`.replace("%CODE%", source);
-
-  console.log(systemPrompt);
-  console.log(userPrompt);
   const result = await context.llm.generate(systemPrompt, userPrompt, true);
   const json = JSON.parse(result);
   return json.changes
