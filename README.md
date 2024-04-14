@@ -1,4 +1,4 @@
-# AI Code Analyzer
+# aica - AI Code Analyzer
 
 ## Motivation
 
@@ -16,6 +16,8 @@ So, I decided to create a new tool with the following characteristics.
 - [x] Automatic knowledge retrieving
 - [x] Symbol based code search for retrieving knowledge
 - [x] Vector based document search for retrieving knowledge
+- [x] Generate summary of changes
+- [x] Generate commit message
 - [x] Prompt customization
 - [x] Slack notification
 - [x] Single binary executable by `bun build --compile`
@@ -23,9 +25,13 @@ So, I decided to create a new tool with the following characteristics.
 
 ## Setup
 
-To build a binary:
+Build and install a binary:
 
 ```bash
+# if you don't have bun installed, install it first
+# With macOS:
+# brew install bun
+
 bun install
 bun run build
 cp ./dist/aica path-to-your-bin-directory
