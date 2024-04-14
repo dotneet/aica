@@ -3,7 +3,7 @@ import yargs from "yargs";
 import { executeCommitMessageCommand } from "commands/commit-message-command";
 import { executeReviewCommand } from "commands/review-command";
 import pkg from "../package.json";
-import { executeSummaryCommand } from "commands/summary-command";
+import { executeSummaryDiffCommand } from "commands/summary-diff-command";
 
 const argv = yargs(process.argv.slice(2))
   .option("config", {
@@ -26,7 +26,7 @@ const argv = yargs(process.argv.slice(2))
         .help();
     }
   )
-  .command("summary", "summarize code", (yargs: any) => {
+  .command("summary-diff", "summarize the changes to HEAD", (yargs: any) => {
     return yargs
       .options({
         dir: {
@@ -74,8 +74,8 @@ switch (subcommand) {
   case "commit-message":
     executeCommitMessageCommand(values);
     break;
-  case "summary":
-    executeSummaryCommand(values);
+  case "summary-diff":
+    executeSummaryDiffCommand(values);
     break;
   default:
     console.error("Unknown subcommand:", subcommand);

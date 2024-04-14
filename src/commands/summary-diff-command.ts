@@ -4,7 +4,7 @@ import { LLM } from "llm";
 import { SourceFinder } from "source";
 import { createSummaryContext, summarizeCode } from "summary";
 
-export async function executeSummaryCommand(values: any) {
+export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;
   const targetDir = values.dir || ".";
   const pattern = values.pattern;
@@ -18,25 +18,10 @@ export async function executeSummaryCommand(values: any) {
     config.summary.prompt.user
   );
 
-  const sourceFinder = new SourceFinder(
-    config.source.includePatterns,
-    config.source.excludePatterns
-  );
-
-  let targetSource = "";
-  if (pattern) {
-    const sources = await sourceFinder.getSources(targetDir, pattern);
-    targetSource = sources
-      .map((source) => {
-        `=====\npath: ${source.path}\n${source.content}`;
-      })
-      .join("\n\n");
-  } else {
-    targetSource = await getGitDiff(targetDir);
-  }
+  const targetSource = await getGitDiff(targetDir);
 
   if (targetSource.length === 0) {
-    console.log("対象のファイルが見つかりませんでした。");
+    console.log("No diff found.");
     return;
   }
 
