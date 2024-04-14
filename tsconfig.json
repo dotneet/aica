@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "lib": ["ESNext", "DOM"],
     "types": ["bun-types", "@types/bun", "@types/yargs"],

@@ -3,10 +3,10 @@ import {
   analyzeCodeForBugs,
   createAnalyzeContextFromConfig,
   getCodesAroundIssue,
-} from "analyze";
-import { readConfig } from "config";
-import { sendToSlack } from "slack";
-import { Source, SourceFinder } from "source";
+} from "@/analyze";
+import { readConfig } from "@/config";
+import { sendToSlack } from "@/slack";
+import { Source, SourceFinder } from "@/source";
 
 export async function executeReviewCommand(values: any) {
   try {

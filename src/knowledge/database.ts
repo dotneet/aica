@@ -1,7 +1,7 @@
 import { Orama, create, insert, search } from "@orama/orama";
 import { persist, restore } from "@orama/plugin-data-persistence";
 import { Glob } from "bun";
-import { EmbeddingProducer } from "embedding";
+import { EmbeddingProducer } from "@/embedding";
 
 import path from "node:path";
 import fs from "node:fs";

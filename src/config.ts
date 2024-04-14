@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { deepAssign } from "utility/deep-assign";
+import { deepAssign } from "./utility/deep-assign";
 
 export type LLMConfig = {
   provider: "openai";

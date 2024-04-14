@@ -1,12 +1,12 @@
-import { Config, LLMConfig } from "config";
+import { Config, LLMConfig } from "./config";
 import fs from "fs";
 import {
   CodeSearchDatabaseOrama,
   KnowledgeDatabase,
 } from "./knowledge/database";
-import { Source, SourceType } from "source";
-import { LLM } from "llm";
-import { EmbeddingProducer } from "embedding";
+import { Source, SourceType } from "./source";
+import { LLM } from "./llm";
+import { EmbeddingProducer } from "./embedding";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];

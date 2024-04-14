@@ -1,4 +1,4 @@
-import { LLM } from "llm";
+import { LLM } from "./llm";
 
 export type SummaryContext = {
   llm: LLM;

@@ -1,4 +1,4 @@
-import { Issue } from "analyze";
+import { Issue } from "./analyze";
 
 export function createGitHubStyleTableFromIssues(issues: Issue[]): string {
   const header = "| File | Description |";

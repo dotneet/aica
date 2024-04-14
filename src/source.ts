@@ -1,7 +1,7 @@
 import path from "path";
 import Bun from "bun";
 import fs from "node:fs";
-import { FileChange } from "utility/parse-diff";
+import { FileChange } from "@/utility/parse-diff";
 
 export enum SourceType {
   Text,

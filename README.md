@@ -28,7 +28,7 @@ So, I decided to create a new tool with the following characteristics.
 Build and install a binary:
 
 ```bash
-# if you don't have bun installed, install it first
+# if you don't have bun installed, install it first.
 # With macOS:
 # brew install bun
 

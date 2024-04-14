@@ -1,7 +1,10 @@
-import { readConfig } from "config";
-import { getGitDiff } from "git";
-import { LLM } from "llm";
-import { createSummaryContext, summarizeCode as summarizeDiff } from "summary";
+import { readConfig } from "@/config";
+import { getGitDiff } from "@/git";
+import { LLM } from "@/llm";
+import {
+  createSummaryContext,
+  summarizeCode as summarizeDiff,
+} from "@/summary";
 
 export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;

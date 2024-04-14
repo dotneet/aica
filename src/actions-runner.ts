@@ -4,11 +4,11 @@ import {
   Issue,
   analyzeCodeForBugs,
   createAnalyzeContextFromConfig,
-} from "analyze";
-import { readConfig } from "config";
-import { createGitHubStyleTableFromIssues } from "github";
-import { Source } from "source";
-import { parseDiff } from "utility/parse-diff";
+} from "@/analyze";
+import { readConfig } from "@/config";
+import { createGitHubStyleTableFromIssues } from "@/github";
+import { Source } from "@/source";
+import { parseDiff } from "@/utility/parse-diff";
 
 async function main() {
   try {

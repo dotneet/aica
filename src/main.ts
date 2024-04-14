@@ -1,9 +1,9 @@
 import yargs from "yargs";
 
-import { executeCommitMessageCommand } from "commands/commit-message-command";
-import { executeReviewCommand } from "commands/review-command";
+import { executeCommitMessageCommand } from "@/commands/commit-message-command";
+import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
-import { executeSummaryDiffCommand } from "commands/summary-diff-command";
+import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
 
 const argv = yargs(process.argv.slice(2))
   .option("config", {

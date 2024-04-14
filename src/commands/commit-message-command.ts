@@ -1,6 +1,6 @@
-import { createAnalyzeContextFromConfig } from "analyze";
-import { readConfig } from "config";
-import { getGitDiff } from "git";
+import { createAnalyzeContextFromConfig } from "@/analyze";
+import { readConfig } from "@/config";
+import { getGitDiff } from "@/git";
 
 export async function executeCommitMessageCommand(values: any) {
   const cwd = values.dir || ".";
