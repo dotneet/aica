@@ -1,8 +1,7 @@
 import { readConfig } from "config";
 import { getGitDiff } from "git";
 import { LLM } from "llm";
-import { SourceFinder } from "source";
-import { createSummaryContext, summarizeCode } from "summary";
+import { createSummaryContext, summarizeCode as summarizeDiff } from "summary";
 
 export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;
@@ -18,13 +17,12 @@ export async function executeSummaryDiffCommand(values: any) {
     config.summary.prompt.user
   );
 
-  const targetSource = await getGitDiff(targetDir);
-
-  if (targetSource.length === 0) {
+  const diff = await getGitDiff(targetDir);
+  if (diff.length === 0) {
     console.log("No diff found.");
     return;
   }
 
-  const summary = await summarizeCode(summaryContext, targetSource);
+  const summary = await summarizeDiff(summaryContext, diff);
   console.log(`${summary}`);
 }

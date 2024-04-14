@@ -53,17 +53,11 @@ aica review src/main.ts
 aica review "src/**/*.ts"
 ```
 
-### Summary
+### Summary Changes
 
 ```bash
 # summarize the diff to HEAD
-aica summary
-
-# summarize the specific file
-aica summary src/main.ts
-
-# summarize the files matching the specific glob pattern
-aica summary "src/**/*.ts"
+aica summary-diff
 ```
 
 ### Generate Commit Message
