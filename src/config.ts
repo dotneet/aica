@@ -32,10 +32,19 @@ export type Config = {
   llm: LLMConfig;
   embedding: EmbeddingConfig;
   knowledge?: Knowledge;
-  prompt: {
-    system: string;
-    rules: string[];
-    user: string;
+  review: {
+    prompt: {
+      system: string;
+      rules: string[];
+      user: string;
+    };
+  };
+  summary: {
+    prompt: {
+      system: string;
+      rules: string[];
+      user: string;
+    };
   };
   source: {
     includePatterns: string[];
@@ -55,16 +64,29 @@ const defaultConfig: Config = {
     model: "text-embedding-3-small",
     apiKey: Bun.env.OPENAI_API_KEY || "",
   },
-  prompt: {
-    system: "You are a QA engineer reviewing code for bugs.",
-    rules: [
-      "Provide list of critical or high risk bugs and security issues.",
-      "Use JSON format to return the issues.",
-      "Only provide when you are convinced that it is a bug absolutely.",
-      "No need to output low risk bugs and error handling problems.",
-      "Provide up to 5 issues.",
-    ],
-    user: "Identify and list any critical bugs in the code below, with brief explanations for each.",
+  review: {
+    prompt: {
+      system: "You are a QA engineer reviewing code for bugs.",
+      rules: [
+        "Provide list of critical or high risk bugs and security issues.",
+        "Use JSON format to return the issues.",
+        "Only provide when you are convinced that it is a bug absolutely.",
+        "No need to output low risk bugs and error handling problems.",
+        "Provide up to 5 issues.",
+      ],
+      user: "Identify and list any critical bugs in the code below, with brief explanations for each.",
+    },
+  },
+  summary: {
+    prompt: {
+      system: "You are a senior software engineer.",
+      rules: [
+        "Provide list of the brief summary of the changes in the given code.",
+        "Given code maybe a diff or a code snippet.",
+        "Use JSON format to return the explanation of changes.",
+      ],
+      user: "Summarize the given code changes.\n\n=== CODE ===\n%CODE%\n=========",
+    },
   },
   source: {
     includePatterns: [

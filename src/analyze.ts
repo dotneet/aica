@@ -64,9 +64,9 @@ export async function createAnalyzeContextFromConfig(
     codeSearchDatabase,
     documentSearchDatabase,
     config.llm,
-    config.prompt.system,
-    config.prompt.rules,
-    config.prompt.user
+    config.review.prompt.system,
+    config.review.prompt.rules,
+    config.review.prompt.user
   );
 }
 

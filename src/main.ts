@@ -1,15 +1,9 @@
-import {
-  Issue,
-  analyzeCodeForBugs,
-  createAnalyzeContextFromConfig,
-  getCodesAroundIssue,
-} from "analyze";
 import yargs from "yargs";
-import { readConfig } from "config";
-import { sendToSlack } from "slack";
-import { Source, SourceFinder } from "source";
 
+import { executeCommitMessageCommand } from "commands/commit-message-command";
+import { executeReviewCommand } from "commands/review-command";
 import pkg from "../package.json";
+import { executeSummaryCommand } from "commands/summary-command";
 
 const argv = yargs(process.argv.slice(2))
   .option("config", {
@@ -23,8 +17,8 @@ const argv = yargs(process.argv.slice(2))
     (yargs: any) => {
       return yargs
         .options({
-          repository: {
-            describe: "path to git repository",
+          dir: {
+            describe: "path to the target directory",
             type: "string",
           },
         })
@@ -32,15 +26,22 @@ const argv = yargs(process.argv.slice(2))
         .help();
     }
   )
-  .command("reviews [<pattern>]", "run code review", (yargs: any) => {
+  .command("summary", "summarize code", (yargs: any) => {
     return yargs
       .options({
-        repository: {
-          describe: "path to git repository",
+        dir: {
+          describe: "path to the target directory",
           type: "string",
         },
+      })
+      .strict()
+      .help();
+  })
+  .command("review [<pattern>]", "review code", (yargs: any) => {
+    return yargs
+      .options({
         dir: {
-          describe: "path to directory",
+          describe: "path to the target directory",
           type: "string",
         },
         slack: {
@@ -55,103 +56,11 @@ const argv = yargs(process.argv.slice(2))
   })
   .strict()
   .help()
+  .demandCommand()
   .parseSync();
-
-async function reviews(values: any) {
-  try {
-    const configFilePath = values.config || null;
-    const config = readConfig(configFilePath);
-    const targetDir = values.dir || ".";
-
-    const context = await createAnalyzeContextFromConfig(config);
-
-    const sources: Source[] = [];
-    const shouldNotifySlack = values.slack === true;
-
-    const sourceFinder = new SourceFinder(
-      config.source.includePatterns,
-      config.source.excludePatterns
-    );
-    if (values.pattern) {
-      sources.push(
-        ...(await sourceFinder.getSources(targetDir, values.pattern))
-      );
-    } else {
-      const repositoryDir = values.repository || ".";
-      sources.push(
-        ...(await sourceFinder.getModifiedFilesFromRepository(repositoryDir))
-      );
-    }
-
-    if (sources.length === 0) {
-      console.log("No target files found.");
-      return;
-    }
-
-    for (const source of sources) {
-      console.log(`Analyzing ${source.path}`);
-      const issues = await analyzeCodeForBugs(context, source);
-      if (issues.length > 0) {
-        if (shouldNotifySlack) {
-          await sendToSlack(source.path, issues);
-          console.log("Slack notification sent.");
-        } else {
-          console.log(`Issues found in ${source.path}:\n\n`);
-          issues.forEach(printIssue);
-        }
-      } else {
-        console.log(`No issues found in ${source.path}.`);
-      }
-    }
-  } catch (error) {
-    console.error("Error occurred:", error);
-  }
-}
-
-async function commitMessage(values: any) {
-  const cwd = values.repository || ".";
-  // check if cwd is a git repository
-  const revParseResult = Bun.spawn({
-    cmd: ["git", "rev-parse", "--is-inside-work-tree"],
-    cwd,
-    stdout: "pipe",
-  });
-  await revParseResult.exited;
-  const isGitRepository = revParseResult.exitCode === 0;
-  if (!isGitRepository) {
-    console.error("Not a git repository.");
-    return;
-  }
-
-  const result = Bun.spawn({
-    cmd: ["git", "diff", "HEAD"],
-    cwd,
-    stdout: "pipe",
-  });
-  const text = (await new Response(result.stdout).text()).trim();
-  if (text === "") {
-    console.log("No diff found.");
-    return;
-  }
-  const config = readConfig(values.config);
-  const context = await createAnalyzeContextFromConfig(config);
-  const content = await context.llm.generate(
-    "You are an senior software engineer.",
-    `Generate one-line commit message based on given diff.\nResponse must be less than 120 characters.\n\ndiff: \n ${text}`,
-    false
-  );
-  console.log(content);
-}
-
-function printIssue(issue: Issue) {
-  console.log(`Line ${issue.line} ${issue.level} - ${issue.description}`);
-  console.log(getCodesAroundIssue(issue));
-  console.log("");
-}
 
 const values = {
   config: argv.config,
-  repository: argv.repository,
   dir: argv.dir,
   slack: argv.slack,
   pattern: argv.pattern,
@@ -159,11 +68,14 @@ const values = {
 
 const subcommand = argv._[0];
 switch (subcommand) {
-  case "reviews":
-    reviews(values);
+  case "review":
+    executeReviewCommand(values);
     break;
   case "commit-message":
-    commitMessage(values);
+    executeCommitMessageCommand(values);
+    break;
+  case "summary":
+    executeSummaryCommand(values);
     break;
   default:
     console.error("Unknown subcommand:", subcommand);

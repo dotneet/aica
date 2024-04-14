@@ -51,7 +51,7 @@ excludePatterns = [
 ]
 
 
-[prompt]
+[review.prompt]
 system = "You are a QA engineer reviewing code for bugs."
 rules = [
     "Provide list of critical or high risk bugs and security issues.",
@@ -62,3 +62,17 @@ rules = [
 ]
 
 user = "Identify and list any critical bugs in the code below, with brief explanations for each."
+
+[summary.prompt]
+system = "You are a senior software engineer."
+rules = [
+    "Provide list of the brief summary of the changes in the given code.",
+    "Given code maybe a diff or a code snippet.",
+    "Use JSON format to return the explanation of changes.",
+]
+
+user = """
+=== CODE ===
+%CODE%
+============
+"""

@@ -21,25 +21,54 @@ So, I decided to create a new tool with the following characteristics.
 - [x] Single binary executable by `bun build --compile`
 - [x] GitHub Actions integration. (See [wiki page](https://github.com/dotneet/aica/wiki/GitHub-Actions-Settings) to setup actions.)
 
-## Usage
+## Setup
 
-To install dependencies:
+To build a binary:
 
 ```bash
 bun install
+bun run build
+cp ./dist/aica path-to-your-bin-directory
 ```
 
-To run:
+Setup environment variables:
 
 ```bash
 export OPENAI_API_KEY=your_api_key
 export OPENAI_MODEL=gpt-4-turbo-2024-04-09 # optional
-
-bun run src/main.ts <glob-pattern>
 ```
 
-To create single binary executable:
+## Usage
+
+### Review
 
 ```bash
-bun run build
+# review the diff to HEAD
+aica review
+
+# review specific files
+aica review src/main.ts
+
+# review the files matching the specific glob pattern
+aica review "src/**/*.ts"
+```
+
+### Summary
+
+```bash
+# summarize the diff to HEAD
+aica summary
+
+# summarize the specific file
+aica summary src/main.ts
+
+# summarize the files matching the specific glob pattern
+aica summary "src/**/*.ts"
+```
+
+### Generate Commit Message
+
+```bash
+# generate a one-line commit message based on the diff to HEAD
+aica commit-message
 ```
