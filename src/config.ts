@@ -149,5 +149,8 @@ export function readConfig(path: string | null): Config {
   }
   const file = fs.readFileSync(path);
   const config = Bun.TOML.parse(file.toString()) as Config;
+  if (!config) {
+    throw new Error(`Invalid config file: ${path}`);
+  }
   return deepAssign(defaultConfig, config);
 }

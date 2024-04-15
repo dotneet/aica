@@ -1,17 +1,13 @@
 import { readConfig } from "@/config";
 import { getGitDiff } from "@/git";
 import { LLM } from "@/llm";
-import {
-  createSummaryContext,
-  summarizeCode as summarizeDiff,
-} from "@/summary";
+import { createSummaryContext, summarizeDiff } from "@/summary";
 
 export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;
   const targetDir = values.dir || ".";
-  const pattern = values.pattern;
 
-  const config = await readConfig(configFilePath);
+  const config = readConfig(configFilePath);
 
   const summaryContext = createSummaryContext(
     new LLM(config.llm.apiKey, config.llm.model),
@@ -26,6 +22,11 @@ export async function executeSummaryDiffCommand(values: any) {
     return;
   }
 
-  const summary = await summarizeDiff(summaryContext, diff);
+  const summaryDiffItems = await summarizeDiff(summaryContext, diff);
+  const summary = summaryDiffItems
+    .map((item) => {
+      return ` - ${item.category}: ${item.description}`;
+    })
+    .join("\n");
   console.log(`${summary}`);
 }

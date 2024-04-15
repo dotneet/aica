@@ -71,8 +71,10 @@ rules = [
     "Use JSON format to return the explanation of changes.",
 ]
 
-user = """
-=== CODE ===
-%CODE%
-============
+user = """\
+Summarize the given code changes.\n\
+\n\
+=== CODE ===\n\
+%CODE%\n\
+============\n\
 """

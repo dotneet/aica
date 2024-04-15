@@ -7,6 +7,11 @@ export type SummaryContext = {
   userPrompt: string;
 };
 
+export type SummaryDiffItem = {
+  category: string;
+  description: string;
+};
+
 export function createSummaryContext(
   llm: LLM,
   systemPrompt: string,
@@ -21,22 +26,30 @@ export function createSummaryContext(
   };
 }
 
-export async function summarizeCode(
+export async function summarizeDiff(
   context: SummaryContext,
   source: string
-): Promise<string> {
+): Promise<SummaryDiffItem[]> {
   const systemPrompt = `${context.systemPrompt}
 
     RULES:
-    ${context.rules.join("\n")}
+    ${context.rules.map((rule) => `- ${rule}`).join("\n")}
+
+    'category' property must be one of the following:
+     - refactor: typo, improvement of the code without changing its behavior
+     - bugfix: bug fix
+     - feature: new functionality
+     - enhance: improvements with change its behavior, optimization, trivial new functionality, CI/CD
+     - docs: documentation, code comments
 
     JSON Format:'''
     {
         "changes":[
-            {"category": "refactoring", "description": "Refactor the code to improve readability and maintainability."},
+            {"category": "refactor", "description": "Refactor the code to improve readability and maintainability."},
             {"category": "bugfix", "description": "resolve the usage of undeclared variable 'i'."},
             {"category": "feature", "description": "add the new command 'summary'"},
-            {"category": "enhancement", "description": "optimize calc() for better performance."}
+            {"category": "enhance", "description": "optimize calc() for better performance."},
+            {"category": "docs", "description": "Add the explanation about the new command 'summary' to README.md."}
         ]
     }
     '''`.replace(/^ +/gm, "");
@@ -44,7 +57,8 @@ export async function summarizeCode(
   const userPrompt = `${context.userPrompt}`.replace("%CODE%", source);
   const result = await context.llm.generate(systemPrompt, userPrompt, true);
   const json = JSON.parse(result);
-  return json.changes
-    .map((change: any) => ` - ${change.category}: ${change.description}`)
-    .join("\n");
+  return json.changes.map((change: any) => ({
+    category: change.category,
+    description: change.description,
+  }));
 }
