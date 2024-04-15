@@ -1,6 +1,6 @@
 import { readConfig } from "@/config";
 import { getGitDiff } from "@/git";
-import { LLM } from "@/llm";
+import { createLLM } from "@/llm/mod";
 import { createSummaryContext, summarizeDiff } from "@/summary";
 
 export async function executeSummaryDiffCommand(values: any) {
@@ -10,7 +10,7 @@ export async function executeSummaryDiffCommand(values: any) {
   const config = readConfig(configFilePath);
 
   const summaryContext = createSummaryContext(
-    new LLM(config.llm.apiKey, config.llm.model),
+    createLLM(config.llm),
     config.summary.prompt.system,
     config.summary.prompt.rules,
     config.summary.prompt.user

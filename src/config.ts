@@ -3,14 +3,21 @@ import { deepAssign } from "./utility/deep-assign";
 
 export type LLMConfig = {
   provider: "openai";
-  model: string;
-  embeddingModel: string;
-  apiKey: string;
+  openai: {
+    model: string;
+    apiKey: string;
+  };
+  anthropic: {
+    model: string;
+    apiKey: string;
+  };
 };
 export type EmbeddingConfig = {
   provider: "openai";
-  model: string;
-  apiKey: string;
+  openai: {
+    model: string;
+    apiKey: string;
+  };
 };
 
 export type KnowledgeSearch = {
@@ -55,14 +62,21 @@ export type Config = {
 const defaultConfig: Config = {
   llm: {
     provider: "openai",
-    model: Bun.env.OPENAI_MODEL || "gpt-4-turbo-2024-04-09",
-    embeddingModel: "text-embedding-3-small",
-    apiKey: Bun.env.OPENAI_API_KEY || "",
+    openai: {
+      model: Bun.env.OPENAI_MODEL || "gpt-4-turbo-2024-04-09",
+      apiKey: Bun.env.OPENAI_API_KEY || "",
+    },
+    anthropic: {
+      model: Bun.env.ANTHROPIC_MODEL || "claude-3-opus-20240229",
+      apiKey: Bun.env.ANTHROPIC_API_KEY || "",
+    },
   },
   embedding: {
     provider: "openai",
-    model: "text-embedding-3-small",
-    apiKey: Bun.env.OPENAI_API_KEY || "",
+    openai: {
+      model: "text-embedding-3-small",
+      apiKey: Bun.env.OPENAI_API_KEY || "",
+    },
   },
   review: {
     prompt: {

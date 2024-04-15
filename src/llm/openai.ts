@@ -1,3 +1,5 @@
+import { LLM } from "./llm";
+
 interface GPTResponse {
   choices: {
     message: {
@@ -6,8 +8,8 @@ interface GPTResponse {
   }[];
 }
 
-export class LLM {
-  constructor(private openaiApiKey: string, private model: string) {}
+export class LLMOpenAI implements LLM {
+  constructor(private apiKey: string, private model: string) {}
 
   public async generate(
     systemPrompt: string,
@@ -15,7 +17,7 @@ export class LLM {
     jsonMode: boolean
   ): Promise<string> {
     const responseObject = await this.fetchOpenAIResponse(
-      this.openaiApiKey,
+      this.apiKey,
       this.model,
       systemPrompt,
       prompt,

@@ -26,7 +26,16 @@ export async function executeCommitMessageCommand(values: any) {
   const context = await createAnalyzeContextFromConfig(config);
   const content = await context.llm.generate(
     "You are an senior software engineer.",
-    `Generate one-line commit message based on given diff.\nResponse must be less than 80 characters.\n\ndiff: \n ${text}`,
+    `
+    Generate one-line commit message based on given diff.
+    Response must be less than 80 characters.
+    
+    === START OF DIFF ===
+    {text}
+    === END OF DIFF ===
+    `
+      .replace("\n +", "\n")
+      .replace("{text}", text),
     false
   );
   console.log(content);

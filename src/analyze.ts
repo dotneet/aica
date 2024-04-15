@@ -5,8 +5,8 @@ import {
   KnowledgeDatabase,
 } from "./knowledge/database";
 import { Source, SourceType } from "./source";
-import { LLM } from "./llm";
-import { EmbeddingProducer } from "./embedding";
+import { createLLM, LLM } from "./llm/mod";
+import { createEmbeddingProducer } from "./embedding/mod";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
@@ -26,10 +26,7 @@ export async function createAnalyzeContextFromConfig(
     fs.readFileSync(f, "utf8")
   );
 
-  const embeddingProducer = new EmbeddingProducer(
-    config.llm.apiKey,
-    config.llm.embeddingModel
-  );
+  const embeddingProducer = createEmbeddingProducer(config.embedding);
   let codeSearchDatabase: KnowledgeDatabase | null;
   if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
@@ -79,7 +76,7 @@ export function createAnalyzeContext(
   rules: string[],
   userPrompt: string
 ): AnalyzeContext {
-  const llm = new LLM(llmSettings.apiKey, llmSettings.model);
+  const llm = createLLM(llmSettings);
   return {
     knowledgeTexts,
     codeSearchDatabase,

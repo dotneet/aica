@@ -96,7 +96,8 @@ export class SourceFinder {
       .split("\n")
       .filter((filename) => filename !== "");
     const uniqueFiles = [...new Set(allFiles)];
-    const sources = uniqueFiles
+    const existsFiles = uniqueFiles.filter((file) => fs.existsSync(file));
+    const sources = existsFiles
       .map((file) => path.join(repositoryDir, file))
       .map((file) => Source.fromFile(file));
 
