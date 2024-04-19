@@ -187,6 +187,7 @@ async function getGitRepositoryRoot(cwd: string): Promise<string | null> {
 // - the given path
 // - current directory
 // - git repository root
+// - global config ($HOME/.config/aica/aica.toml)
 export async function readConfig(path: string | null): Promise<Config> {
   let workingDirectory = ".";
   if (path) {
@@ -201,7 +202,14 @@ export async function readConfig(path: string | null): Promise<Config> {
         workingDirectory = root;
         path = `${root}/aica.toml`;
       } else {
-        return defaultConfig;
+        const home = Bun.env.HOME;
+        if (!home) {
+          throw new Error("HOME environment variable is not set");
+        }
+        path = `${home}/.config/aica/aica.toml`;
+        if (!fs.existsSync(path)) {
+          return defaultConfig;
+        }
       }
     } else {
       path = "./aica.toml";
