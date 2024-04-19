@@ -42,8 +42,6 @@ export class LLMAnthropic implements LLM {
       verbose: true,
       method: "POST",
       headers: {
-        "user-agent": "curl/8.4.0",
-        "accept-encoding": "gzip",
         "Content-Type": "application/json",
         "x-api-key": this.apiKey,
         "anthropic-version": "2023-06-01",

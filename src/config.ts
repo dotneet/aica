@@ -53,6 +53,13 @@ export type Config = {
       user: string;
     };
   };
+  commitMessage: {
+    prompt: {
+      system: string;
+      rules: string[];
+      user: string;
+    };
+  };
   source: {
     includePatterns: string[];
     excludePatterns: string[];
@@ -100,6 +107,16 @@ const defaultConfig: Config = {
         "Use JSON format to return the explanation of changes.",
       ],
       user: "Summarize the given code changes.\n\n=== CODE ===\n%CODE%\n=========",
+    },
+  },
+  commitMessage: {
+    prompt: {
+      system: "You are a senior software engineer.",
+      rules: [
+        "Generate one-line commit message based on given diff.",
+        "Response must be less than 80 characters.",
+      ],
+      user: "Generate one-line commit message based on given diff.",
     },
   },
   source: {

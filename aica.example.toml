@@ -89,3 +89,11 @@ Summarize the given code changes.\n\
 %CODE%\n\
 ============\n\
 """
+
+[commitMessage.prompt]
+system = "You are an senior software engineer."
+rules = [
+    "Generate a one-line commit message based on the given diff.",
+    "Response must be less than 80 characters.",
+]
+user = """Generate one-line commit message based on given diff."""

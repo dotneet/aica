@@ -24,19 +24,24 @@ export async function executeCommitMessageCommand(values: any) {
   }
   const config = readConfig(values.config);
   const context = await createAnalyzeContextFromConfig(config);
+  const rules = config.commitMessage.prompt.rules
+    .map((rule) => `- ${rule}`)
+    .join("\n");
   const content = await context.llm.generate(
-    "You are an senior software engineer.",
+    config.commitMessage.prompt.system,
     `
-    Generate one-line commit message based on given diff.
-    Response must be less than 80 characters.
+    ${config.commitMessage.prompt.user}
+
+    RULES:
+    ${rules}
     
     === START OF DIFF ===
-    {text}
+    %DIFF%
     === END OF DIFF ===
     `
       .replace("\n +", "\n")
-      .replace("{text}", text),
-    false
+      .replace("%DIFF%", text),
+    false,
   );
   console.log(content);
 }
