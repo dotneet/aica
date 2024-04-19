@@ -1,7 +1,7 @@
 import { Orama, create, insert, search } from "@orama/orama";
 import { persist, restore } from "@orama/plugin-data-persistence";
 import { Glob } from "bun";
-import { EmbeddingProducer } from "@/embedding";
+import { EmbeddingProducer } from "@/embedding/mod";
 
 import path from "node:path";
 import fs from "node:fs";
@@ -14,12 +14,12 @@ export interface KnowledgeDatabase {
   populate(
     directory: string,
     includePatterns: string[],
-    excludePatterns: string[]
+    excludePatterns: string[],
   ): Promise<void>;
   insert(path: string, content: string): Promise<void>;
   search(
     content: string,
-    limit: number
+    limit: number,
   ): Promise<{ content: string; path: string }[]>;
   save(path: string): Promise<void>;
 }
@@ -33,7 +33,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
 
   constructor(
     private db: Orama<typeof CodeSearchDatabaseOrama.schema>,
-    private embeddingProducer: EmbeddingProducer
+    private embeddingProducer: EmbeddingProducer,
   ) {}
 
   static async create(embeddingProducer: EmbeddingProducer) {
@@ -45,12 +45,12 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
 
   static async load(
     path: string,
-    embeddingProducer: EmbeddingProducer
+    embeddingProducer: EmbeddingProducer,
   ): Promise<CodeSearchDatabaseOrama> {
     const JSONIndex = fs.readFileSync(path, "utf8");
     const db: Orama<typeof CodeSearchDatabaseOrama.schema> = await restore(
       "json",
-      JSONIndex
+      JSONIndex,
     );
     return new CodeSearchDatabaseOrama(db, embeddingProducer);
   }
@@ -60,12 +60,12 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
     persistentFilePath: string,
     includePatterns: string[],
     excludePatterns: string[],
-    embeddingProducer: EmbeddingProducer
+    embeddingProducer: EmbeddingProducer,
   ): Promise<CodeSearchDatabaseOrama> {
     if (fs.existsSync(persistentFilePath)) {
       return await CodeSearchDatabaseOrama.load(
         persistentFilePath,
-        embeddingProducer
+        embeddingProducer,
       );
     } else {
       const db = await CodeSearchDatabaseOrama.create(embeddingProducer);
@@ -74,7 +74,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
         await db.save(persistentFilePath);
       } else {
         console.warn(
-          "skip saving knowledge database due to the lack of persistentFilePath in the config."
+          "skip saving knowledge database due to the lack of persistentFilePath in the config.",
         );
       }
       return db;
@@ -84,7 +84,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
   async populate(
     directory: string,
     includePatterns: string[],
-    excludePatterns: string[]
+    excludePatterns: string[],
   ): Promise<void> {
     const excludeGlobs = excludePatterns.map((pattern) => new Glob(pattern));
     for (const includePattern of includePatterns) {
@@ -110,7 +110,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
 
   async search(
     content: string,
-    limit: number = 5
+    limit: number = 5,
   ): Promise<{ content: string; path: string }[]> {
     const symbols = extractReferenceSymbols(content);
     const result = await search(this.db, {
@@ -147,7 +147,7 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
 
   constructor(
     private db: Orama<typeof DocumentSearchDatabaseOrama.schema>,
-    private embeddingProducer: EmbeddingProducer
+    private embeddingProducer: EmbeddingProducer,
   ) {}
 
   static async create(embeddingProducer: EmbeddingProducer) {
@@ -159,12 +159,12 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
 
   static async load(
     path: string,
-    embeddingProducer: EmbeddingProducer
+    embeddingProducer: EmbeddingProducer,
   ): Promise<DocumentSearchDatabaseOrama> {
     const JSONIndex = fs.readFileSync(path, "utf8");
     const db: Orama<typeof DocumentSearchDatabaseOrama.schema> = await restore(
       "json",
-      JSONIndex
+      JSONIndex,
     );
     return new DocumentSearchDatabaseOrama(db, embeddingProducer);
   }
@@ -174,12 +174,12 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
     persistentFilePath: string,
     includePatterns: string[],
     excludePatterns: string[],
-    embeddingProducer: EmbeddingProducer
+    embeddingProducer: EmbeddingProducer,
   ): Promise<DocumentSearchDatabaseOrama> {
     if (fs.existsSync(persistentFilePath)) {
       return await DocumentSearchDatabaseOrama.load(
         persistentFilePath,
-        embeddingProducer
+        embeddingProducer,
       );
     } else {
       const db = await DocumentSearchDatabaseOrama.create(embeddingProducer);
@@ -187,7 +187,7 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
       if (persistentFilePath) {
         await db.save(persistentFilePath);
         console.warn(
-          "skip saving knowledge database due to the lack of persistentFilePath in the config."
+          "skip saving knowledge database due to the lack of persistentFilePath in the config.",
         );
       }
       console.log("Knowledge database populated.");
@@ -198,7 +198,7 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
   async populate(
     directory: string,
     includePatterns: string[],
-    excludePatterns: string[]
+    excludePatterns: string[],
   ): Promise<void> {
     const excludeGlobs = excludePatterns.map((pattern) => new Glob(pattern));
     for (const includePattern of includePatterns) {
@@ -224,7 +224,7 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
 
   async search(
     content: string,
-    limit: number = 3
+    limit: number = 3,
   ): Promise<{ content: string; path: string }[]> {
     const embedding = await this.embeddingProducer.getEmbedding(content);
     const result = await search(this.db, {

@@ -18,13 +18,13 @@ import { createSummaryContext, summarizeDiff } from "./summary";
 
 async function generateSummary(
   config: Config,
-  diffString: string
+  diffString: string,
 ): Promise<string> {
   const summaryContext = createSummaryContext(
     new LLM(config.llm.apiKey, config.llm.model),
     config.summary.prompt.system,
     config.summary.prompt.rules,
-    config.summary.prompt.user
+    config.summary.prompt.user,
   );
   const summaryDiffItems = await summarizeDiff(summaryContext, diffString);
   return createGitHubStyleTableFromSummaryDiffItems(summaryDiffItems);
@@ -32,7 +32,7 @@ async function generateSummary(
 
 async function generateReview(
   config: Config,
-  diffString: string
+  diffString: string,
 ): Promise<string> {
   const fileChanges = parseDiff(diffString);
   const sources: Source[] = [];
@@ -48,7 +48,7 @@ async function generateReview(
     const result = await analyzeCodeForBugs(context, source);
     console.log(
       `Found ${result.length} issues`,
-      result.map((i) => i.description)
+      result.map((i) => i.description),
     );
     allIssues.push(...result);
   }
@@ -81,11 +81,7 @@ async function main() {
       throw new Error("GITHUB_TOKEN is required");
     }
     const octokit = github.getOctokit(token);
-    const config = readConfig(null);
-    if (!config.llm.apiKey) {
-      throw new Error("OPENAI_API_KEY is required");
-    }
-
+    const config = await readConfig(null);
     const payload = github.context.payload;
     // console.log("Payload", JSON.stringify(payload, null, 2));
 

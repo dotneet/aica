@@ -31,11 +31,11 @@ excludePatterns = [
 
 [knowledge.fixture]
 # these files are embedded in an user prompt as a knowledge always.
-files = ["testdata/docs/spec.txt"]
+# files = ["testdata/docs/spec.txt"]
 
 [knowledge.codeSearch]
 # code search provides symbol based search for the given directory.
-directory = "testdata/src"
+# directory = "testdata/src"
 persistentFilePath = "knowledge-src.db"
 includePatterns = [
     "**/*.{ts,js,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",

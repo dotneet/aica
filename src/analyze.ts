@@ -1,5 +1,6 @@
 import { Config, LLMConfig } from "./config";
 import fs from "fs";
+import path from "path";
 import {
   CodeSearchDatabaseOrama,
   KnowledgeDatabase,
@@ -19,11 +20,12 @@ export type AnalyzeContext = {
 };
 
 export async function createAnalyzeContextFromConfig(
-  config: Config
+  config: Config,
 ): Promise<AnalyzeContext> {
+  const wd = config.workingDirectory;
   const knowledgeTextFiles = config.knowledge?.fixture?.files || [];
   const knowledgeTexts = knowledgeTextFiles.map((f) =>
-    fs.readFileSync(f, "utf8")
+    fs.readFileSync(path.join(wd, f), "utf8"),
   );
 
   const embeddingProducer = createEmbeddingProducer(config.embedding);
@@ -31,12 +33,16 @@ export async function createAnalyzeContextFromConfig(
   if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.codeSearch;
+    const absolutePath = fs.realpathSync(path.join(wd, directory));
+    const absolutePersistentFilePath = fs.realpathSync(
+      path.join(wd, persistentFilePath),
+    );
     codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-      directory,
-      persistentFilePath,
+      absolutePath,
+      absolutePersistentFilePath,
       includePatterns,
       excludePatterns,
-      embeddingProducer
+      embeddingProducer,
     );
   }
 
@@ -47,12 +53,16 @@ export async function createAnalyzeContextFromConfig(
   ) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.documentSearch;
+    const absolutePath = fs.realpathSync(path.join(wd, directory));
+    const absolutePersistentFilePath = fs.realpathSync(
+      path.join(wd, persistentFilePath),
+    );
     documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-      directory,
-      persistentFilePath,
+      absolutePath,
+      absolutePersistentFilePath,
       includePatterns,
       excludePatterns,
-      embeddingProducer
+      embeddingProducer,
     );
   }
 
@@ -63,7 +73,7 @@ export async function createAnalyzeContextFromConfig(
     config.llm,
     config.review.prompt.system,
     config.review.prompt.rules,
-    config.review.prompt.user
+    config.review.prompt.user,
   );
 }
 
@@ -74,7 +84,7 @@ export function createAnalyzeContext(
   llmSettings: LLMConfig,
   systemPrompt: string,
   rules: string[],
-  userPrompt: string
+  userPrompt: string,
 ): AnalyzeContext {
   const llm = createLLM(llmSettings);
   return {
@@ -98,7 +108,7 @@ export type Issue = {
 
 export function getCodesAroundIssue(
   issue: Issue,
-  numLines: number = 3
+  numLines: number = 3,
 ): string {
   const lines = issue.source.contentWithLineNumbers.split("\n");
   const start = Math.max(0, issue.line - numLines);
@@ -115,7 +125,7 @@ type ResponseIssue = {
 
 export async function analyzeCodeForBugs(
   context: AnalyzeContext,
-  source: Source
+  source: Source,
 ): Promise<Issue[]> {
   const knowledgeText = await createKnowledgeText(context, source);
 
@@ -124,7 +134,7 @@ export async function analyzeCodeForBugs(
   const prompt = generatePromptWithCode(
     source,
     context.userPrompt,
-    knowledgeText
+    knowledgeText,
   );
 
   try {
@@ -138,7 +148,7 @@ export async function analyzeCodeForBugs(
 
 async function createKnowledgeText(
   context: AnalyzeContext,
-  source: Source
+  source: Source,
 ): Promise<string> {
   const codeKnowledges =
     (await context.codeSearchDatabase?.search(source.content, 3)) ?? [];
@@ -199,7 +209,7 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
 function generatePromptWithCode(
   source: Source,
   userPrompt: string,
-  knowledgeText: string
+  knowledgeText: string,
 ): string {
   const targetSourceContent = source.targetSourceContent;
   if (source.type === SourceType.PullRequestDiff) {

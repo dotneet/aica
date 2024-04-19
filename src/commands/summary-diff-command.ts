@@ -7,13 +7,13 @@ export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;
   const targetDir = values.dir || ".";
 
-  const config = readConfig(configFilePath);
+  const config = await readConfig(configFilePath);
 
   const summaryContext = createSummaryContext(
     createLLM(config.llm),
     config.summary.prompt.system,
     config.summary.prompt.rules,
-    config.summary.prompt.user
+    config.summary.prompt.user,
   );
 
   const diff = await getGitDiff(targetDir);

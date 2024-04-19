@@ -36,6 +36,7 @@ export type Knowledge = {
 };
 
 export type Config = {
+  workingDirectory: string;
   llm: LLMConfig;
   embedding: EmbeddingConfig;
   knowledge?: Knowledge;
@@ -67,6 +68,7 @@ export type Config = {
 };
 
 const defaultConfig: Config = {
+  workingDirectory: ".",
   llm: {
     provider: "openai",
     openai: {
@@ -167,21 +169,48 @@ const defaultConfig: Config = {
   },
 };
 
-export function readConfig(path: string | null): Config {
+async function getGitRepositoryRoot(cwd: string): Promise<string | null> {
+  const revParseResult = Bun.spawn({
+    cmd: ["git", "rev-parse", "--show-toplevel"],
+    cwd,
+    stdout: "pipe",
+  });
+  const code = await revParseResult.exited;
+  if (code !== 0) {
+    return null;
+  }
+  const text = (await new Response(revParseResult.stdout).text()).trim();
+  return text;
+}
+
+// Read a config file with the following priority:
+// - the given path
+// - current directory
+// - git repository root
+export async function readConfig(path: string | null): Promise<Config> {
+  let workingDirectory = ".";
   if (path) {
     if (!fs.existsSync(path)) {
       throw new Error(`Config file not found: ${path}`);
     }
+    workingDirectory = fs.realpathSync(path);
   } else {
     if (!fs.existsSync("./aica.toml")) {
-      return defaultConfig;
+      const root = await getGitRepositoryRoot(process.cwd());
+      if (root) {
+        workingDirectory = root;
+        path = `${root}/aica.toml`;
+      } else {
+        return defaultConfig;
+      }
+    } else {
+      path = "./aica.toml";
     }
-    path = "./aica.toml";
   }
   const file = fs.readFileSync(path);
   const config = Bun.TOML.parse(file.toString()) as Config;
   if (!config) {
     throw new Error(`Invalid config file: ${path}`);
   }
-  return deepAssign(defaultConfig, config);
+  return deepAssign(defaultConfig, config, { workingDirectory });
 }

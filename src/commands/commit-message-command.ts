@@ -22,7 +22,7 @@ export async function executeCommitMessageCommand(values: any) {
     console.log("No diff found.");
     return;
   }
-  const config = readConfig(values.config);
+  const config = await readConfig(values.config);
   const context = await createAnalyzeContextFromConfig(config);
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)

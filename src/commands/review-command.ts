@@ -11,7 +11,7 @@ import { Source, SourceFinder } from "@/source";
 export async function executeReviewCommand(values: any) {
   try {
     const configFilePath = values.config || null;
-    const config = readConfig(configFilePath);
+    const config = await readConfig(configFilePath);
     const targetDir = values.dir || ".";
 
     const context = await createAnalyzeContextFromConfig(config);
@@ -21,16 +21,16 @@ export async function executeReviewCommand(values: any) {
 
     const sourceFinder = new SourceFinder(
       config.source.includePatterns,
-      config.source.excludePatterns
+      config.source.excludePatterns,
     );
     if (values.pattern) {
       sources.push(
-        ...(await sourceFinder.getSources(targetDir, values.pattern))
+        ...(await sourceFinder.getSources(targetDir, values.pattern)),
       );
     } else {
       const repositoryDir = values.dir || ".";
       sources.push(
-        ...(await sourceFinder.getModifiedFilesFromRepository(repositoryDir))
+        ...(await sourceFinder.getModifiedFilesFromRepository(repositoryDir)),
       );
     }
 
