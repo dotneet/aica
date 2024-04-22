@@ -123,7 +123,7 @@ const defaultConfig: Config = {
   },
   source: {
     includePatterns: [
-      "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
+      "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py,prisma,sql}",
     ],
     excludePatterns: [
       "node_modules/**",
@@ -145,7 +145,9 @@ const defaultConfig: Config = {
     codeSearch: {
       directory: "",
       persistentFilePath: "./knowledge-src.db",
-      includePatterns: ["**/*.{txt,md,ts,tsx,js,jsx,scala,go,rb,php,py}"],
+      includePatterns: [
+        "**/*.{txt,md,ts,tsx,js,jsx,scala,go,rb,php,py,prisma,sql}",
+      ],
       excludePatterns: [
         "node_modules/**",
         "vendor/**",
@@ -198,9 +200,10 @@ export async function readConfig(path: string | null): Promise<Config> {
   } else {
     if (!fs.existsSync("./aica.toml")) {
       const root = await getGitRepositoryRoot(process.cwd());
-      if (root) {
+      const rootConfigPath = `${root}/aica.toml`;
+      if (root && fs.existsSync(rootConfigPath)) {
         workingDirectory = root;
-        path = `${root}/aica.toml`;
+        path = rootConfigPath;
       } else {
         const home = Bun.env.HOME;
         if (!home) {

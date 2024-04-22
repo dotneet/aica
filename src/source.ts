@@ -14,7 +14,7 @@ export class Source {
     readonly type: SourceType,
     readonly path: string,
     readonly content: string,
-    readonly fileChange: FileChange | null = null
+    readonly fileChange: FileChange | null = null,
   ) {}
 
   get targetSourceContent(): string {
@@ -43,7 +43,7 @@ export class Source {
       SourceType.PullRequestDiff,
       change.filename,
       change.changes.join("\n"),
-      change
+      change,
     );
   }
 
@@ -64,10 +64,10 @@ export class SourceFinder {
 
   constructor(includePatterns: string[], excludePatterns: string[]) {
     this.includePatternGlobs = includePatterns.map(
-      (pattern) => new Bun.Glob(pattern)
+      (pattern) => new Bun.Glob(pattern),
     );
     this.excludePatternGlobs = excludePatterns.map(
-      (pattern) => new Bun.Glob(pattern)
+      (pattern) => new Bun.Glob(pattern),
     );
   }
 
@@ -75,14 +75,14 @@ export class SourceFinder {
     const glob = new Bun.Glob(globPattern);
     let sources: Source[] = [];
     for await (const file of glob.scan(directory)) {
-      const absPath = path.join(directory, file);
+      const absPath = fs.realpathSync(file);
       sources.push(Source.fromFile(absPath));
     }
     return this.applyFilters(directory, sources);
   }
 
   async getModifiedFilesFromRepository(
-    repositoryDir: string
+    repositoryDir: string,
   ): Promise<Source[]> {
     const result = await Bun.spawn({
       cmd: ["git", "ls-files", "-m", "--full-name"],
@@ -108,13 +108,13 @@ export class SourceFinder {
     sources = sources.filter((source) => {
       const relativePath = path.relative(rootDir, source.path);
       return this.includePatternGlobs.some((include) =>
-        include.match(relativePath)
+        include.match(relativePath),
       );
     });
     sources = sources.filter((source) => {
       const relativePath = path.relative(rootDir, source.path);
       return !this.excludePatternGlobs.some((exclude) =>
-        exclude.match(relativePath)
+        exclude.match(relativePath),
       );
     });
     return sources;

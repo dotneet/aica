@@ -11,7 +11,7 @@ model = 'claude-3-opus-20240229'
 
 [source]
 includePatterns = [
-    "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
+    "**/*.{js,ts,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py,prisma,sql}",
 ]
 
 excludePatterns = [
@@ -38,7 +38,7 @@ excludePatterns = [
 # directory = "testdata/src"
 persistentFilePath = "knowledge-src.db"
 includePatterns = [
-    "**/*.{ts,js,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py}",
+    "**/*.{ts,js,jsx,tsx,java,dart,kt,scala,go,rs,zig,rb,php,py,prisma,sql}",
 ]
 excludePatterns = [
     "node_modules/**",
