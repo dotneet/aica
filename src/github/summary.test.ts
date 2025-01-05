@@ -2,25 +2,6 @@ import { generateSummary } from "./summary";
 import { Config, defaultConfig } from "@/config";
 import { describe, it, expect } from "bun:test";
 
-// モックのLLM
-const mockLLM = {
-  generate: async (systemPrompt: string, userPrompt: string) => {
-    return JSON.stringify({
-      changes: [
-        {
-          category: "refactor",
-          description:
-            "Refactor the code to improve readability and maintainability.",
-        },
-        {
-          category: "bugfix",
-          description: "resolve the usage of undeclared variable 'i'.",
-        },
-      ],
-    });
-  },
-};
-
 // テストケース
 describe("generateSummary", () => {
   it("should return a GitHub style table with changes", async () => {
