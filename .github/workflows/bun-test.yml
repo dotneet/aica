@@ -26,4 +26,4 @@ jobs:
 
       # Run build to make sure it works
       - name: Run build
-        run: bun build
+        run: bun run build
