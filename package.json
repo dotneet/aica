@@ -10,18 +10,18 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/yargs": "^17.0.32"
+    "@types/yargs": "^17.0.33"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@actions/core": "^1.10.1",
+    "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.0",
-    "@orama/orama": "^2.0.15",
-    "@orama/plugin-data-persistence": "^2.0.15",
-    "@orama/plugin-parsedoc": "^2.0.15",
-    "@orama/plugin-secure-proxy": "^2.0.15",
+    "@orama/orama": "^2.1.1",
+    "@orama/plugin-data-persistence": "^2.1.1",
+    "@orama/plugin-parsedoc": "^2.1.0",
+    "@orama/plugin-secure-proxy": "^2.1.1",
     "yargs": "^17.7.2"
   }
 }
