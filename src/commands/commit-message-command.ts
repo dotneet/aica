@@ -3,7 +3,9 @@ import { readConfig } from "@/config";
 import { getGitDiff } from "@/git";
 
 export async function executeCommitMessageCommand(values: any) {
-  const cwd = values.dir || ".";
+  const config = await readConfig(values.config);
+  const cwd = values.dir || config.workingDirectory;
+
   // check if cwd is a git repository
   const revParseResult = Bun.spawn({
     cmd: ["git", "rev-parse", "--is-inside-work-tree"],
@@ -22,7 +24,6 @@ export async function executeCommitMessageCommand(values: any) {
     console.log("No diff found.");
     return;
   }
-  const config = await readConfig(values.config);
   const context = await createAnalyzeContextFromConfig(config);
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)

@@ -5,9 +5,8 @@ import { createSummaryContext, summarizeDiff } from "@/summary";
 
 export async function executeSummaryDiffCommand(values: any) {
   const configFilePath = values.config || null;
-  const targetDir = values.dir || ".";
-
   const config = await readConfig(configFilePath);
+  const targetDir = values.dir || config.workingDirectory;
 
   const summaryContext = createSummaryContext(
     createLLM(config.llm),

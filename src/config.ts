@@ -201,8 +201,10 @@ export async function readConfig(path: string | null): Promise<Config> {
     if (!fs.existsSync("./aica.toml")) {
       const root = await getGitRepositoryRoot(process.cwd());
       const rootConfigPath = `${root}/aica.toml`;
-      if (root && fs.existsSync(rootConfigPath)) {
+      if (root) {
         workingDirectory = root;
+      }
+      if (root && fs.existsSync(rootConfigPath)) {
         path = rootConfigPath;
       } else {
         const home = Bun.env.HOME;

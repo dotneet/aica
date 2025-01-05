@@ -4,6 +4,7 @@ import {
   createAnalyzeContextFromConfig,
   getCodesAroundIssue,
 } from "@/analyze";
+import process from "process";
 import { readConfig } from "@/config";
 import { sendToSlack } from "@/slack";
 import { Source, SourceFinder } from "@/source";
@@ -23,12 +24,14 @@ export async function executeReviewCommand(values: any) {
       config.source.includePatterns,
       config.source.excludePatterns,
     );
+
     if (values.pattern) {
       sources.push(
         ...(await sourceFinder.getSources(targetDir, values.pattern)),
       );
     } else {
-      const repositoryDir = values.dir || ".";
+      const repositoryDir = values.dir || config.workingDirectory;
+      process.chdir(repositoryDir);
       sources.push(
         ...(await sourceFinder.getModifiedFilesFromRepository(repositoryDir)),
       );
