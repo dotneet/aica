@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import { deepAssign } from "./utility/deep-assign";
 
+export type LLMProvider = "openai" | "anthropic" | "stub";
+
 export type LLMConfig = {
-  provider: "openai";
+  provider: LLMProvider;
   openai: {
     model: string;
     apiKey: string;
@@ -11,9 +13,15 @@ export type LLMConfig = {
     model: string;
     apiKey: string;
   };
+  stub: {
+    response: string;
+  };
 };
+
+export type EmbeddingProvider = "openai";
+
 export type EmbeddingConfig = {
-  provider: "openai";
+  provider: EmbeddingProvider;
   openai: {
     model: string;
     apiKey: string;
@@ -67,7 +75,7 @@ export type Config = {
   };
 };
 
-const defaultConfig: Config = {
+export const defaultConfig: Config = {
   workingDirectory: ".",
   llm: {
     provider: "openai",
@@ -78,6 +86,9 @@ const defaultConfig: Config = {
     anthropic: {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-opus-20240229",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
+    },
+    stub: {
+      response: "",
     },
   },
   embedding: {

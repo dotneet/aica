@@ -23,3 +23,7 @@ jobs:
 
       - name: Run tests
         run: bun test
+
+      # Run build to make sure it works
+      - name: Run build
+        run: bun run build

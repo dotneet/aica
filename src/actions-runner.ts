@@ -1,62 +1,8 @@
-import {
-  Issue,
-  analyzeCodeForBugs,
-  createAnalyzeContextFromConfig,
-} from "@/analyze";
-import { Config, readConfig } from "@/config";
-import {
-  PullRequest,
-  createGitHubStyleTableFromIssues,
-  createGitHubStyleTableFromSummaryDiffItems,
-} from "@/github";
-import { Source } from "@/source";
-import { parseDiff } from "@/utility/parse-diff";
+import { readConfig } from "@/config";
+import { PullRequest } from "@/github";
 import core from "@actions/core";
 import github from "@actions/github";
-import { LLM } from "./llm";
-import { createSummaryContext, summarizeDiff } from "./summary";
-
-async function generateSummary(
-  config: Config,
-  diffString: string,
-): Promise<string> {
-  const summaryContext = createSummaryContext(
-    new LLM(config.llm.apiKey, config.llm.model),
-    config.summary.prompt.system,
-    config.summary.prompt.rules,
-    config.summary.prompt.user,
-  );
-  const summaryDiffItems = await summarizeDiff(summaryContext, diffString);
-  return createGitHubStyleTableFromSummaryDiffItems(summaryDiffItems);
-}
-
-async function generateReview(
-  config: Config,
-  diffString: string,
-): Promise<string> {
-  const fileChanges = parseDiff(diffString);
-  const sources: Source[] = [];
-  for (const fileChange of fileChanges) {
-    const source = Source.fromPullRequestDiff(fileChange);
-    sources.push(source);
-  }
-
-  const context = await createAnalyzeContextFromConfig(config);
-  const allIssues: Issue[] = [];
-  for (const source of sources) {
-    console.log(`Analyzing ${source.fileChange.filename}`);
-    const result = await analyzeCodeForBugs(context, source);
-    console.log(
-      `Found ${result.length} issues`,
-      result.map((i) => i.description),
-    );
-    allIssues.push(...result);
-  }
-  if (allIssues.length === 0) {
-    return "No bugs found.";
-  }
-  return createGitHubStyleTableFromIssues(allIssues);
-}
+import { generateReview, generateSummary } from "./github/mod";
 
 function buildSummaryBody(body: string, summary: string): string {
   const summaryPrefix = "<!-- AICA GENERATED -->\n## Summary";
