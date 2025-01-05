@@ -1,4 +1,4 @@
-import { LLM } from "./llm";
+import { LLM } from "./llm/mod";
 
 export type SummaryContext = {
   llm: LLM;
@@ -16,7 +16,7 @@ export function createSummaryContext(
   llm: LLM,
   systemPrompt: string,
   rules: string[],
-  userPrompt: string
+  userPrompt: string,
 ): SummaryContext {
   return {
     llm,
@@ -28,7 +28,7 @@ export function createSummaryContext(
 
 export async function summarizeDiff(
   context: SummaryContext,
-  source: string
+  source: string,
 ): Promise<SummaryDiffItem[]> {
   const systemPrompt = `${context.systemPrompt}
 
