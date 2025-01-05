@@ -1,4 +1,4 @@
-import { LLM } from "./llm";
+import { LLM, LLMError } from "./llm";
 
 interface GPTResponse {
   choices: {
@@ -14,14 +14,14 @@ export class LLMOpenAI implements LLM {
   public async generate(
     systemPrompt: string,
     prompt: string,
-    jsonMode: boolean
+    jsonMode: boolean,
   ): Promise<string> {
     const responseObject = await this.fetchOpenAIResponse(
       this.apiKey,
       this.model,
       systemPrompt,
       prompt,
-      jsonMode
+      jsonMode,
     );
     return responseObject.choices[0].message.content;
   }
@@ -31,7 +31,7 @@ export class LLMOpenAI implements LLM {
     model: string,
     systemPrompt: string,
     prompt: string,
-    jsonMode: boolean
+    jsonMode: boolean,
   ): Promise<GPTResponse> {
     let additionalBody = {};
     if (jsonMode) {
@@ -39,6 +39,10 @@ export class LLMOpenAI implements LLM {
         response_format: { type: "json_object" },
       };
     }
+    // o1 model does not support system role
+    const isO1Model = model.indexOf("o") === 0;
+    const systemRole = isO1Model ? "user" : "system";
+    const temperature = isO1Model ? undefined : 0.2;
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -49,7 +53,7 @@ export class LLMOpenAI implements LLM {
         model,
         messages: [
           {
-            role: "system",
+            role: systemRole,
             content: systemPrompt,
           },
           {
@@ -57,10 +61,14 @@ export class LLMOpenAI implements LLM {
             content: prompt,
           },
         ],
-        temperature: 0.2,
+        temperature,
         ...additionalBody,
       }),
     });
+    if (!response.ok) {
+      const body = await response.json();
+      throw new LLMError(`OpenAI API error: ${body.error.message}`);
+    }
     return await response.json();
   }
 }
