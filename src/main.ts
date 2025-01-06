@@ -6,6 +6,7 @@ import pkg from "../package.json";
 import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
 
 const argv = yargs(process.argv.slice(2))
+  .scriptName("aica")
   .option("config", {
     describe: "path to config file",
     type: "string",
