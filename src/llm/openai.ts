@@ -34,15 +34,15 @@ export class LLMOpenAI implements LLM {
     jsonMode: boolean,
   ): Promise<GPTResponse> {
     let additionalBody = {};
-    if (jsonMode) {
-      additionalBody = {
-        response_format: { type: "json_object" },
-      };
-    }
     // o1 model does not support system role
     const isO1Model = model.indexOf("o") === 0;
     const systemRole = isO1Model ? "user" : "system";
     const temperature = isO1Model ? undefined : 0.2;
+    if (jsonMode && !isO1Model) {
+      additionalBody = {
+        response_format: { type: "json_object" },
+      };
+    }
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
