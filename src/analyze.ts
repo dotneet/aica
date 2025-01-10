@@ -237,7 +237,16 @@ function generatePromptWithCode(
 }
 
 function buildIssuesFromResponse(source: Source, response: string): Issue[] {
-  const issues = JSON.parse(response).issues as ResponseIssue[];
+  let jsonStr = response;
+  if (jsonStr.includes("```json")) {
+    jsonStr = response.split("```json")[1].split("```")[0].trim();
+  }
+  if (jsonStr.indexOf("{") !== 0) {
+    let lparentIndex = jsonStr.indexOf("{");
+    let rparentIndex = jsonStr.lastIndexOf("}");
+    jsonStr = jsonStr.slice(lparentIndex, rparentIndex + 1);
+  }
+  const issues = JSON.parse(jsonStr).issues as ResponseIssue[];
   return issues.map((issue) => ({
     ...issue,
     source,
