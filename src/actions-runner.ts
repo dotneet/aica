@@ -3,6 +3,7 @@ import { PullRequest } from "@/github";
 import core from "@actions/core";
 import github from "@actions/github";
 import { generateReview, generateSummary } from "./github/mod";
+import { Octokit } from "./github";
 
 function buildSummaryBody(body: string, summary: string): string {
   const summaryPrefix = "<!-- AICA GENERATED -->\n## Summary";
@@ -26,7 +27,7 @@ async function main() {
     if (!token) {
       throw new Error("GITHUB_TOKEN is required");
     }
-    const octokit = github.getOctokit(token);
+    const octokit = new Octokit({ auth: token });
     const config = await readConfig(null);
     const payload = github.context.payload;
     // console.log("Payload", JSON.stringify(payload, null, 2));
