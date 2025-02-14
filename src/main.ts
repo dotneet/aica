@@ -5,6 +5,7 @@ import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
 import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
 import { executeCreatePRCommand } from "./commands/create-pr-command";
+import { executeCommitCommand } from "./commands/commit-command";
 import { CommandError } from "./commands/error";
 
 async function main() {
@@ -73,6 +74,21 @@ async function main() {
         .strict()
         .help();
     })
+    .command(
+      "commit",
+      "commit changes with auto-generated message",
+      (yargs: any) => {
+        return yargs
+          .options({
+            stageOnly: {
+              describe: "stage only",
+              type: "boolean",
+            },
+          })
+          .strict()
+          .help();
+      },
+    )
     .demandCommand()
     .parseSync();
 
@@ -96,6 +112,9 @@ async function main() {
         break;
       case "summary-diff":
         await executeSummaryDiffCommand(values);
+        break;
+      case "commit":
+        await executeCommitCommand(values);
         break;
       case "create-pr":
         await executeCreatePRCommand(values);

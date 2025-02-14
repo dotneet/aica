@@ -8,6 +8,7 @@ import {
   getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
+  pushToRemote,
 } from "@/git";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { createBranchName } from "@/github/branch";
@@ -69,15 +70,10 @@ export async function executeCreatePRCommand(values: any) {
   if (dryRun) {
     console.log(`Dry run: would push ${currentBranch} to ${branchName}`);
   } else {
-    const pushResult = Bun.spawn(
-      ["git", "push", "origin", `${currentBranch}:${branchName}`],
-      {
-        cwd: gitRoot,
-      },
-    );
-    await pushResult.exited;
-    if (pushResult.exitCode !== 0) {
-      throw new CommandError("Failed to push");
+    try {
+      await pushToRemote(gitRoot, `${currentBranch}:${branchName}`);
+    } catch (error) {
+      throw new CommandError("Failed to push to remote.", error as Error);
     }
   }
 
@@ -102,6 +98,6 @@ export async function executeCreatePRCommand(values: any) {
       defaultBranch,
       branchName,
     );
-    console.log(`Created pull request ${pr.number}`);
+    console.log(`Created pull request:\n${pr.getUrl()}`);
   }
 }
