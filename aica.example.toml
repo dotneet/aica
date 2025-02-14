@@ -3,7 +3,7 @@
 provider = 'openai'
 
 [llm.openai]
-model = 'o1-mini-2024-09-12'
+model = 'o3-mini'
 
 [llm.anthropic]
 model = 'claude-3-5-sonnet-20241022'
