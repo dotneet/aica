@@ -15,6 +15,7 @@ import { createBranchName } from "@/github/branch";
 export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
   const dryRun = values.dryRun || false;
+  const stageOnly = values.stageOnly || false;
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
@@ -22,8 +23,10 @@ export async function executeCreatePRCommand(values: any) {
   }
 
   // add the changes to the staging area
-  const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
-  await addResult.exited;
+  if (!stageOnly) {
+    const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
+    await addResult.exited;
+  }
 
   // create a summary of the changes
   const diff = await getGitDiff(gitRoot);
