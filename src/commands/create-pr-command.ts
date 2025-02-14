@@ -81,7 +81,7 @@ export async function executeCreatePRCommand(values: any) {
     const octokit = new Octokit({ auth: token });
     const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
     const response = await octokit.rest.repos.get({
-      owner: this.owner,
+      owner,
       repo,
     });
     const defaultBranch = response.data.default_branch;
