@@ -145,3 +145,122 @@ export async function fetchRemote(cwd: string) {
     throw new Error(`Failed to fetch remote: ${text}`);
   }
 }
+
+export interface ChangedFiles {
+  hasChanges: boolean;
+  stagedFiles: string[];
+  unstagedFiles: string[];
+  untrackedFiles: string[];
+}
+
+export type ConfirmationRequiredFile = {
+  file: string;
+  message: string;
+};
+
+export type AddingFilesToStageResult = {
+  addingFiles: string[];
+  confirmationRequiredFiles: ConfirmationRequiredFile[];
+};
+
+function isSafeToAdd(file: string): boolean {
+  // .env* must not be added to stage
+  if (file.startsWith(".env")) {
+    return false;
+  }
+  // bigger than 2MB
+  if (Bun.file(file).size > 2 * 1024 * 1024) {
+    return false;
+  }
+  return true;
+}
+
+export async function addFilesToStage(gitRoot: string, files: string[]) {
+  const result = Bun.spawn(["git", "add", ...files], {
+    cwd: gitRoot,
+  });
+  await result.exited;
+  if (result.exitCode !== 0) {
+    const text = (await new Response(result.stderr).text()).trim();
+    throw new Error(`Failed to add files to stage: ${text}`);
+  }
+}
+
+export async function getAddingFilesToStage(
+  gitRoot: string,
+): Promise<AddingFilesToStageResult> {
+  const status = await getAllChangedFiles(gitRoot);
+  if (!status.hasChanges) {
+    return { addingFiles: [], confirmationRequiredFiles: [] };
+  }
+  const addingFiles: string[] = [];
+  const confirmationRequiredFiles: ConfirmationRequiredFile[] = [];
+  for (const file of status.unstagedFiles) {
+    if (!isSafeToAdd(file)) {
+      confirmationRequiredFiles.push({
+        file,
+        message: "This file is too large to add to stage",
+      });
+      continue;
+    }
+    addingFiles.push(file);
+  }
+  for (const file of status.untrackedFiles) {
+    if (!isSafeToAdd(file)) {
+      confirmationRequiredFiles.push({
+        file,
+        message: "This file is too large to add to stage",
+      });
+      continue;
+    }
+    addingFiles.push(file);
+  }
+  return { addingFiles, confirmationRequiredFiles };
+}
+
+export async function getAllChangedFiles(
+  gitRoot: string,
+): Promise<ChangedFiles> {
+  // ステージされたファイルを取得
+  const stagedProc = Bun.spawn(["git", "diff", "--staged", "--name-only"], {
+    cwd: gitRoot,
+    stdout: "pipe",
+  });
+  await stagedProc.exited;
+  const stagedFiles = (await new Response(stagedProc.stdout).text())
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+
+  // 未ステージのファイルを取得
+  const unstagedProc = Bun.spawn(["git", "diff", "--name-only"], {
+    cwd: gitRoot,
+    stdout: "pipe",
+  });
+  await unstagedProc.exited;
+  const unstagedFiles = (await new Response(unstagedProc.stdout).text())
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+
+  // untrackedファイルを取得
+  const untrackedProc = Bun.spawn(
+    ["git", "ls-files", "--others", "--exclude-standard"],
+    { cwd: gitRoot, stdout: "pipe" },
+  );
+  await untrackedProc.exited;
+  const untrackedFiles = (await new Response(untrackedProc.stdout).text())
+    .trim()
+    .split("\n")
+    .filter(Boolean);
+
+  return {
+    hasChanges:
+      stagedFiles.length > 0 ||
+      unstagedFiles.length > 0 ||
+      untrackedFiles.length > 0,
+    stagedFiles,
+    unstagedFiles,
+    untrackedFiles,
+  };
+}
