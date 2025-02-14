@@ -78,6 +78,9 @@ export async function executeCreatePRCommand(values: any) {
     console.log(`Dry run: would create a pull request`);
   } else {
     const token = Bun.env.GITHUB_TOKEN;
+    if (!token) {
+      throw new Error("GITHUB_TOKEN is not set");
+    }
     const octokit = new Octokit({ auth: token });
     const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
     const response = await octokit.rest.repos.get({
