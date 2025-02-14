@@ -1,5 +1,5 @@
 import { readConfig } from "@/config";
-import { getGitDiff } from "@/git";
+import { getGitDiffToHead } from "@/git";
 import { createLLM } from "@/llm/mod";
 import { createSummaryContext, summarizeDiff } from "@/summary";
 
@@ -15,7 +15,7 @@ export async function executeSummaryDiffCommand(values: any) {
     config.summary.prompt.user,
   );
 
-  const diff = await getGitDiff(targetDir);
+  const diff = await getGitDiffToHead(targetDir);
   if (diff.length === 0) {
     console.log("No diff found.");
     return;

@@ -5,7 +5,8 @@ import { generateSummary } from "@/github/summary";
 import {
   commit,
   getCurrentBranch,
-  getGitDiff,
+  getGitDiffStageOnly,
+  getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
 } from "@/git";
@@ -27,14 +28,15 @@ export async function executeCreatePRCommand(values: any) {
 
   // add the changes to the staging area
   if (!stageOnly) {
+    console.log("Adding all changes to the staging area");
     const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
     await addResult.exited;
   }
 
   // create a summary of the changes
-  const diff = await getGitDiff(gitRoot);
+  const diff = await getGitDiffToHead(gitRoot);
   if (!diff) {
-    throw new CommandError("Failed to get a git diff");
+    throw new CommandError("No changes to commit");
   }
 
   // create a commit message
