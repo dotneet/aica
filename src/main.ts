@@ -63,6 +63,10 @@ const argv = yargs(process.argv.slice(2))
           describe: "dry run",
           type: "boolean",
         },
+        stageOnly: {
+          describe: "stage only",
+          type: "boolean",
+        },
       })
       .strict()
       .help();
