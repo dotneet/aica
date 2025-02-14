@@ -28,12 +28,13 @@ export async function executeCreatePRCommand(values: any) {
 
   // add the changes to the staging area
   if (!stageOnly) {
-    console.log("Adding all changes to the staging area");
     const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
     await addResult.exited;
+    console.log("Added all changes to the staging area");
   }
 
   await fetchRemote(gitRoot);
+  console.log("Fetched remote branches");
 
   const gitHubToken = await getGitHubToken();
   const octokit = new Octokit({ auth: gitHubToken });
@@ -49,6 +50,7 @@ export async function executeCreatePRCommand(values: any) {
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
+  console.log("Got diff to remote default branch");
 
   // create a commit message
   const headDiff = await getGitDiffToHead(gitRoot);
@@ -64,6 +66,7 @@ export async function executeCreatePRCommand(values: any) {
       if (!success) {
         throw new CommandError("Failed to commit");
       }
+      console.log(`Committed with message "${commitMessage}"`);
     }
   }
 
@@ -72,12 +75,14 @@ export async function executeCreatePRCommand(values: any) {
   if (!summary) {
     throw new CommandError("Failed to create a summary");
   }
+  console.log("Generated summary");
 
   // create a branch name
   const branchName = await createBranchName(config, diff);
   if (!branchName) {
     throw new CommandError("Failed to create a branch name");
   }
+  console.log(`Created branch name: "${branchName}"`);
 
   // get the current branch
   const currentBranch = await getCurrentBranch(gitRoot);
@@ -88,6 +93,7 @@ export async function executeCreatePRCommand(values: any) {
   } else {
     try {
       await pushToRemote(gitRoot, `${currentBranch}:${branchName}`);
+      console.log(`Pushed ${currentBranch} to ${branchName}`);
     } catch (error) {
       throw new CommandError("Failed to push to remote.", error as Error);
     }

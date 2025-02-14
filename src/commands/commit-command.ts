@@ -14,9 +14,9 @@ export async function executeCommitCommand(values: any) {
 
   // add the changes to the staging area
   if (!stageOnly) {
-    console.log("Adding all changes to the staging area");
     const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
     await addResult.exited;
+    console.log("Added all changes to the staging area");
   }
 
   // create a summary of the changes
