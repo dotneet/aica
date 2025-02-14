@@ -96,4 +96,15 @@ rules = [
     "Generate a one-line commit message based on the given diff.",
     "Response must be less than 80 characters.",
 ]
-user = """Generate one-line commit message based on given diff."""
+user = """
+Generate one-line commit message based on given diff.
+use the prefixies like "fix", "feat", "refactor", "chore", "test", "docs", "style", "perf", "ci", "build", "revert", "merge", "other" to describe the changes.
+EXAMPLES:
+- fix: fix the bug
+- feat: add the feature
+- refactor: refactor the code
+- chore: update the dependencies
+- test: add the test
+- docs: update the documentation
+- style: update the style
+"""

@@ -1,4 +1,15 @@
-export async function getGitDiff(cwd: string) {
+export async function getGitDiffStageOnly(cwd: string) {
+  const result = Bun.spawn({
+    cmd: ["git", "diff"],
+    cwd,
+    stdout: "pipe",
+  });
+  await result.exited;
+  const text = (await new Response(result.stdout).text()).trim();
+  return text;
+}
+
+export async function getGitDiffToHead(cwd: string) {
   const result = Bun.spawn({
     cmd: ["git", "diff", "HEAD"],
     cwd,
