@@ -97,11 +97,12 @@ export async function executeCreatePRCommand(values: any) {
   if (dryRun) {
     console.log(`Dry run: would create a pull request`);
   } else {
+    const prTitle = await createCommitMessageFromDiff(config, headDiff);
     const pr = await PullRequest.create(
       octokit,
       owner,
       repo,
-      commitMessage,
+      prTitle,
       summary,
       defaultBranch,
       branchName,
