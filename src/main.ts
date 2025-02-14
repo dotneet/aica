@@ -5,6 +5,7 @@ import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
 import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
 import { executeCreatePRCommand } from "./commands/create-pr-command";
+import { CommandError } from "./commands/error";
 
 const argv = yargs(process.argv.slice(2))
   .option("config", {
@@ -78,23 +79,32 @@ const values = {
   dir: argv.dir,
   slack: argv.slack,
   pattern: argv.pattern,
-  dryRun: argv.dryRun,
+  dryRun: argv.dryRun || false,
+  stageOnly: argv.stageOnly || false,
 };
 
 const subcommand = argv._[0];
-switch (subcommand) {
-  case "review":
-    executeReviewCommand(values);
-    break;
-  case "commit-message":
-    executeCommitMessageCommand(values);
-    break;
-  case "summary-diff":
-    executeSummaryDiffCommand(values);
-    break;
-  case "create-pr":
-    executeCreatePRCommand(values);
-    break;
-  default:
-    console.error("Unknown subcommand:", subcommand);
+try {
+  switch (subcommand) {
+    case "review":
+      executeReviewCommand(values);
+      break;
+    case "commit-message":
+      executeCommitMessageCommand(values);
+      break;
+    case "summary-diff":
+      executeSummaryDiffCommand(values);
+      break;
+    case "create-pr":
+      executeCreatePRCommand(values);
+      break;
+    default:
+      console.error("Unknown subcommand:", subcommand);
+  }
+} catch (error) {
+  if (error instanceof CommandError) {
+    console.error(error.message);
+  } else {
+    throw error;
+  }
 }

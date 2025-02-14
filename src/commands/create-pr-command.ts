@@ -11,15 +11,18 @@ import {
 } from "@/git";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { createBranchName } from "@/github/branch";
+import { CommandError } from "./error";
 
 export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
-  const dryRun = values.dryRun || false;
-  const stageOnly = values.stageOnly || false;
+  const dryRun = values.dryRun;
+  const stageOnly = values.stageOnly;
+  console.log(`dryRun: ${dryRun}`);
+  console.log(`stageOnly: ${stageOnly}`);
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
-    throw new Error("Not a git repository.");
+    throw new CommandError("Not a git repository.");
   }
 
   // add the changes to the staging area
@@ -31,33 +34,33 @@ export async function executeCreatePRCommand(values: any) {
   // create a summary of the changes
   const diff = await getGitDiff(gitRoot);
   if (!diff) {
-    throw new Error("Failed to get a git diff");
+    throw new CommandError("Failed to get a git diff");
   }
 
   // create a commit message
   const commitMessage = await createCommitMessageFromDiff(config, diff);
   if (!commitMessage) {
-    throw new Error("Failed to create a commit message");
+    throw new CommandError("Failed to create a commit message");
   }
   if (dryRun) {
     console.log(`Dry run: would commit with message "${commitMessage}"`);
   } else {
     const success = await commit(gitRoot, commitMessage);
     if (!success) {
-      throw new Error("Failed to commit");
+      throw new CommandError("Failed to commit");
     }
   }
 
   // create a summary of the changes
   const summary = await generateSummary(config, diff);
   if (!summary) {
-    throw new Error("Failed to create a summary");
+    throw new CommandError("Failed to create a summary");
   }
 
   // create a branch name
   const branchName = await createBranchName(config, diff);
   if (!branchName) {
-    throw new Error("Failed to create a branch name");
+    throw new CommandError("Failed to create a branch name");
   }
 
   // get the current branch
@@ -74,6 +77,9 @@ export async function executeCreatePRCommand(values: any) {
       },
     );
     await pushResult.exited;
+    if (pushResult.exitCode !== 0) {
+      throw new CommandError("Failed to push");
+    }
   }
 
   // create a pull request
