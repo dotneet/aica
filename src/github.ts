@@ -91,6 +91,10 @@ export class PullRequest {
     );
   }
 
+  getUrl(): string {
+    return `https://github.com/${this.owner}/${this.repo}/pull/${this.number}`;
+  }
+
   static async getDefaultBranch(
     octokit: Octokit,
     owner: string,

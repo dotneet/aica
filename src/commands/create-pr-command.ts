@@ -4,10 +4,13 @@ import { Octokit } from "octokit";
 import { generateSummary } from "@/github/summary";
 import {
   commit,
+  fetchRemote,
   getCurrentBranch,
+  getGitDiffFromRemoteBranch,
   getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
+  pushToRemote,
 } from "@/git";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { createBranchName } from "@/github/branch";
@@ -30,23 +33,37 @@ export async function executeCreatePRCommand(values: any) {
     await addResult.exited;
   }
 
+  await fetchRemote(gitRoot);
+
+  const gitHubToken = await getGitHubToken();
+  const octokit = new Octokit({ auth: gitHubToken });
+  const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
+  const response = await octokit.rest.repos.get({
+    owner,
+    repo,
+  });
+  const defaultBranch = response.data.default_branch;
+
   // create a summary of the changes
-  const diff = await getGitDiffToHead(gitRoot);
+  const diff = await getGitDiffFromRemoteBranch(gitRoot, defaultBranch);
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
 
   // create a commit message
-  const commitMessage = await createCommitMessageFromDiff(config, diff);
-  if (!commitMessage) {
-    throw new CommandError("Failed to create a commit message");
-  }
-  if (dryRun) {
-    console.log(`Dry run: would commit with message "${commitMessage}"`);
-  } else {
-    const success = await commit(gitRoot, commitMessage);
-    if (!success) {
-      throw new CommandError("Failed to commit");
+  const headDiff = await getGitDiffToHead(gitRoot);
+  if (headDiff) {
+    const commitMessage = await createCommitMessageFromDiff(config, headDiff);
+    if (!commitMessage) {
+      throw new CommandError("Failed to create a commit message");
+    }
+    if (dryRun) {
+      console.log(`Dry run: would commit with message "${commitMessage}"`);
+    } else {
+      const success = await commit(gitRoot, commitMessage);
+      if (!success) {
+        throw new CommandError("Failed to commit");
+      }
     }
   }
 
@@ -69,39 +86,27 @@ export async function executeCreatePRCommand(values: any) {
   if (dryRun) {
     console.log(`Dry run: would push ${currentBranch} to ${branchName}`);
   } else {
-    const pushResult = Bun.spawn(
-      ["git", "push", "origin", `${currentBranch}:${branchName}`],
-      {
-        cwd: gitRoot,
-      },
-    );
-    await pushResult.exited;
-    if (pushResult.exitCode !== 0) {
-      throw new CommandError("Failed to push");
+    try {
+      await pushToRemote(gitRoot, `${currentBranch}:${branchName}`);
+    } catch (error) {
+      throw new CommandError("Failed to push to remote.", error as Error);
     }
   }
 
   // create a pull request
-  const gitHubToken = await getGitHubToken();
   if (dryRun) {
     console.log(`Dry run: would create a pull request`);
   } else {
-    const octokit = new Octokit({ auth: gitHubToken });
-    const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
-    const response = await octokit.rest.repos.get({
-      owner,
-      repo,
-    });
-    const defaultBranch = response.data.default_branch;
+    const prTitle = await createCommitMessageFromDiff(config, diff);
     const pr = await PullRequest.create(
       octokit,
       owner,
       repo,
-      commitMessage,
+      prTitle,
       summary,
       defaultBranch,
       branchName,
     );
-    console.log(`Created pull request ${pr.number}`);
+    console.log(`Created pull request:\n${pr.getUrl()}`);
   }
 }

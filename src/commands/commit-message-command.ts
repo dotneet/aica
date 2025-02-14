@@ -49,6 +49,12 @@ export async function createCommitMessageFromDiff(
 
     RULES:
     ${rules}
+
+    Response must be JSON syntax.
+    The only key in the JSON is "commitMessage".
+
+    JSON EXAMPLE:
+    {"commitMessage": "fix: fix the bug"}
     
     === START OF DIFF ===
     %DIFF%
@@ -56,7 +62,8 @@ export async function createCommitMessageFromDiff(
     `
       .replace("\n +", "\n")
       .replace("%DIFF%", diff),
-    false,
+    true,
   );
-  return content;
+  const replaced = content.replace(/^```json\n/, "").replace(/\n```$/, "");
+  return JSON.parse(replaced).commitMessage;
 }
