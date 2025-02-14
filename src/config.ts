@@ -81,7 +81,7 @@ export const defaultConfig: Config = {
   llm: {
     provider: "openai",
     openai: {
-      model: Bun.env.OPENAI_MODEL || "o1-mini-2024-09-12",
+      model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
     },
     anthropic: {
