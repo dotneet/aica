@@ -1,5 +1,5 @@
-import { PullRequest } from "@/github";
-import { Config, readConfig } from "@/config";
+import { getGitHubToken, PullRequest } from "@/github";
+import { readConfig } from "@/config";
 import { Octokit } from "octokit";
 import { generateSummary } from "@/github/summary";
 import {
@@ -74,14 +74,11 @@ export async function executeCreatePRCommand(values: any) {
   }
 
   // create a pull request
+  const gitHubToken = await getGitHubToken();
   if (dryRun) {
     console.log(`Dry run: would create a pull request`);
   } else {
-    const token = Bun.env.GITHUB_TOKEN;
-    if (!token) {
-      throw new Error("GITHUB_TOKEN is not set");
-    }
-    const octokit = new Octokit({ auth: token });
+    const octokit = new Octokit({ auth: gitHubToken });
     const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
     const response = await octokit.rest.repos.get({
       owner,

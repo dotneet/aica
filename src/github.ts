@@ -103,3 +103,24 @@ export class PullRequest {
     return response.data.default_branch;
   }
 }
+
+export async function getGitHubToken(): Promise<string> {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    // try to get token from gh
+    const result = Bun.spawn({
+      cmd: ["gh", "auth", "token"],
+    });
+    await result.exited;
+    if (result.exitCode !== 0) {
+      throw new Error(
+        "Failed to get GitHub token from environment variable or gh",
+      );
+    }
+    const text = (await new Response(result.stdout).text()).trim();
+    if (text) {
+      return text;
+    }
+  }
+  return token;
+}
