@@ -1,6 +1,6 @@
 import { createAnalyzeContextFromConfig } from "@/analyze";
 import { Config, readConfig } from "@/config";
-import { getGitDiff } from "@/git";
+import { getGitDiffToHead } from "@/git";
 
 export async function executeCommitMessageCommand(values: any) {
   const config = await readConfig(values.config);
@@ -26,7 +26,7 @@ export async function createCommitMessage(
     throw new Error("Not a git repository.");
   }
 
-  const text = await getGitDiff(cwd);
+  const text = await getGitDiffToHead(cwd);
   if (text === "") {
     throw new Error("No diff found.");
   }
