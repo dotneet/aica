@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { deepAssign } from "./utility/deep-assign";
+import { getGitRepositoryRoot } from "./git";
 
 export type LLMProvider = "openai" | "anthropic" | "stub";
 
@@ -80,11 +81,11 @@ export const defaultConfig: Config = {
   llm: {
     provider: "openai",
     openai: {
-      model: Bun.env.OPENAI_MODEL || "gpt-4-turbo-2024-04-09",
+      model: Bun.env.OPENAI_MODEL || "o1-mini-2024-09-12",
       apiKey: Bun.env.OPENAI_API_KEY || "",
     },
     anthropic: {
-      model: Bun.env.ANTHROPIC_MODEL || "claude-3-opus-20240229",
+      model: Bun.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
     },
     stub: {
@@ -181,20 +182,6 @@ export const defaultConfig: Config = {
     },
   },
 };
-
-async function getGitRepositoryRoot(cwd: string): Promise<string | null> {
-  const revParseResult = Bun.spawn({
-    cmd: ["git", "rev-parse", "--show-toplevel"],
-    cwd,
-    stdout: "pipe",
-  });
-  const code = await revParseResult.exited;
-  if (code !== 0) {
-    return null;
-  }
-  const text = (await new Response(revParseResult.stdout).text()).trim();
-  return text;
-}
 
 // Read a config file with the following priority:
 // - the given path

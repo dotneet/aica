@@ -1,11 +1,19 @@
 import { createAnalyzeContextFromConfig } from "@/analyze";
-import { readConfig } from "@/config";
+import { Config, readConfig } from "@/config";
 import { getGitDiff } from "@/git";
 
 export async function executeCommitMessageCommand(values: any) {
   const config = await readConfig(values.config);
   const cwd = values.dir || config.workingDirectory;
 
+  const commitMessage = await createCommitMessage(config, cwd);
+  console.log(commitMessage);
+}
+
+export async function createCommitMessage(
+  config: Config,
+  cwd: string,
+): Promise<string> {
   // check if cwd is a git repository
   const revParseResult = Bun.spawn({
     cmd: ["git", "rev-parse", "--is-inside-work-tree"],
@@ -15,15 +23,21 @@ export async function executeCommitMessageCommand(values: any) {
   await revParseResult.exited;
   const isGitRepository = revParseResult.exitCode === 0;
   if (!isGitRepository) {
-    console.error("Not a git repository.");
-    return;
+    throw new Error("Not a git repository.");
   }
 
   const text = await getGitDiff(cwd);
   if (text === "") {
-    console.log("No diff found.");
-    return;
+    throw new Error("No diff found.");
   }
+
+  return createCommitMessageFromDiff(config, text);
+}
+
+export async function createCommitMessageFromDiff(
+  config: Config,
+  diff: string,
+): Promise<string> {
   const context = await createAnalyzeContextFromConfig(config);
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)
@@ -41,8 +55,8 @@ export async function executeCommitMessageCommand(values: any) {
     === END OF DIFF ===
     `
       .replace("\n +", "\n")
-      .replace("%DIFF%", text),
+      .replace("%DIFF%", diff),
     false,
   );
-  console.log(content);
+  return content;
 }

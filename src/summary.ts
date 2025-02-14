@@ -56,9 +56,15 @@ export async function summarizeDiff(
 
   const userPrompt = `${context.userPrompt}`.replace("%CODE%", source);
   const result = await context.llm.generate(systemPrompt, userPrompt, true);
-  const json = JSON.parse(result);
-  return json.changes.map((change: any) => ({
-    category: change.category,
-    description: change.description,
-  }));
+  try {
+    const replaced = result.replace(/^```json\n/, "").replace(/\n```$/, "");
+    const json = JSON.parse(replaced);
+    return json.changes.map((change: any) => ({
+      category: change.category,
+      description: change.description,
+    }));
+  } catch (e) {
+    console.error(e.message + "\nRESULT:\n" + result);
+    throw new Error("Failed to parse summary");
+  }
 }

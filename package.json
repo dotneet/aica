@@ -22,6 +22,7 @@
     "@orama/plugin-data-persistence": "^2.1.1",
     "@orama/plugin-parsedoc": "^2.1.0",
     "@orama/plugin-secure-proxy": "^2.1.1",
+    "octokit": "^4.1.1",
     "yargs": "^17.7.2"
   }
 }
