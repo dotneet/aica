@@ -1,3 +1,19 @@
+export async function getGitDiffFromRemoteBranch(cwd: string, branch: string) {
+  const result = Bun.spawn({
+    cmd: ["git", "diff", `origin/${branch}`],
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  await result.exited;
+  if (result.exitCode !== 0) {
+    const text = (await new Response(result.stderr).text()).trim();
+    throw new Error(`Failed to get git diff from remote branch: ${text}`);
+  }
+  const text = (await new Response(result.stdout).text()).trim();
+  return text;
+}
+
 export async function getGitDiffStageOnly(cwd: string) {
   const result = Bun.spawn({
     cmd: ["git", "diff"],
@@ -114,4 +130,18 @@ export async function commit(cwd: string, message: string): Promise<boolean> {
     throw new Error(`Failed to commit: ${text}`);
   }
   return true;
+}
+
+export async function fetchRemote(cwd: string) {
+  const result = Bun.spawn({
+    cmd: ["git", "fetch", "origin"],
+    cwd,
+    stdout: "ignore",
+    stderr: "pipe",
+  });
+  await result.exited;
+  if (result.exitCode !== 0) {
+    const text = (await new Response(result.stderr).text()).trim();
+    throw new Error(`Failed to fetch remote: ${text}`);
+  }
 }

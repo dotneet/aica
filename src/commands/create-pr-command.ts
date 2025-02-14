@@ -4,7 +4,9 @@ import { Octokit } from "octokit";
 import { generateSummary } from "@/github/summary";
 import {
   commit,
+  fetchRemote,
   getCurrentBranch,
+  getGitDiffFromRemoteBranch,
   getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
@@ -31,8 +33,19 @@ export async function executeCreatePRCommand(values: any) {
     await addResult.exited;
   }
 
+  await fetchRemote(gitRoot);
+
+  const gitHubToken = await getGitHubToken();
+  const octokit = new Octokit({ auth: gitHubToken });
+  const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
+  const response = await octokit.rest.repos.get({
+    owner,
+    repo,
+  });
+  const defaultBranch = response.data.default_branch;
+
   // create a summary of the changes
-  const diff = await getGitDiffToHead(gitRoot);
+  const diff = await getGitDiffFromRemoteBranch(gitRoot, defaultBranch);
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
@@ -78,17 +91,9 @@ export async function executeCreatePRCommand(values: any) {
   }
 
   // create a pull request
-  const gitHubToken = await getGitHubToken();
   if (dryRun) {
     console.log(`Dry run: would create a pull request`);
   } else {
-    const octokit = new Octokit({ auth: gitHubToken });
-    const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
-    const response = await octokit.rest.repos.get({
-      owner,
-      repo,
-    });
-    const defaultBranch = response.data.default_branch;
     const pr = await PullRequest.create(
       octokit,
       owner,
