@@ -1,9 +1,9 @@
-import { GitHub } from "@actions/github/lib/utils";
+import { Octokit } from "octokit";
 import { Issue } from "./analyze";
 import { SummaryDiffItem } from "./summary";
 
 export function createGitHubStyleTableFromSummaryDiffItems(
-  summaryDiffItems: SummaryDiffItem[]
+  summaryDiffItems: SummaryDiffItem[],
 ): string {
   const header = "| Category | Description |";
   const table = summaryDiffItems.map((item) => {
@@ -22,11 +22,31 @@ export function createGitHubStyleTableFromIssues(issues: Issue[]): string {
 
 export class PullRequest {
   constructor(
-    private octokit: InstanceType<typeof GitHub>,
-    private owner: string,
-    private repo: string,
-    private number: number
+    private octokit: Octokit,
+    public readonly owner: string,
+    public readonly repo: string,
+    public readonly number: number,
   ) {}
+
+  static async create(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+    title: string,
+    body: string,
+    base: string,
+    head: string,
+  ) {
+    const response = await octokit.rest.pulls.create({
+      owner,
+      repo,
+      title,
+      body,
+      base,
+      head,
+    });
+    return new PullRequest(octokit, owner, repo, response.data.number);
+  }
 
   async getBody(): Promise<string> {
     const pullContent = await this.octokit.rest.pulls.get({
@@ -67,7 +87,19 @@ export class PullRequest {
         repo: this.repo,
         issue_number: this.number,
         body: comment,
-      }
+      },
     );
+  }
+
+  static async getDefaultBranch(
+    octokit: Octokit,
+    owner: string,
+    repo: string,
+  ): Promise<string> {
+    const response = await octokit.rest.repos.get({
+      owner,
+      repo,
+    });
+    return response.data.default_branch;
   }
 }

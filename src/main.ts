@@ -4,6 +4,7 @@ import { executeCommitMessageCommand } from "@/commands/commit-message-command";
 import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
 import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
+import { executeCreatePRCommand } from "./commands/create-pr-command";
 
 const argv = yargs(process.argv.slice(2))
   .option("config", {
@@ -24,7 +25,7 @@ const argv = yargs(process.argv.slice(2))
         })
         .strict()
         .help();
-    }
+    },
   )
   .command("summary-diff", "summarize the diff from HEAD", (yargs: any) => {
     return yargs
@@ -54,8 +55,17 @@ const argv = yargs(process.argv.slice(2))
         type: "string",
       });
   })
-  .strict()
-  .help()
+  .command("create-pr", "create a pull request", (yargs: any) => {
+    return yargs
+      .options({
+        dryRun: {
+          describe: "dry run",
+          type: "boolean",
+        },
+      })
+      .strict()
+      .help();
+  })
   .demandCommand()
   .parseSync();
 
@@ -64,6 +74,7 @@ const values = {
   dir: argv.dir,
   slack: argv.slack,
   pattern: argv.pattern,
+  dryRun: argv.dryRun,
 };
 
 const subcommand = argv._[0];
@@ -76,6 +87,9 @@ switch (subcommand) {
     break;
   case "summary-diff":
     executeSummaryDiffCommand(values);
+    break;
+  case "create-pr":
+    executeCreatePRCommand(values);
     break;
   default:
     console.error("Unknown subcommand:", subcommand);
