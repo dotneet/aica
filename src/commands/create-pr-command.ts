@@ -5,7 +5,6 @@ import { generateSummary } from "@/github/summary";
 import {
   commit,
   getCurrentBranch,
-  getGitDiffStageOnly,
   getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
@@ -18,8 +17,6 @@ export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
   const dryRun = values.dryRun;
   const stageOnly = values.stageOnly;
-  console.log(`dryRun: ${dryRun}`);
-  console.log(`stageOnly: ${stageOnly}`);
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
