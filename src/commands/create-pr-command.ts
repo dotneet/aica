@@ -51,16 +51,19 @@ export async function executeCreatePRCommand(values: any) {
   }
 
   // create a commit message
-  const commitMessage = await createCommitMessageFromDiff(config, diff);
-  if (!commitMessage) {
-    throw new CommandError("Failed to create a commit message");
-  }
-  if (dryRun) {
-    console.log(`Dry run: would commit with message "${commitMessage}"`);
-  } else {
-    const success = await commit(gitRoot, commitMessage);
-    if (!success) {
-      throw new CommandError("Failed to commit");
+  const headDiff = await getGitDiffToHead(gitRoot);
+  if (headDiff) {
+    const commitMessage = await createCommitMessageFromDiff(config, headDiff);
+    if (!commitMessage) {
+      throw new CommandError("Failed to create a commit message");
+    }
+    if (dryRun) {
+      console.log(`Dry run: would commit with message "${commitMessage}"`);
+    } else {
+      const success = await commit(gitRoot, commitMessage);
+      if (!success) {
+        throw new CommandError("Failed to commit");
+      }
     }
   }
 
