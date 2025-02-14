@@ -1,6 +1,13 @@
-import { Octokit } from "octokit";
 import { Issue } from "./analyze";
 import { SummaryDiffItem } from "./summary";
+import { Octokit as OctokitCore } from "@octokit/core";
+import {
+  restEndpointMethods,
+  Api,
+} from "@octokit/plugin-rest-endpoint-methods";
+
+export const Octokit = OctokitCore.plugin(restEndpointMethods).defaults({});
+export type Octokit = InstanceType<typeof Octokit> & Api;
 
 export function createGitHubStyleTableFromSummaryDiffItems(
   summaryDiffItems: SummaryDiffItem[],

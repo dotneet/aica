@@ -1,6 +1,6 @@
 import { getGitHubToken, PullRequest } from "@/github";
 import { readConfig } from "@/config";
-import { Octokit } from "octokit";
+import { Octokit } from "@/github";
 import { generateSummary } from "@/github/summary";
 import {
   commit,
