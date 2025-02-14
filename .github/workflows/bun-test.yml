@@ -27,3 +27,6 @@ jobs:
       # Run build to make sure it works
       - name: Run build
         run: bun run build
+
+      - name: Check executable
+        run: ./dist/aica --help
