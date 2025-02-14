@@ -113,4 +113,5 @@ export async function commit(cwd: string, message: string): Promise<boolean> {
     const text = (await new Response(result.stderr).text()).trim();
     throw new Error(`Failed to commit: ${text}`);
   }
+  return true;
 }
