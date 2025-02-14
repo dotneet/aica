@@ -15,6 +15,7 @@ import {
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { createBranchName } from "@/github/branch";
 import { CommandError } from "./error";
+import { executeCommit } from "./commit-command";
 
 export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
@@ -27,12 +28,6 @@ export async function executeCreatePRCommand(values: any) {
   }
 
   // add the changes to the staging area
-  if (!stageOnly) {
-    const addResult = Bun.spawn(["git", "add", "."], { cwd: gitRoot });
-    await addResult.exited;
-    console.log("Added all changes to the staging area");
-  }
-
   await fetchRemote(gitRoot);
   console.log("Fetched remote branches");
 
@@ -52,23 +47,8 @@ export async function executeCreatePRCommand(values: any) {
   }
   console.log("Got diff to remote default branch");
 
-  // create a commit message
-  const headDiff = await getGitDiffToHead(gitRoot);
-  if (headDiff) {
-    const commitMessage = await createCommitMessageFromDiff(config, headDiff);
-    if (!commitMessage) {
-      throw new CommandError("Failed to create a commit message");
-    }
-    if (dryRun) {
-      console.log(`Dry run: would commit with message "${commitMessage}"`);
-    } else {
-      const success = await commit(gitRoot, commitMessage);
-      if (!success) {
-        throw new CommandError("Failed to commit");
-      }
-      console.log(`Committed with message "${commitMessage}"`);
-    }
-  }
+  // commit the changes
+  await executeCommit(gitRoot, config, stageOnly, dryRun);
 
   // create a summary of the changes
   const summary = await generateSummary(config, diff);

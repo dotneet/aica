@@ -84,6 +84,10 @@ async function main() {
               describe: "stage only",
               type: "boolean",
             },
+            dryRun: {
+              describe: "dry run",
+              type: "boolean",
+            },
           })
           .strict()
           .help();
