@@ -21,24 +21,24 @@ export async function executeCommitCommand(
   values: any,
 ): Promise<CommitCommandResult> {
   const config = await readConfig(values.config);
-  const stageOnly = values.stageOnly;
+  const staged = values.staged;
   const dryRun = values.dryRun;
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
     throw new CommandError("Not in a git repository.");
   }
-  return executeCommit(gitRoot, config, stageOnly, dryRun);
+  return executeCommit(gitRoot, config, staged, dryRun);
 }
 
 export async function executeCommit(
   gitRoot: string,
   config: Config,
-  stageOnly: boolean,
+  staged: boolean,
   dryRun: boolean,
 ): Promise<CommitCommandResult> {
   const changes = await getAddingFilesToStage(gitRoot);
-  if (!stageOnly && changes.addingFiles.length > 0) {
+  if (!staged && changes.addingFiles.length > 0) {
     if (changes.confirmationRequiredFiles.length > 0) {
       throw new CommandError(
         "The following files are too large to add to the staging area:\n" +
