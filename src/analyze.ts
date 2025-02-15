@@ -34,8 +34,9 @@ export async function createAnalyzeContextFromConfig(
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.codeSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
-    const absolutePersistentFilePath = fs.realpathSync(
-      path.join(wd, persistentFilePath),
+    const absolutePersistentFilePath = path.join(
+      fs.realpathSync(wd),
+      persistentFilePath,
     );
     codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
       absolutePath,
@@ -54,8 +55,9 @@ export async function createAnalyzeContextFromConfig(
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.documentSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
-    const absolutePersistentFilePath = fs.realpathSync(
-      path.join(wd, persistentFilePath),
+    const absolutePersistentFilePath = path.join(
+      fs.realpathSync(wd),
+      persistentFilePath,
     );
     documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
       absolutePath,
