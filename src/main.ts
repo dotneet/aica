@@ -66,6 +66,16 @@ async function main() {
     .command("create-pr", "create a pull request", (yargs: any) => {
       return yargs
         .options({
+          withSummary: {
+            describe: "generate a summary of the diff from HEAD",
+            type: "boolean",
+            default: true,
+          },
+          body: {
+            describe: "body of the pull request",
+            type: "string",
+            default: "",
+          },
           dryRun: {
             describe: "dry run",
             type: "boolean",
