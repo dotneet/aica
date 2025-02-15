@@ -30,3 +30,6 @@ jobs:
 
       - name: Check executable
         run: ./dist/aica --help
+
+      - name: Build docker image
+        run: docker build -f Dockerfile.github_actions -t aica .
