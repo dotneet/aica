@@ -130,7 +130,16 @@ export const defaultConfig: Config = {
         "Generate one-line commit message based on given diff.",
         "Response must be less than 80 characters.",
       ],
-      user: "Generate one-line commit message based on given diff.",
+      user: `Generate one-line commit message based on given diff.
+        Use the prefix to describe the changes. Avialable prefixes: fix, feat, refactor, chore, test, docs, style, perf, ci, build, revert, merge, other
+        Examples:
+        - fix: fix the calculation logic
+        - feat: add the new command
+        - refactor: rename abc.txt to xyz.txt
+        - chore: update the dependencies
+        - test: add the test for the new command
+        - docs: update readme
+      `.replaceAll(/\n +/g, "\n"),
     },
   },
   source: {
