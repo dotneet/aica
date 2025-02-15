@@ -15,6 +15,9 @@ describe("generateReview", () => {
         provider: "stub",
         stub: { response: '{"issues": [{"description": "Mock issue"}]}' },
       },
+      embedding: {
+        provider: "stub",
+      },
     });
     const result = await generateReview(config, mockDiffString);
     expect(result).toContain("Mock issue");
@@ -25,6 +28,9 @@ describe("generateReview", () => {
       llm: {
         provider: "stub",
         stub: { response: '{"issues": []}' },
+      },
+      embedding: {
+        provider: "stub",
       },
     });
     const result = await generateReview(config, mockDiffString);

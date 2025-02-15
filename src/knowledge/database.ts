@@ -313,7 +313,9 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
     content: string,
     limit: number = 3,
   ): Promise<{ content: string; path: string }[]> {
-    const embedding = await this.embeddingProducer.getEmbedding(content);
+    const embedding: number[] = await this.embeddingProducer.getEmbedding(
+      content,
+    );
     const result = await search(this.db, {
       mode: "vector",
       vector: {
