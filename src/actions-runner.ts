@@ -42,7 +42,7 @@ async function main() {
     const summary = await generateSummary(config, diffString);
     const body = (await pullRequest.getBody()) || "";
     const newBody = buildSummaryBody(body, summary);
-    pullRequest.updateBody(newBody);
+    await pullRequest.updateBody(newBody);
 
     const reviewResultTable = await generateReview(config, diffString);
     const comment = "## Bug Report\n\n" + reviewResultTable;
