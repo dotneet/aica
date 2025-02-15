@@ -11,6 +11,7 @@ import {
   executeShowConfigCommand,
   showConfigValuesSchema,
 } from "./commands/show-config";
+import { executeIndexCommand as executeReindexCommand } from "./commands/index-command";
 
 async function main() {
   const argv = yargs(process.argv.slice(2))
@@ -62,6 +63,9 @@ async function main() {
           describe: "search pattern",
           type: "string",
         });
+    })
+    .command("index", "index the code and document", (yargs: any) => {
+      return yargs.strict().help();
     })
     .command("create-pr", "create a pull request", (yargs: any) => {
       return yargs
@@ -146,6 +150,9 @@ async function main() {
         break;
       case "create-pr":
         await executeCreatePRCommand(values);
+        break;
+      case "reindex":
+        await executeReindexCommand(values);
         break;
       case "show-config": {
         const showConfigValues = showConfigValuesSchema.parse(argv);

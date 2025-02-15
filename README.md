@@ -45,6 +45,18 @@ export OPENAI_API_KEY=your_api_key
 export OPENAI_MODEL=o3-mini # optional
 ```
 
+## Configuration
+
+You can customize the configuration by creating a `aica.toml` file.
+
+See [aica.example.toml](aica.example.toml).
+
+aica.toml must be placed in one of the following directories.
+
+- root directory of the repository
+- ${HOME}/.config/aica/aica.toml
+- ${GITHUB_WORKSPACE}/aica.toml
+
 ## Usage
 
 ### Review
@@ -58,6 +70,13 @@ aica review src/main.ts
 
 # review the files matching the specific glob pattern
 aica review "src/**/*.ts"
+```
+
+### Reindex
+
+```bash
+# reindex the code and document databases
+aica reindex
 ```
 
 ### Summary
