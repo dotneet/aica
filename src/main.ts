@@ -4,7 +4,10 @@ import { executeCommitMessageCommand } from "@/commands/commit-message-command";
 import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
 import { executeSummaryCommand } from "@/commands/summary-diff-command";
-import { executeCreatePRCommand } from "./commands/create-pr-command";
+import {
+  createPRValuesSchema,
+  executeCreatePRCommand,
+} from "./commands/create-pr-command";
 import { executeCommitCommand } from "./commands/commit-command";
 import { CommandError } from "./commands/error";
 import {
@@ -149,7 +152,8 @@ async function main() {
         await executeCommitCommand(values);
         break;
       case "create-pr":
-        await executeCreatePRCommand(values);
+        const createPRValues = createPRValuesSchema.parse(values);
+        await executeCreatePRCommand(createPRValues);
         break;
       case "reindex":
         await executeReindexCommand(values);
