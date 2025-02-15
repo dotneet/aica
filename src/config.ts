@@ -196,28 +196,51 @@ export async function readConfig(path: string | null): Promise<Config> {
     }
     workingDirectory = fs.realpathSync(path);
   } else {
-    if (!fs.existsSync("./aica.toml")) {
-      const root = await getGitRepositoryRoot(process.cwd());
-      const rootConfigPath = `${root}/aica.toml`;
-      if (root) {
-        workingDirectory = root;
-      }
-      if (root && fs.existsSync(rootConfigPath)) {
-        path = rootConfigPath;
-      } else {
-        const home = Bun.env.HOME;
-        if (!home) {
-          throw new Error("HOME environment variable is not set");
-        }
-        path = `${home}/.config/aica/aica.toml`;
-        if (!fs.existsSync(path)) {
-          return defaultConfig;
-        }
-      }
-    } else {
+    if (fs.existsSync("./aica.toml")) {
       path = "./aica.toml";
     }
+    // search git repository root
+    if (!path) {
+      try {
+        const root = await getGitRepositoryRoot(process.cwd());
+        const rootConfigPath = `${root}/aica.toml`;
+        if (root) {
+          workingDirectory = root;
+          if (fs.existsSync(rootConfigPath)) {
+            path = rootConfigPath;
+          }
+        }
+      } catch (e) {
+        // In github actions, some git features are not available as we don't have full access to the repository.
+        console.warn("Failed to get git repository root, using default config");
+      }
+    }
+    // search github actions config
+    if (!path) {
+      const ghWorkspace = Bun.env.GITHUB_WORKSPACE || "./";
+      const ghConfigPath = `${ghWorkspace}/aica.toml`;
+      if (ghWorkspace && fs.existsSync(ghConfigPath)) {
+        path = `${ghWorkspace}/aica.toml`;
+      }
+    }
+    // search global config
+    if (!path) {
+      const home = Bun.env.HOME;
+      if (!home) {
+        throw new Error("HOME environment variable is not set");
+      }
+      const homeConfigPath = `${home}/.config/aica/aica.toml`;
+      if (fs.existsSync(homeConfigPath)) {
+        path = homeConfigPath;
+      }
+    }
   }
+
+  if (!path) {
+    console.warn("No config file found, using default config");
+    return defaultConfig;
+  }
+
   const file = fs.readFileSync(path);
   const config = Bun.TOML.parse(file.toString()) as Config;
   if (!config) {
