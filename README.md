@@ -24,14 +24,18 @@ So, I decided to create a new tool with the following characteristics:
 - [x] Single binary executable by `bun build --compile`
 - [x] GitHub Actions integration. (See [wiki page](https://github.com/dotneet/aica/wiki/GitHub-Actions-Settings) to setup actions.)
 
-## Setup
+## Install
 
 Build and install a binary:
 
 ```bash
-# if you don't have bun installed, install it first.
-# With macOS:
-# brew install bun
+# Install bun before build aica.
+#
+# Official Install Document:
+# https://bun.sh/docs/installation#installing
+
+git clone https://github.com/dotneet/aica.git
+cd aica
 
 bun install
 bun run build
@@ -63,7 +67,7 @@ aica.toml must be placed in one of the following directories.
 
 ```bash
 # review the diff from HEAD
-aica review [pattern] [options]
+aica review [options] [pattern]
 
 # review specific files
 aica review src/main.ts
@@ -110,7 +114,7 @@ aica commit --staged
 Options:
 
 - `--staged`: Only include staged changes
-- `--dry-run`: Show result without execution
+- `--dryRun`: Show result without execution
 
 ### Create Pull Request
 
@@ -127,9 +131,9 @@ aica create-pr --staged
 
 Options:
 
-- `--with-summary`: Generate summary of diff from HEAD (default: true)
+- `--withSummary`: Generate summary of diff from HEAD (default: true)
 - `--body`: Pull request body
-- `--dry-run`: Show result without execution
+- `--dryRun`: Show result without execution
 - `--staged`: Only include staged changes
 
 ### Generate Commit Message
