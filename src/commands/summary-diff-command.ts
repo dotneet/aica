@@ -2,8 +2,18 @@ import { readConfig } from "@/config";
 import { getGitDiffToHead } from "@/git";
 import { createLLM } from "@/llm/mod";
 import { createSummaryContext, summarizeDiff } from "@/summary";
+import { z } from "zod";
 
-export async function executeSummaryCommand(values: any) {
+export const summaryDiffCommandSchema = z.object({
+  config: z.string().optional(),
+  dir: z.string().optional(),
+});
+
+export type SummaryDiffCommandValues = z.infer<typeof summaryDiffCommandSchema>;
+
+export async function executeSummaryDiffCommand(
+  values: SummaryDiffCommandValues,
+) {
   const configFilePath = values.config || null;
   const config = await readConfig(configFilePath);
   const targetDir = values.dir || config.workingDirectory;

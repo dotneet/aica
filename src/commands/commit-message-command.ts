@@ -1,8 +1,20 @@
 import { createAnalyzeContextFromConfig } from "@/analyze";
 import { Config, readConfig } from "@/config";
 import { getGitDiffToHead } from "@/git";
+import { z } from "zod";
 
-export async function executeCommitMessageCommand(values: any) {
+export const commitMessageCommandSchema = z.object({
+  config: z.string().optional(),
+  dir: z.string().optional(),
+});
+
+export type CommitMessageCommandValues = z.infer<
+  typeof commitMessageCommandSchema
+>;
+
+export async function executeCommitMessageCommand(
+  values: CommitMessageCommandValues,
+) {
   const config = await readConfig(values.config);
   const cwd = values.dir || config.workingDirectory;
 

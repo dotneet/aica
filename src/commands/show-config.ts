@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const showConfigValuesSchema = z.object({
   config: z.string().optional(),
-  default: z.boolean().optional(),
+  default: z.boolean().default(false),
 });
 
 export type ShowConfigValues = z.infer<typeof showConfigValuesSchema>;

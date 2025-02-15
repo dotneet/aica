@@ -9,7 +9,18 @@ import { readConfig } from "@/config";
 import { sendToSlack } from "@/slack";
 import { Source, SourceFinder } from "@/source";
 
-export async function executeReviewCommand(values: any) {
+import { z } from "zod";
+
+export const reviewCommandSchema = z.object({
+  config: z.string().optional(),
+  dir: z.string().optional(),
+  slack: z.boolean().optional(),
+  pattern: z.string().optional(),
+});
+
+export type ReviewCommandValues = z.infer<typeof reviewCommandSchema>;
+
+export async function executeReviewCommand(values: ReviewCommandValues) {
   try {
     const configFilePath = values.config || null;
     const config = await readConfig(configFilePath);
