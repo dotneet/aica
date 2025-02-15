@@ -66,8 +66,8 @@ async function main() {
             describe: "dry run",
             type: "boolean",
           },
-          stageOnly: {
-            describe: "stage only",
+          staged: {
+            describe: "staged changes only",
             type: "boolean",
           },
         })
@@ -80,8 +80,8 @@ async function main() {
       (yargs: any) => {
         return yargs
           .options({
-            stageOnly: {
-              describe: "stage only",
+            staged: {
+              describe: "staged changes only",
               type: "boolean",
             },
             dryRun: {
@@ -102,7 +102,7 @@ async function main() {
     slack: argv.slack,
     pattern: argv.pattern,
     dryRun: argv.dryRun || false,
-    stageOnly: argv.stageOnly || false,
+    staged: argv.staged || false,
   };
 
   const subcommand = argv._[0];

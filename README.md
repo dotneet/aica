@@ -86,8 +86,8 @@ This command creates a pull request on GitHub.
 # create a pull request
 aica create-pr
 
-# create a pull request with --stage-only option
-aica create-pr --stage-only
+# create a pull request with --staged option
+aica create-pr --staged
 ```
 
 ### Commit Changes
@@ -102,5 +102,5 @@ This command commits changes with an AI-generated commit message.
 aica commit
 
 # only stage changes without committing
-aica commit --stage-only
+aica commit --staged
 ```

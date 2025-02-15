@@ -20,7 +20,7 @@ import { executeCommit } from "./commit-command";
 export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
   const dryRun = values.dryRun;
-  const stageOnly = values.stageOnly;
+  const staged = values.staged;
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
@@ -48,7 +48,7 @@ export async function executeCreatePRCommand(values: any) {
   console.log("Got diff to remote default branch");
 
   // commit the changes
-  await executeCommit(gitRoot, config, stageOnly, dryRun);
+  await executeCommit(gitRoot, config, staged, dryRun);
 
   // create a summary of the changes
   const summary = await generateSummary(config, diff);

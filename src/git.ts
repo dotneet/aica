@@ -1,6 +1,6 @@
 export async function getGitDiffFromRemoteBranch(cwd: string, branch: string) {
   const result = Bun.spawn({
-    cmd: ["git", "diff", `origin/${branch}`],
+    cmd: ["git", "diff", "--staged", `origin/${branch}`],
     cwd,
     stdout: "pipe",
     stderr: "pipe",
@@ -16,7 +16,7 @@ export async function getGitDiffFromRemoteBranch(cwd: string, branch: string) {
 
 export async function getGitDiffStageOnly(cwd: string) {
   const result = Bun.spawn({
-    cmd: ["git", "diff"],
+    cmd: ["git", "diff", "--staged"],
     cwd,
     stdout: "pipe",
     stderr: "pipe",
