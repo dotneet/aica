@@ -4,13 +4,17 @@ import { executeCommitMessageCommand } from "@/commands/commit-message-command";
 import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
 import { executeSummaryCommand } from "@/commands/summary-diff-command";
-import { executeCreatePRCommand } from "./commands/create-pr-command";
+import {
+  createPRValuesSchema,
+  executeCreatePRCommand,
+} from "./commands/create-pr-command";
 import { executeCommitCommand } from "./commands/commit-command";
 import { CommandError } from "./commands/error";
 import {
   executeShowConfigCommand,
   showConfigValuesSchema,
 } from "./commands/show-config";
+import { executeIndexCommand as executeReindexCommand } from "./commands/index-command";
 
 async function main() {
   const argv = yargs(process.argv.slice(2))
@@ -62,6 +66,9 @@ async function main() {
           describe: "search pattern",
           type: "string",
         });
+    })
+    .command("index", "index the code and document", (yargs: any) => {
+      return yargs.strict().help();
     })
     .command("create-pr", "create a pull request", (yargs: any) => {
       return yargs
@@ -145,7 +152,11 @@ async function main() {
         await executeCommitCommand(values);
         break;
       case "create-pr":
-        await executeCreatePRCommand(values);
+        const createPRValues = createPRValuesSchema.parse(values);
+        await executeCreatePRCommand(createPRValues);
+        break;
+      case "reindex":
+        await executeReindexCommand(values);
         break;
       case "show-config": {
         const showConfigValues = showConfigValuesSchema.parse(argv);

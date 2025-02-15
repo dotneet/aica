@@ -1,10 +1,18 @@
 import { EmbeddingConfig } from "@/config";
-import { EmbeddingProducer } from "./embedding";
+import {
+  EmbeddingProducer,
+  EmbeddingProducerStub,
+  OpenAIEmbeddingProducer,
+} from "./embedding";
 
-export function createEmbeddingProducer(settings: EmbeddingConfig) {
+export function createEmbeddingProducer(
+  settings: EmbeddingConfig,
+): EmbeddingProducer {
   const { provider, openai } = settings;
   if (provider === "openai") {
-    return new EmbeddingProducer(openai.model, openai.apiKey);
+    return new OpenAIEmbeddingProducer(openai.apiKey, openai.model);
+  } else if (provider === "stub") {
+    return new EmbeddingProducerStub();
   } else {
     throw new Error(`Unknown embedding provider: ${provider}`);
   }

@@ -1,10 +1,21 @@
-export class EmbeddingProducer {
+export interface EmbeddingProducer {
+  getEmbedding(text: string): Promise<number[]>;
+}
+
+export class OpenAIEmbeddingProducer implements EmbeddingProducer {
   constructor(
     private readonly openAiApiKey: string,
-    private readonly embeddingModel: string
-  ) {}
+    private readonly embeddingModel: string,
+  ) {
+    if (!this.openAiApiKey) {
+      throw new Error("OPENAI_API_KEY is not set");
+    }
+    if (!this.embeddingModel) {
+      throw new Error("EMBEDDING_MODEL is not set");
+    }
+  }
 
-  async getEmbedding(text: string) {
+  async getEmbedding(text: string): Promise<number[]> {
     const response = await fetch("https://api.openai.com/v1/embeddings", {
       method: "POST",
       headers: {
@@ -13,7 +24,17 @@ export class EmbeddingProducer {
       },
       body: JSON.stringify({ model: this.embeddingModel, input: text }),
     });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Failed to get embedding: ${text}`);
+    }
     const { data } = await response.json();
     return data[0].embedding;
+  }
+}
+
+export class EmbeddingProducerStub implements EmbeddingProducer {
+  async getEmbedding(text: string): Promise<number[]> {
+    return [0.1, 0.2, 0.3];
   }
 }

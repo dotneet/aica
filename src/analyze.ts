@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import {
   CodeSearchDatabaseOrama,
+  DocumentSearchDatabaseOrama,
   KnowledgeDatabase,
 } from "./knowledge/database";
 import { Source, SourceType } from "./source";
@@ -34,12 +35,13 @@ export async function createAnalyzeContextFromConfig(
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.codeSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
-    const absolutePersistentFilePath = fs.realpathSync(
-      path.join(wd, persistentFilePath),
+    const absolutePersistentFilePath = path.join(
+      fs.realpathSync(wd),
+      persistentFilePath,
     );
     codeSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-      absolutePath,
       absolutePersistentFilePath,
+      absolutePath,
       includePatterns,
       excludePatterns,
       embeddingProducer,
@@ -54,12 +56,13 @@ export async function createAnalyzeContextFromConfig(
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.documentSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
-    const absolutePersistentFilePath = fs.realpathSync(
-      path.join(wd, persistentFilePath),
+    const absolutePersistentFilePath = path.join(
+      fs.realpathSync(wd),
+      persistentFilePath,
     );
-    documentSearchDatabase = await CodeSearchDatabaseOrama.fromSettings(
-      absolutePath,
+    documentSearchDatabase = await DocumentSearchDatabaseOrama.fromSettings(
       absolutePersistentFilePath,
+      absolutePath,
       includePatterns,
       excludePatterns,
       embeddingProducer,
@@ -96,6 +99,21 @@ export function createAnalyzeContext(
     rules,
     userPrompt,
   };
+}
+
+export async function reindexAll(context: AnalyzeContext): Promise<boolean> {
+  let reindexed = false;
+  if (context.codeSearchDatabase) {
+    await context.codeSearchDatabase.reindex();
+    console.log("codeSearchDatabase reindexed");
+    reindexed = true;
+  }
+  if (context.documentSearchDatabase) {
+    await context.documentSearchDatabase.reindex();
+    console.log("documentSearchDatabase reindexed");
+    reindexed = true;
+  }
+  return reindexed;
 }
 
 export type Issue = {

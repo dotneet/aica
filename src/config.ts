@@ -19,7 +19,7 @@ export type LLMConfig = {
   };
 };
 
-export type EmbeddingProvider = "openai";
+export type EmbeddingProvider = "openai" | "stub";
 
 export type EmbeddingConfig = {
   provider: EmbeddingProvider;
