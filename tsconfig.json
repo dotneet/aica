@@ -5,7 +5,7 @@
       "@/*": ["./src/*"]
     },
     "lib": ["ESNext", "DOM"],
-    "types": ["bun-types", "@types/bun", "@types/yargs"],
+    "types": ["bun-types", "@types/bun"],
     "target": "ESNext",
     "module": "ESNext",
     "jsx": "react-jsx",

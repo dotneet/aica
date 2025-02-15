@@ -1,7 +1,14 @@
 import { createAnalyzeContextFromConfig, reindexAll } from "@/analyze";
 import { readConfig } from "@/config";
+import { z } from "zod";
 
-export async function executeIndexCommand(values: any) {
+export const indexCommandSchema = z.object({
+  config: z.string().optional(),
+});
+
+export type IndexCommandValues = z.infer<typeof indexCommandSchema>;
+
+export async function executeIndexCommand(values: IndexCommandValues) {
   const config = await readConfig(values.config);
   const context = await createAnalyzeContextFromConfig(config);
   const reindexed = await reindexAll(context);

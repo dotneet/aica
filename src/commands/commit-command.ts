@@ -9,7 +9,7 @@ import {
 } from "@/git";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { CommandError } from "./error";
-
+import { z } from "zod";
 export type CommitCommandResult = {
   changedFiles: string[];
   hasCommited: boolean;
@@ -17,8 +17,16 @@ export type CommitCommandResult = {
   diff: string;
 };
 
+export const commitCommandSchema = z.object({
+  config: z.string().optional(),
+  staged: z.boolean().default(false),
+  dryRun: z.boolean().default(false),
+});
+
+export type CommitCommandValues = z.infer<typeof commitCommandSchema>;
+
 export async function executeCommitCommand(
-  values: any,
+  values: CommitCommandValues,
 ): Promise<CommitCommandResult> {
   const config = await readConfig(values.config);
   const staged = values.staged;
