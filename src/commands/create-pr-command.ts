@@ -38,17 +38,17 @@ export async function executeCreatePRCommand(values: any) {
     owner,
     repo,
   });
-  const defaultBranch = response.data.default_branch;
+
+  // commit the changes
+  await executeCommit(gitRoot, config, staged, dryRun);
 
   // create a summary of the changes
+  const defaultBranch = response.data.default_branch;
   const diff = await getGitDiffFromRemoteBranch(gitRoot, defaultBranch);
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
   console.log("Got diff to remote default branch");
-
-  // commit the changes
-  await executeCommit(gitRoot, config, staged, dryRun);
 
   // create a summary of the changes
   const summary = await generateSummary(config, diff);

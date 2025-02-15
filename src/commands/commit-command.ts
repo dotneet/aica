@@ -38,6 +38,7 @@ export async function executeCommit(
   dryRun: boolean,
 ): Promise<CommitCommandResult> {
   const changes = await getAddingFilesToStage(gitRoot);
+  console.log("Changes to stage:", changes);
   if (!staged && changes.addingFiles.length > 0) {
     if (changes.confirmationRequiredFiles.length > 0) {
       throw new CommandError(
