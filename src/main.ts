@@ -137,10 +137,11 @@ async function main() {
       case "create-pr":
         await executeCreatePRCommand(values);
         break;
-      case "show-config":
+      case "show-config": {
         const showConfigValues = showConfigValuesSchema.parse(argv);
         await executeShowConfigCommand(showConfigValues);
         break;
+      }
       default:
         console.error("Unknown subcommand:", subcommand);
     }
