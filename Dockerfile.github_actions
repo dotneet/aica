@@ -1,9 +1,9 @@
-FROM oven/bun:1.1.42
+FROM oven/bun:1.2.2
 
 WORKDIR /app
 COPY package.json .
 COPY tsconfig.json .
-COPY bun.lockb .
+COPY bun.lock .
 COPY src /app/src
 RUN bun install
 RUN bun run build:actions
