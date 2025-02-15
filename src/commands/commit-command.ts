@@ -1,11 +1,11 @@
 import { Config, readConfig } from "@/config";
 import {
-  getGitRepositoryRoot,
-  commit,
-  getGitDiffToHead,
-  getAddingFilesToStage,
   addFilesToStage,
+  commit,
+  getAddingFilesToStage,
   getAllChangedFiles,
+  getGitDiffStageOnly,
+  getGitRepositoryRoot,
 } from "@/git";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { CommandError } from "./error";
@@ -38,7 +38,7 @@ export async function executeCommit(
   dryRun: boolean,
 ): Promise<CommitCommandResult> {
   const changes = await getAddingFilesToStage(gitRoot);
-  if (!stageOnly) {
+  if (!stageOnly && changes.addingFiles.length > 0) {
     if (changes.confirmationRequiredFiles.length > 0) {
       throw new CommandError(
         "The following files are too large to add to the staging area:\n" +
@@ -70,7 +70,7 @@ export async function executeCommit(
   }
 
   // create a summary of the changes
-  const diff = await getGitDiffToHead(gitRoot);
+  const diff = await getGitDiffStageOnly(gitRoot);
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
