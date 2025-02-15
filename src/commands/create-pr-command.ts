@@ -20,10 +20,10 @@ import { z } from "zod";
 
 export const createPRValuesSchema = z.object({
   config: z.string().optional(),
-  withSummary: z.boolean().optional(),
-  dryRun: z.boolean().optional(),
-  staged: z.boolean().optional(),
-  body: z.string().optional(),
+  withSummary: z.boolean().default(true),
+  dryRun: z.boolean().default(false),
+  staged: z.boolean().default(false),
+  body: z.string().default(""),
 });
 
 export type CreatePRValues = z.infer<typeof createPRValuesSchema>;
@@ -70,7 +70,11 @@ export async function executeCreatePRCommand(values: CreatePRValues) {
       throw new CommandError("Failed to create a summary");
     }
     console.log("Generated summary");
-    prBody += "\n\n" + summary;
+    if (prBody) {
+      prBody += "\n\n" + summary;
+    } else {
+      prBody = summary;
+    }
   }
 
   // create a branch name
