@@ -60,11 +60,11 @@ aica review src/main.ts
 aica review "src/**/*.ts"
 ```
 
-### Summary Changes
+### Summary
 
 ```bash
-# summarize the diff from HEAD
-aica summary-diff
+# generate a summary of the diff from HEAD
+aica summary
 ```
 
 ### Commit Changes

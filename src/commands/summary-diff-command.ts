@@ -3,7 +3,7 @@ import { getGitDiffToHead } from "@/git";
 import { createLLM } from "@/llm/mod";
 import { createSummaryContext, summarizeDiff } from "@/summary";
 
-export async function executeSummaryDiffCommand(values: any) {
+export async function executeSummaryCommand(values: any) {
   const configFilePath = values.config || null;
   const config = await readConfig(configFilePath);
   const targetDir = values.dir || config.workingDirectory;

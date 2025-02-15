@@ -3,7 +3,7 @@ import yargs from "yargs";
 import { executeCommitMessageCommand } from "@/commands/commit-message-command";
 import { executeReviewCommand } from "@/commands/review-command";
 import pkg from "../package.json";
-import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
+import { executeSummaryCommand } from "@/commands/summary-diff-command";
 import { executeCreatePRCommand } from "./commands/create-pr-command";
 import { executeCommitCommand } from "./commands/commit-command";
 import { CommandError } from "./commands/error";
@@ -35,7 +35,7 @@ async function main() {
           .help();
       },
     )
-    .command("summary-diff", "summarize the diff from HEAD", (yargs: any) => {
+    .command("summary", "summarize the diff from HEAD", (yargs: any) => {
       return yargs
         .options({
           dir: {
@@ -66,6 +66,16 @@ async function main() {
     .command("create-pr", "create a pull request", (yargs: any) => {
       return yargs
         .options({
+          withSummary: {
+            describe: "generate a summary of the diff from HEAD",
+            type: "boolean",
+            default: true,
+          },
+          body: {
+            describe: "body of the pull request",
+            type: "string",
+            default: "",
+          },
           dryRun: {
             describe: "dry run",
             type: "boolean",
@@ -128,8 +138,8 @@ async function main() {
       case "commit-message":
         await executeCommitMessageCommand(values);
         break;
-      case "summary-diff":
-        await executeSummaryDiffCommand(values);
+      case "summary":
+        await executeSummaryCommand(values);
         break;
       case "commit":
         await executeCommitCommand(values);

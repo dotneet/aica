@@ -19,8 +19,10 @@ import { executeCommit } from "./commit-command";
 
 export async function executeCreatePRCommand(values: any) {
   const config = await readConfig(values.config);
+  const withSummary = values.withSummary;
   const dryRun = values.dryRun;
   const staged = values.staged;
+  let prBody = values.body;
 
   const gitRoot = await getGitRepositoryRoot(process.cwd());
   if (!gitRoot) {
@@ -51,11 +53,14 @@ export async function executeCreatePRCommand(values: any) {
   console.log("Got diff to remote default branch");
 
   // create a summary of the changes
-  const summary = await generateSummary(config, diff);
-  if (!summary) {
-    throw new CommandError("Failed to create a summary");
+  if (withSummary) {
+    const summary = await generateSummary(config, diff);
+    if (!summary) {
+      throw new CommandError("Failed to create a summary");
+    }
+    console.log("Generated summary");
+    prBody += "\n\n" + summary;
   }
-  console.log("Generated summary");
 
   // create a branch name
   const branchName = await createBranchName(config, diff);
@@ -89,7 +94,7 @@ export async function executeCreatePRCommand(values: any) {
       owner,
       repo,
       prTitle,
-      summary,
+      prBody,
       defaultBranch,
       branchName,
     );
