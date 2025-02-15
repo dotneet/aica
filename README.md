@@ -63,7 +63,7 @@ aica.toml must be placed in one of the following directories.
 
 ```bash
 # review the diff from HEAD
-aica review
+aica review [pattern] [options]
 
 # review specific files
 aica review src/main.ts
@@ -71,6 +71,11 @@ aica review src/main.ts
 # review the files matching the specific glob pattern
 aica review "src/**/*.ts"
 ```
+
+Options:
+
+- `--dir`: Target directory path
+- `--slack`: Send notification to Slack
 
 ### Reindex
 
@@ -83,8 +88,12 @@ aica reindex
 
 ```bash
 # generate a summary of the diff from HEAD
-aica summary
+aica summary [options]
 ```
+
+Options:
+
+- `--dir`: Target directory path
 
 ### Commit Changes
 
@@ -92,15 +101,16 @@ This command commits changes with an AI-generated commit message.
 
 ```bash
 # commit all changes(including untracked and unstaged changes) with an AI-generated commit message
-aica commit
+aica commit [options]
 
 # commit only staged changes with an AI-generated commit message
 aica commit --staged
 ```
 
-Note:
+Options:
 
-- Add the all files you don't want to commit to `.gitignore` file for avoiding committing them.
+- `--staged`: Only include staged changes
+- `--dry-run`: Show result without execution
 
 ### Create Pull Request
 
@@ -109,18 +119,45 @@ This command creates a pull request on GitHub.
 ```bash
 # create a pull request
 # if there are changes, it will commit them and create a pull request.
-aica create-pr
+aica create-pr [options]
 
 # commit only staged changes and create a pull request
 aica create-pr --staged
 ```
 
+Options:
+
+- `--with-summary`: Generate summary of diff from HEAD (default: true)
+- `--body`: Pull request body
+- `--dry-run`: Show result without execution
+- `--staged`: Only include staged changes
+
 ### Generate Commit Message
 
 ```bash
 # generate a one-line commit message based on the diff from HEAD
-aica commit-message
+aica commit-message [options]
 ```
+
+Options:
+
+- `--dir`: Target directory path
+
+### Show Configuration
+
+```bash
+# show current configuration
+aica show-config [options]
+```
+
+Options:
+
+- `--default`: Show default configuration
+
+### Other Commands
+
+- `aica version`: Show version information
+- `aica help [command]`: Show help information for a specific command or general help
 
 ## GitHub Actions Settings
 
