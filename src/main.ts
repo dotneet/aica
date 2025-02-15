@@ -7,6 +7,10 @@ import { executeSummaryDiffCommand } from "@/commands/summary-diff-command";
 import { executeCreatePRCommand } from "./commands/create-pr-command";
 import { executeCommitCommand } from "./commands/commit-command";
 import { CommandError } from "./commands/error";
+import {
+  executeShowConfigCommand,
+  showConfigValuesSchema,
+} from "./commands/show-config";
 
 async function main() {
   const argv = yargs(process.argv.slice(2))
@@ -93,6 +97,16 @@ async function main() {
           .help();
       },
     )
+    .command("show-config", "show the config", (yargs: any) => {
+      return yargs
+        .options({
+          default: {
+            describe: "show the default config",
+            type: "boolean",
+          },
+        })
+        .help();
+    })
     .demandCommand()
     .parseSync();
 
@@ -123,6 +137,11 @@ async function main() {
       case "create-pr":
         await executeCreatePRCommand(values);
         break;
+      case "show-config": {
+        const showConfigValues = showConfigValuesSchema.parse(argv);
+        await executeShowConfigCommand(showConfigValues);
+        break;
+      }
       default:
         console.error("Unknown subcommand:", subcommand);
     }

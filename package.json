@@ -24,6 +24,7 @@
     "@orama/plugin-data-persistence": "^2.1.1",
     "@orama/plugin-parsedoc": "^2.1.0",
     "@orama/plugin-secure-proxy": "^2.1.1",
-    "yargs": "^17.7.2"
+    "yargs": "^17.7.2",
+    "zod": "^3.24.2"
   }
 }
