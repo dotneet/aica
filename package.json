@@ -1,12 +1,16 @@
 {
-  "name": "ai-code-analyzer",
+  "name": "@dotneet/aica",
   "module": "src/main.ts",
+  "bin": {
+    "aica": "dist/aica"
+  },
   "version": "0.0.1",
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
     "build": "bun build --compile --outfile dist/aica src/main.ts",
-    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts"
+    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
+    "postinstall": "bun run build"
   },
   "devDependencies": {
     "@types/bun": "latest",
