@@ -23,7 +23,6 @@ export async function getBranchDiffLikePullRequest(
   baseBranch: string,
   targetBranch: string,
 ) {
-  console.log("getBranchDiffLikePullRequest", baseBranch, targetBranch);
   const mergeBase = await getMergeBase(cwd, baseBranch, targetBranch);
   const result = Bun.spawn({
     cmd: ["git", "diff", mergeBase],
