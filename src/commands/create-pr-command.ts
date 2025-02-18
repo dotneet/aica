@@ -5,6 +5,7 @@ import { generateSummary } from "@/github/summary";
 import {
   commit,
   fetchRemote,
+  getBranchDiffLikePullRequest,
   getCurrentBranch,
   getGitDiffFromRemoteBranch,
   getGitDiffToHead,
@@ -55,9 +56,16 @@ export async function executeCreatePRCommand(values: CreatePRValues) {
   // commit the changes
   await executeCommit(gitRoot, config, staged, dryRun);
 
+  // get the current branch
+  const currentBranch = await getCurrentBranch(gitRoot);
+
   // create a summary of the changes
   const defaultBranch = response.data.default_branch;
-  const diff = await getGitDiffFromRemoteBranch(gitRoot, defaultBranch);
+  const diff = await getBranchDiffLikePullRequest(
+    gitRoot,
+    defaultBranch,
+    currentBranch,
+  );
   if (!diff) {
     throw new CommandError("No changes to commit");
   }
@@ -83,9 +91,6 @@ export async function executeCreatePRCommand(values: CreatePRValues) {
     throw new CommandError("Failed to create a branch name");
   }
   console.log(`Created branch name: "${branchName}"`);
-
-  // get the current branch
-  const currentBranch = await getCurrentBranch(gitRoot);
 
   // push current branch to remote as a new branch
   if (dryRun) {

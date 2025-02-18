@@ -14,6 +14,47 @@ export async function getGitDiffFromRemoteBranch(cwd: string, branch: string) {
   return text;
 }
 
+export async function getBranchDiffLikePullRequest(
+  cwd: string,
+  baseBranch: string,
+  targetBranch: string,
+) {
+  const mergeBase = await getMergeBase(cwd, baseBranch, targetBranch);
+  const result = Bun.spawn({
+    cmd: ["git", "diff", "--name-only", mergeBase, targetBranch],
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  await result.exited;
+  if (result.exitCode !== 0) {
+    const text = (await new Response(result.stderr).text()).trim();
+    throw new Error(`Failed to get git diff like pull request: ${text}`);
+  }
+  const text = (await new Response(result.stdout).text()).trim();
+  return text;
+}
+
+export async function getMergeBase(
+  cwd: string,
+  baseBranch: string,
+  targetBranch: string,
+) {
+  const result = Bun.spawn({
+    cmd: ["git", "merge-base", baseBranch, targetBranch],
+    cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  await result.exited;
+  if (result.exitCode !== 0) {
+    const text = (await new Response(result.stderr).text()).trim();
+    throw new Error(`Failed to get git merge base: ${text}`);
+  }
+  const text = (await new Response(result.stdout).text()).trim();
+  return text;
+}
+
 export async function getGitDiffStageOnly(cwd: string) {
   const result = Bun.spawn({
     cmd: ["git", "diff", "--staged"],
