@@ -3,12 +3,9 @@ import { readConfig } from "@/config";
 import { Octokit } from "@/github";
 import { generateSummary } from "@/github/summary";
 import {
-  commit,
   fetchRemote,
   getBranchDiffLikePullRequest,
   getCurrentBranch,
-  getGitDiffFromRemoteBranch,
-  getGitDiffToHead,
   getGitRepositoryRoot,
   getOriginOwnerAndRepo,
   pushToRemote,
@@ -60,10 +57,11 @@ export async function executeCreatePRCommand(values: CreatePRValues) {
   const currentBranch = await getCurrentBranch(gitRoot);
 
   // create a summary of the changes
+  const remote = "origin";
   const defaultBranch = response.data.default_branch;
   const diff = await getBranchDiffLikePullRequest(
     gitRoot,
-    defaultBranch,
+    `${remote}/${defaultBranch}`,
     currentBranch,
   );
   if (!diff) {
