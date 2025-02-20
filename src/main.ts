@@ -13,8 +13,8 @@ import {
   summaryDiffCommandSchema,
 } from "@/commands/summary-diff-command";
 import {
-  createPRValuesSchema,
-  executeCreatePRCommand,
+  createPrCommandSchema,
+  executeCreatePrCommand,
 } from "./commands/create-pr-command";
 import {
   commitCommandSchema,
@@ -100,6 +100,21 @@ const commands: Record<SubCommand, CommandDefinition> = {
       body: {
         type: "string",
         description: "Pull request body",
+        default: "",
+      },
+      draft: {
+        type: "boolean",
+        description: "Create a draft pull request",
+        default: false,
+      },
+      title: {
+        type: "string",
+        description: "Pull request title",
+        default: "",
+      },
+      branchName: {
+        type: "string",
+        description: "Branch name",
         default: "",
       },
       dryRun: {
@@ -200,8 +215,8 @@ async function main() {
         await executeCommitCommand(commitValues);
         break;
       case "create-pr":
-        const createPRValues = createPRValuesSchema.parse(values);
-        await executeCreatePRCommand(createPRValues);
+        const createPRValues = createPrCommandSchema.parse(values);
+        await executeCreatePrCommand(createPRValues);
         break;
       case "reindex":
         const reindexValues = indexCommandSchema.parse(values);

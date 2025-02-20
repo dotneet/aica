@@ -1,41 +1,43 @@
-import { readConfig } from "@/config";
-import { getGitDiffToHead } from "@/git";
-import { createLLM } from "@/llm/mod";
-import { createSummaryContext, summarizeDiff } from "@/summary";
+import { readConfig, type Config } from "@/config";
+import { GitRepository } from "@/git";
 import { z } from "zod";
+import {
+  type SummaryContext,
+  type SummaryDiffItem,
+  summarizeDiff,
+  createSummaryContext,
+} from "@/summary";
+import { createLLM } from "@/llm/mod";
 
 export const summaryDiffCommandSchema = z.object({
-  config: z.string().optional(),
-  dir: z.string().optional(),
+  dryRun: z.boolean().default(false),
 });
 
 export type SummaryDiffCommandValues = z.infer<typeof summaryDiffCommandSchema>;
 
 export async function executeSummaryDiffCommand(
   values: SummaryDiffCommandValues,
-) {
-  const configFilePath = values.config || null;
-  const config = await readConfig(configFilePath);
-  const targetDir = values.dir || config.workingDirectory;
+): Promise<void> {
+  const config = await readConfig();
+  const targetDir = process.cwd();
+  const git = new GitRepository(targetDir);
+  const diff = await git.getGitDiffToHead();
+  if (!diff) {
+    throw new Error("No changes to summarize");
+  }
 
+  const llm = createLLM(config.llm);
   const summaryContext = createSummaryContext(
-    createLLM(config.llm),
+    llm,
     config.summary.prompt.system,
     config.summary.prompt.rules,
     config.summary.prompt.user,
   );
 
-  const diff = await getGitDiffToHead(targetDir);
-  if (diff.length === 0) {
-    console.log("No diff found.");
-    return;
-  }
-
   const summaryDiffItems = await summarizeDiff(summaryContext, diff);
   const summary = summaryDiffItems
-    .map((item) => {
-      return ` - ${item.category}: ${item.description}`;
-    })
+    .map((item) => `- ${item.category}: ${item.description}`)
     .join("\n");
-  console.log(`${summary}`);
+
+  console.log(summary);
 }

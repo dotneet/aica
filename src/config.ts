@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { deepAssign } from "./utility/deep-assign";
-import { getGitRepositoryRoot } from "./git";
+import { GitRepository } from "./git";
 
 export type LLMProvider = "openai" | "anthropic" | "stub";
 
@@ -197,26 +197,33 @@ export const defaultConfig: Config = {
 // - current directory
 // - git repository root
 // - global config ($HOME/.config/aica/aica.toml)
-export async function readConfig(path: string | null): Promise<Config> {
+export async function readConfig(
+  configPath: string | null = null,
+): Promise<Config> {
+  const cwd = process.cwd();
+  const root = await GitRepository.getRepositoryRoot(cwd);
+  if (!root) {
+    throw new Error("Not in a git repository");
+  }
+
   let workingDirectory = ".";
-  if (path) {
-    if (!fs.existsSync(path)) {
-      throw new Error(`Config file not found: ${path}`);
+  if (configPath) {
+    if (!fs.existsSync(configPath)) {
+      throw new Error(`Config file not found: ${configPath}`);
     }
-    workingDirectory = fs.realpathSync(path);
+    workingDirectory = fs.realpathSync(configPath);
   } else {
     if (fs.existsSync("./aica.toml")) {
-      path = "./aica.toml";
+      configPath = "./aica.toml";
     }
     // search git repository root
-    if (!path) {
+    if (!configPath) {
       try {
-        const root = await getGitRepositoryRoot(process.cwd());
         const rootConfigPath = `${root}/aica.toml`;
         if (root) {
           workingDirectory = root;
           if (fs.existsSync(rootConfigPath)) {
-            path = rootConfigPath;
+            configPath = rootConfigPath;
           }
         }
       } catch (e) {
@@ -225,35 +232,35 @@ export async function readConfig(path: string | null): Promise<Config> {
       }
     }
     // search github actions config
-    if (!path) {
+    if (!configPath) {
       const ghWorkspace = Bun.env.GITHUB_WORKSPACE || "./";
       const ghConfigPath = `${ghWorkspace}/aica.toml`;
       if (ghWorkspace && fs.existsSync(ghConfigPath)) {
-        path = `${ghWorkspace}/aica.toml`;
+        configPath = `${ghWorkspace}/aica.toml`;
       }
     }
     // search global config
-    if (!path) {
+    if (!configPath) {
       const home = Bun.env.HOME;
       if (!home) {
         throw new Error("HOME environment variable is not set");
       }
       const homeConfigPath = `${home}/.config/aica/aica.toml`;
       if (fs.existsSync(homeConfigPath)) {
-        path = homeConfigPath;
+        configPath = homeConfigPath;
       }
     }
   }
 
-  if (!path) {
+  if (!configPath) {
     console.warn("No config file found, using default config");
     return defaultConfig;
   }
 
-  const file = fs.readFileSync(path);
+  const file = fs.readFileSync(configPath);
   const config = Bun.TOML.parse(file.toString()) as Config;
   if (!config) {
-    throw new Error(`Invalid config file: ${path}`);
+    throw new Error(`Invalid config file: ${configPath}`);
   }
   return deepAssign(defaultConfig, config, { workingDirectory });
 }

@@ -1,121 +1,124 @@
-import { getGitHubToken, PullRequest } from "@/github";
-import { readConfig } from "@/config";
+import { readConfig, type Config } from "@/config";
+import { GitRepository } from "@/git";
 import { Octokit } from "@/github";
-import { generateSummary } from "@/github/summary";
-import {
-  fetchRemote,
-  getBranchDiffLikePullRequest,
-  getCurrentBranch,
-  getGitRepositoryRoot,
-  getOriginOwnerAndRepo,
-  pushToRemote,
-} from "@/git";
-import { createCommitMessageFromDiff } from "./commit-message-command";
-import { createBranchName } from "@/github/branch";
-import { CommandError } from "./error";
-import { executeCommit } from "./commit-command";
 import { z } from "zod";
+import { executeCommit } from "./commit-command";
+import { createCommitMessageFromDiff } from "./commit-message-command";
+import { PullRequest } from "@/github";
+import { generateSummary } from "@/github/summary";
+import { createBranchName } from "@/github/branch";
 
-export const createPRValuesSchema = z.object({
-  config: z.string().optional(),
-  withSummary: z.boolean().default(true),
-  dryRun: z.boolean().default(false),
+export const createPrCommandSchema = z.object({
   staged: z.boolean().default(false),
-  body: z.string().default(""),
+  dryRun: z.boolean().default(false),
+  baseBranch: z.string().default("main"),
+  branchName: z.string().optional(),
+  withSummary: z.boolean().default(true),
+  title: z.string().optional(),
+  body: z.string().optional(),
+  draft: z.boolean().default(false),
 });
 
-export type CreatePRValues = z.infer<typeof createPRValuesSchema>;
+export type CreatePrCommandValues = z.infer<typeof createPrCommandSchema>;
 
-export async function executeCreatePRCommand(values: CreatePRValues) {
-  const config = await readConfig(values.config);
-  const withSummary = values.withSummary;
-  const dryRun = values.dryRun;
-  const staged = values.staged;
-  let prBody = values.body;
+export async function executeCreatePrCommand(
+  values: CreatePrCommandValues,
+): Promise<void> {
+  const config = await readConfig();
+  const {
+    staged,
+    dryRun,
+    baseBranch,
+    branchName,
+    title,
+    body,
+    draft,
+    withSummary,
+  } = values;
 
-  const gitRoot = await getGitRepositoryRoot(process.cwd());
+  const cwd = process.cwd();
+  const gitRoot = await GitRepository.getRepositoryRoot(cwd);
+  const git = new GitRepository(gitRoot);
   if (!gitRoot) {
-    throw new CommandError("Not a git repository.");
+    throw new Error("Not in a git repository");
   }
 
-  // add the changes to the staging area
-  await fetchRemote(gitRoot);
-  console.log("Fetched remote branches");
+  await git.fetchRemote();
 
-  const gitHubToken = await getGitHubToken();
-  const octokit = new Octokit({ auth: gitHubToken });
-  const { owner, repo } = await getOriginOwnerAndRepo(gitRoot);
-  const response = await octokit.rest.repos.get({
-    owner,
-    repo,
-  });
+  // get repository info
+  const { owner, repo } = await git.getOriginOwnerAndRepo();
 
   // commit the changes
   await executeCommit(gitRoot, config, staged, dryRun);
 
-  // get the current branch
-  const currentBranch = await getCurrentBranch(gitRoot);
+  // get current branch
+  const currentBranch = await git.getCurrentBranch();
 
-  // create a summary of the changes
-  const remote = "origin";
-  const defaultBranch = response.data.default_branch;
-  const diff = await getBranchDiffLikePullRequest(
-    gitRoot,
-    `${remote}/${defaultBranch}`,
+  const remoteName = await git.getDefaultRemoteName();
+  if (!remoteName) {
+    throw new Error("No remote base branch found");
+  }
+
+  // get diff
+  const diff = await git.getBranchDiffLikePullRequest(
+    `${remoteName}/${baseBranch}`,
     currentBranch,
   );
+
   if (!diff) {
-    throw new CommandError("No changes to commit");
+    throw new Error("No changes to commit");
   }
-  console.log("Got diff to remote default branch");
 
-  // create a summary of the changes
-  if (withSummary) {
-    const summary = await generateSummary(config, diff);
-    if (!summary) {
-      throw new CommandError("Failed to create a summary");
+  let targetBranchName = branchName;
+  if (!targetBranchName) {
+    targetBranchName = await createBranchName(config, diff);
+  }
+  const prTitle = title || (await createCommitMessageFromDiff(config, diff));
+
+  if (!dryRun) {
+    await git.createBranch(targetBranchName);
+    await git.switchBranch(targetBranchName);
+    await git.pushToRemote(remoteName, targetBranchName);
+
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
+    });
+
+    let prBody = body || "";
+    if (withSummary) {
+      const summary = await generateSummary(config, diff);
+      prBody = prBody ? `${prBody}\n\n${summary}` : summary;
     }
-    console.log("Generated summary");
-    if (prBody) {
-      prBody += "\n\n" + summary;
-    } else {
-      prBody = summary;
-    }
-  }
 
-  // create a branch name
-  const branchName = await createBranchName(config, diff);
-  if (!branchName) {
-    throw new CommandError("Failed to create a branch name");
-  }
-  console.log(`Created branch name: "${branchName}"`);
-
-  // push current branch to remote as a new branch
-  if (dryRun) {
-    console.log(`Dry run: would push ${currentBranch} to ${branchName}`);
-  } else {
-    try {
-      await pushToRemote(gitRoot, `${currentBranch}:${branchName}`);
-      console.log(`Pushed ${currentBranch} to ${branchName}`);
-    } catch (error) {
-      throw new CommandError("Failed to push to remote.", error as Error);
-    }
-  }
-
-  // create a pull request
-  if (dryRun) {
-    console.log(`Dry run: would create a pull request`);
-  } else {
-    const prTitle = await createCommitMessageFromDiff(config, diff);
     const pr = await PullRequest.create(
       octokit,
       owner,
       repo,
       prTitle,
       prBody,
-      defaultBranch,
-      branchName,
+      baseBranch,
+      targetBranchName,
     );
-    console.log(`Created pull request:\n${pr.getUrl()}`);
+
+    if (draft) {
+      await octokit.rest.pulls.update({
+        owner,
+        repo,
+        pull_number: pr.number,
+        draft: true,
+      });
+    }
+
+    console.log(`Pull request created: ${pr.getUrl()}`);
+  } else {
+    console.log("Dry run: would create pull request with:");
+    console.log(`  Title: ${prTitle}`);
+    console.log(`  Body: ${body || ""}`);
+    if (withSummary) {
+      console.log("  Summary would be generated from the diff");
+    }
+    console.log(`  Head: ${targetBranchName}`);
+    console.log(`  Base: ${baseBranch}`);
+    console.log(`  Draft: ${draft}`);
   }
 }
