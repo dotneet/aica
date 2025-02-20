@@ -4,12 +4,15 @@ import { Octokit } from "@/github";
 import { z } from "zod";
 import { executeCommit } from "./commit-command";
 import { createCommitMessageFromDiff } from "./commit-message-command";
+import { PullRequest } from "@/github";
+import { generateSummary } from "@/github/summary";
 
 export const createPrCommandSchema = z.object({
   staged: z.boolean().default(false),
   dryRun: z.boolean().default(false),
   baseBranch: z.string().default("main"),
   branchName: z.string().optional(),
+  withSummary: z.boolean().default(true),
   title: z.string().optional(),
   body: z.string().optional(),
   draft: z.boolean().default(false),
@@ -21,7 +24,16 @@ export async function executeCreatePrCommand(
   values: CreatePrCommandValues,
 ): Promise<void> {
   const config = await readConfig();
-  const { staged, dryRun, baseBranch, branchName, title, body, draft } = values;
+  const {
+    staged,
+    dryRun,
+    baseBranch,
+    branchName,
+    title,
+    body,
+    draft,
+    withSummary,
+  } = values;
 
   const cwd = process.cwd();
   const gitRoot = await GitRepository.getRepositoryRoot(cwd);
@@ -41,9 +53,14 @@ export async function executeCreatePrCommand(
   // get current branch
   const currentBranch = await git.getCurrentBranch();
 
+  const defaultRemoteName = await git.getDefaultRemoteName();
+  if (!defaultRemoteName) {
+    throw new Error("No remote base branch found");
+  }
+
   // get diff
   const diff = await git.getBranchDiffLikePullRequest(
-    baseBranch,
+    `${defaultRemoteName}/${baseBranch}`,
     currentBranch,
   );
 
@@ -51,35 +68,49 @@ export async function executeCreatePrCommand(
     throw new Error("No changes to commit");
   }
 
-  // create pull request
-  const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-  });
-
   const targetBranchName = branchName || currentBranch;
-
-  if (!dryRun) {
-    await git.pushToRemote(`${currentBranch}:${targetBranchName}`);
-  }
-
   const prTitle = title || (await createCommitMessageFromDiff(config, diff));
 
   if (!dryRun) {
-    const response = await octokit.rest.pulls.create({
-      owner,
-      repo,
-      title: prTitle,
-      body: body || "",
-      head: targetBranchName,
-      base: baseBranch,
-      draft: draft,
+    await git.pushToRemote(`${currentBranch}:${targetBranchName}`);
+
+    const octokit = new Octokit({
+      auth: process.env.GITHUB_TOKEN,
     });
 
-    console.log(`Pull request created: ${response.data.html_url}`);
+    let prBody = body || "";
+    if (withSummary) {
+      const summary = await generateSummary(config, diff);
+      prBody = prBody ? `${prBody}\n\n${summary}` : summary;
+    }
+
+    const pr = await PullRequest.create(
+      octokit,
+      owner,
+      repo,
+      prTitle,
+      prBody,
+      baseBranch,
+      targetBranchName,
+    );
+
+    if (draft) {
+      await octokit.rest.pulls.update({
+        owner,
+        repo,
+        pull_number: pr.number,
+        draft: true,
+      });
+    }
+
+    console.log(`Pull request created: ${pr.getUrl()}`);
   } else {
     console.log("Dry run: would create pull request with:");
     console.log(`  Title: ${prTitle}`);
     console.log(`  Body: ${body || ""}`);
+    if (withSummary) {
+      console.log("  Summary would be generated from the diff");
+    }
     console.log(`  Head: ${targetBranchName}`);
     console.log(`  Base: ${baseBranch}`);
     console.log(`  Draft: ${draft}`);

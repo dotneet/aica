@@ -17,6 +17,25 @@ export class GitRepository {
     return text;
   }
 
+  async getDefaultRemoteName(): Promise<string | null> {
+    const result = Bun.spawn({
+      cmd: ["git", "remote"],
+      cwd: this.gitRootDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    await result.exited;
+    if (result.exitCode !== 0) {
+      const errorText = (await new Response(result.stderr).text()).trim();
+      throw new Error(`Failed to get default remote name: ${errorText}`);
+    }
+    const output = (await new Response(result.stdout).text()).trim();
+    if (output.length === 0) {
+      return null;
+    }
+    return output.split("\n")[0];
+  }
+
   async getBranchDiffLikePullRequest(baseBranch: string, targetBranch: string) {
     const mergeBase = await this.getMergeBase(baseBranch, targetBranch);
     const result = Bun.spawn({
