@@ -102,6 +102,21 @@ const commands: Record<SubCommand, CommandDefinition> = {
         description: "Pull request body",
         default: "",
       },
+      draft: {
+        type: "boolean",
+        description: "Create a draft pull request",
+        default: false,
+      },
+      title: {
+        type: "string",
+        description: "Pull request title",
+        default: "",
+      },
+      branchName: {
+        type: "string",
+        description: "Branch name",
+        default: "",
+      },
       dryRun: {
         type: "boolean",
         description: "Show result without execution",

@@ -133,6 +133,30 @@ export class GitRepository {
     return text;
   }
 
+  async createBranch(branch: string) {
+    const result = Bun.spawn({
+      cmd: ["git", "checkout", "-b", branch],
+      cwd: this.gitRootDir,
+    });
+    await result.exited;
+    if (result.exitCode !== 0) {
+      const text = (await new Response(result.stderr).text()).trim();
+      throw new Error(`Failed to create branch: ${text}`);
+    }
+  }
+
+  async switchBranch(branch: string) {
+    const result = Bun.spawn({
+      cmd: ["git", "checkout", branch],
+      cwd: this.gitRootDir,
+    });
+    await result.exited;
+    if (result.exitCode !== 0) {
+      const text = (await new Response(result.stderr).text()).trim();
+      throw new Error(`Failed to switch branch: ${text}`);
+    }
+  }
+
   async pushToRemote(remoteName: string, branch: string) {
     const result = Bun.spawn({
       cmd: ["git", "push", remoteName, branch],

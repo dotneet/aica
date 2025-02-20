@@ -76,7 +76,9 @@ export async function executeCreatePrCommand(
   const prTitle = title || (await createCommitMessageFromDiff(config, diff));
 
   if (!dryRun) {
-    await git.pushToRemote(remoteName, `${currentBranch}:${targetBranchName}`);
+    await git.createBranch(targetBranchName);
+    await git.switchBranch(targetBranchName);
+    await git.pushToRemote(remoteName, targetBranchName);
 
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
