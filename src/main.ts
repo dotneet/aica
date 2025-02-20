@@ -13,8 +13,8 @@ import {
   summaryDiffCommandSchema,
 } from "@/commands/summary-diff-command";
 import {
-  createPRValuesSchema,
-  executeCreatePRCommand,
+  createPrCommandSchema,
+  executeCreatePrCommand,
 } from "./commands/create-pr-command";
 import {
   commitCommandSchema,
@@ -200,8 +200,8 @@ async function main() {
         await executeCommitCommand(commitValues);
         break;
       case "create-pr":
-        const createPRValues = createPRValuesSchema.parse(values);
-        await executeCreatePRCommand(createPRValues);
+        const createPRValues = createPrCommandSchema.parse(values);
+        await executeCreatePrCommand(createPRValues);
         break;
       case "reindex":
         const reindexValues = indexCommandSchema.parse(values);
