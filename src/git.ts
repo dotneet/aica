@@ -133,9 +133,9 @@ export class GitRepository {
     return text;
   }
 
-  async pushToRemote(branch: string) {
+  async pushToRemote(remoteName: string, branch: string) {
     const result = Bun.spawn({
-      cmd: ["git", "push", "origin", branch],
+      cmd: ["git", "push", remoteName, branch],
       cwd: this.gitRootDir,
       stdout: "ignore",
       stderr: "pipe",

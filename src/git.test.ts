@@ -1,12 +1,13 @@
 import { describe, it, expect } from "bun:test";
-import { getAllChangedFiles } from "./git";
+import { GitRepository } from "./git";
 import { beforeEach, afterEach } from "bun:test";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
-describe("getAllChangedFiles", () => {
+describe("GitRepository", () => {
   const testDir = join(process.cwd(), "test-repo");
+  let gitRepo: GitRepository;
 
   beforeEach(async () => {
     // テスト用のGitリポジトリを作成
@@ -14,6 +15,7 @@ describe("getAllChangedFiles", () => {
     execSync("git init", { cwd: testDir });
     execSync('git config user.email "test@example.com"', { cwd: testDir });
     execSync('git config user.name "Test User"', { cwd: testDir });
+    gitRepo = new GitRepository(testDir);
   });
 
   afterEach(async () => {
@@ -22,7 +24,7 @@ describe("getAllChangedFiles", () => {
   });
 
   it("should detect no changes in empty repository", async () => {
-    const result = await getAllChangedFiles(testDir);
+    const result = await gitRepo.getAllChangedFiles();
     expect(result.hasChanges).toBe(false);
     expect(result.stagedFiles).toEqual([]);
     expect(result.unstagedFiles).toEqual([]);
@@ -31,7 +33,7 @@ describe("getAllChangedFiles", () => {
 
   it("should detect untracked files", async () => {
     await writeFile(join(testDir, "untracked.txt"), "test");
-    const result = await getAllChangedFiles(testDir);
+    const result = await gitRepo.getAllChangedFiles();
     expect(result.hasChanges).toBe(true);
     expect(result.untrackedFiles).toEqual(["untracked.txt"]);
     expect(result.stagedFiles).toEqual([]);
@@ -41,7 +43,7 @@ describe("getAllChangedFiles", () => {
   it("should detect staged files", async () => {
     await writeFile(join(testDir, "staged.txt"), "test");
     execSync("git add staged.txt", { cwd: testDir });
-    const result = await getAllChangedFiles(testDir);
+    const result = await gitRepo.getAllChangedFiles();
     expect(result.hasChanges).toBe(true);
     expect(result.stagedFiles).toEqual(["staged.txt"]);
     expect(result.unstagedFiles).toEqual([]);
@@ -56,7 +58,7 @@ describe("getAllChangedFiles", () => {
 
     // ファイルを変更
     await writeFile(join(testDir, "modified.txt"), "modified");
-    const result = await getAllChangedFiles(testDir);
+    const result = await gitRepo.getAllChangedFiles();
     expect(result.hasChanges).toBe(true);
     expect(result.unstagedFiles).toEqual(["modified.txt"]);
     expect(result.stagedFiles).toEqual([]);

@@ -6,6 +6,7 @@ import { executeCommit } from "./commit-command";
 import { createCommitMessageFromDiff } from "./commit-message-command";
 import { PullRequest } from "@/github";
 import { generateSummary } from "@/github/summary";
+import { createBranchName } from "@/github/branch";
 
 export const createPrCommandSchema = z.object({
   staged: z.boolean().default(false),
@@ -53,14 +54,14 @@ export async function executeCreatePrCommand(
   // get current branch
   const currentBranch = await git.getCurrentBranch();
 
-  const defaultRemoteName = await git.getDefaultRemoteName();
-  if (!defaultRemoteName) {
+  const remoteName = await git.getDefaultRemoteName();
+  if (!remoteName) {
     throw new Error("No remote base branch found");
   }
 
   // get diff
   const diff = await git.getBranchDiffLikePullRequest(
-    `${defaultRemoteName}/${baseBranch}`,
+    `${remoteName}/${baseBranch}`,
     currentBranch,
   );
 
@@ -68,11 +69,14 @@ export async function executeCreatePrCommand(
     throw new Error("No changes to commit");
   }
 
-  const targetBranchName = branchName || currentBranch;
+  let targetBranchName = branchName;
+  if (!targetBranchName) {
+    targetBranchName = await createBranchName(config, diff);
+  }
   const prTitle = title || (await createCommitMessageFromDiff(config, diff));
 
   if (!dryRun) {
-    await git.pushToRemote(`${currentBranch}:${targetBranchName}`);
+    await git.pushToRemote(remoteName, `${currentBranch}:${targetBranchName}`);
 
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
