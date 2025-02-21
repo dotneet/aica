@@ -153,7 +153,12 @@ const commands: Record<SubCommand, CommandDefinition> = {
   },
   agent: {
     description: "Execute agent commands",
-    options: {},
+    options: {
+      file: {
+        type: "string",
+        description: "path to an instruction file",
+      },
+    },
     args: [{ name: "prompt", description: "Command prompt for the agent" }],
   },
 };
@@ -234,12 +239,14 @@ async function main() {
         await executeShowConfigCommand(showConfigValues);
         break;
       }
-      case "index":
-        await executeReindexCommand(values);
+      case "agent": {
+        console.log(values);
+        await executeAgentCommand({
+          prompt: positionals.join(" "),
+          file: values.file,
+        });
         break;
-      case "agent":
-        await executeAgentCommand(positionals);
-        break;
+      }
       default:
         console.error("Unknown subcommand:", subCommand);
         process.exit(1);
