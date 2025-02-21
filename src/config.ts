@@ -4,16 +4,24 @@ import { GitRepository } from "./git";
 
 export type LLMProvider = "openai" | "anthropic" | "stub";
 
+export type LLMConfigOpenAI = {
+  model: string;
+  apiKey: string;
+  temperature: number;
+  maxCompletionTokens: number;
+};
+
+export type LLMConfigAnthropic = {
+  model: string;
+  apiKey: string;
+  temperature: number;
+  maxTokens: number;
+};
+
 export type LLMConfig = {
   provider: LLMProvider;
-  openai: {
-    model: string;
-    apiKey: string;
-  };
-  anthropic: {
-    model: string;
-    apiKey: string;
-  };
+  openai: LLMConfigOpenAI;
+  anthropic: LLMConfigAnthropic;
   stub: {
     response: string;
   };
@@ -83,10 +91,14 @@ export const defaultConfig: Config = {
     openai: {
       model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
+      temperature: 0.5,
+      maxCompletionTokens: 4096,
     },
     anthropic: {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
+      temperature: 0.5,
+      maxTokens: 4096,
     },
     stub: {
       response: "",

@@ -9,7 +9,7 @@ export function createLLM(settings: LLMConfig): LLM {
   if (provider === "openai") {
     return new LLMOpenAI(openai.apiKey, openai.model);
   } else if (provider === "anthropic") {
-    return new LLMAnthropic(anthropic.apiKey, anthropic.model);
+    return new LLMAnthropic(anthropic);
   } else if (provider === "stub") {
     return new LLMStub(settings.stub.response);
   } else {

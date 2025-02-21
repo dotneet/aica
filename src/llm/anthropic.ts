@@ -1,3 +1,4 @@
+import { LLMConfigAnthropic } from "@/config";
 import { LLM, Message } from "./llm";
 
 type ClaudeMessageResponse = {
@@ -22,7 +23,17 @@ type AnthropicMessage = {
 };
 
 export class LLMAnthropic implements LLM {
-  constructor(private apiKey: string, private model: string) {}
+  private apiKey: string;
+  private model: string;
+  private temperature: number;
+  private maxTokens: number;
+
+  constructor(config: LLMConfigAnthropic) {
+    this.apiKey = config.apiKey;
+    this.model = config.model;
+    this.temperature = config.temperature;
+    this.maxTokens = config.maxTokens;
+  }
 
   async generate(
     systemPrompt: string,
@@ -43,10 +54,10 @@ export class LLMAnthropic implements LLM {
 
     const payload = JSON.stringify({
       model: this.model,
-      max_tokens: 4096,
+      max_tokens: this.maxTokens,
       messages: anthropicMessages,
       system: systemPrompt,
-      temperature: jsonMode ? 0.0 : 1.0,
+      temperature: this.temperature,
     });
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
