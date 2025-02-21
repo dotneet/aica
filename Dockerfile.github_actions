@@ -22,7 +22,4 @@ COPY src /app/src
 RUN bun install
 RUN bun run build:actions
 
-# avoid "fatal: detected dubious ownership in repository"
-RUN git config --global --add safe.directory /app
-
 CMD ["/app/dist/actions-runner"]
