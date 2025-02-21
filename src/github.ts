@@ -132,9 +132,7 @@ export async function getGitHubToken(): Promise<string> {
     if (text) {
       return text;
     }
-    if (!token) {
-      throw new Error("Failed to get GitHub token");
-    }
+    throw new Error("Failed to get GitHub token");
   }
   return token;
 }
