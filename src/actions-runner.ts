@@ -22,6 +22,7 @@ function buildSummaryBody(body: string, summary: string): string {
 }
 
 async function main() {
+  console.log("start actions runner...");
   try {
     const token = Bun.env.GITHUB_TOKEN;
     if (!token) {
@@ -30,7 +31,7 @@ async function main() {
     const octokit = new Octokit({ auth: token });
     const config = await readConfig(null);
     const payload = github.context.payload;
-    console.log("Context Payload", JSON.stringify(payload, null, 2));
+    // console.log("Context Payload", JSON.stringify(payload, null, 2));
 
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
     const [owner, repo] = fullRepoName.split("/");

@@ -200,12 +200,6 @@ export const defaultConfig: Config = {
 export async function readConfig(
   configPath: string | null = null,
 ): Promise<Config> {
-  const cwd = process.cwd();
-  const root = await GitRepository.getRepositoryRoot(cwd);
-  if (!root) {
-    throw new Error("Not in a git repository");
-  }
-
   let workingDirectory = ".";
   if (configPath) {
     if (!fs.existsSync(configPath)) {
@@ -219,6 +213,8 @@ export async function readConfig(
     // search git repository root
     if (!configPath) {
       try {
+        const cwd = process.cwd();
+        const root = await GitRepository.getRepositoryRoot(cwd);
         const rootConfigPath = `${root}/aica.toml`;
         if (root) {
           workingDirectory = root;
@@ -233,10 +229,10 @@ export async function readConfig(
     }
     // search github actions config
     if (!configPath) {
-      const ghWorkspace = Bun.env.GITHUB_WORKSPACE || "./";
-      const ghConfigPath = `${ghWorkspace}/aica.toml`;
-      if (ghWorkspace && fs.existsSync(ghConfigPath)) {
-        configPath = `${ghWorkspace}/aica.toml`;
+      const cwd = process.cwd();
+      const ghConfigPath = `${cwd}/aica.toml`;
+      if (fs.existsSync(ghConfigPath)) {
+        configPath = ghConfigPath;
       }
     }
     // search global config
