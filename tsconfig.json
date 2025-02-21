@@ -12,7 +12,7 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "strict": false,
+    "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,

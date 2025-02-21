@@ -51,7 +51,11 @@ export class AttemptCompletionTool implements Tool {
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
-      throw new ToolError(`Failed to generate completion: ${error.message}`);
+      if (error instanceof Error) {
+        throw new ToolError(`Failed to generate completion: ${error.message}`);
+      } else {
+        throw new ToolError(`Failed to generate completion: ${error}`);
+      }
     }
   }
 }

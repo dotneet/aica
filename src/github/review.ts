@@ -22,6 +22,10 @@ export async function generateReview(
   const context = await createAnalyzeContextFromConfig(config);
   const allIssues: Issue[] = [];
   for (const source of sources) {
+    if (!source.fileChange) {
+      console.log(`Skipping ${source.path} because it has no file change`);
+      continue;
+    }
     console.log(`Analyzing ${source.fileChange.filename}`);
     const result = await analyzeCodeForBugs(context, source);
     console.log(

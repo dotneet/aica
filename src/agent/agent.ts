@@ -8,8 +8,8 @@ import { Source } from "@/source";
 import { getEnvironmentDetailsPrompt } from "./prompt/user-prompt";
 
 export type TaskExecutionOptions = {
-  verbose?: boolean;
-  maxIterations?: number;
+  verbose: boolean;
+  maxIterations: number;
 };
 const defaultTaskExecutionOptions: TaskExecutionOptions = {
   maxIterations: 10,
@@ -71,7 +71,8 @@ export class Agent {
     options: Partial<TaskExecutionOptions> = {},
   ): Promise<void> {
     options = { ...defaultTaskExecutionOptions, ...options };
-    const maxIterations = options.maxIterations;
+    const maxIterations =
+      options.maxIterations ?? defaultTaskExecutionOptions.maxIterations;
     let iterations = 0;
     let stopped = false;
     while (!stopped) {

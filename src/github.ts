@@ -61,7 +61,7 @@ export class PullRequest {
       repo: this.repo,
       pull_number: this.number,
     });
-    return pullContent.data.body;
+    return pullContent.data.body ?? "";
   }
 
   async getDiff(pullNumber: number): Promise<string> {
@@ -131,6 +131,9 @@ export async function getGitHubToken(): Promise<string> {
     const text = (await new Response(result.stdout).text()).trim();
     if (text) {
       return text;
+    }
+    if (!token) {
+      throw new Error("Failed to get GitHub token");
     }
   }
   return token;

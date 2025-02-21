@@ -48,7 +48,11 @@ export class ExecuteCommandTool implements Tool {
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
-      throw new ToolError(`Failed to execute command: ${error.message}`);
+      if (error instanceof Error) {
+        throw new ToolError(`Failed to execute command: ${error.message}`);
+      } else {
+        throw new ToolError(`Failed to execute command: ${error}`);
+      }
     }
   }
 }

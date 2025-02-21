@@ -68,7 +68,11 @@ export async function summarizeDiff(
       description: change.description,
     }));
   } catch (e) {
-    console.error(e.message + "\nRESULT:\n" + result);
+    if (e instanceof Error) {
+      console.error(e.message + "\nRESULT:\n" + result);
+    } else {
+      console.error(e + "\nRESULT:\n" + result);
+    }
     throw new Error("Failed to parse summary");
   }
 }
