@@ -172,10 +172,9 @@ describe("Tools", () => {
       expect(output.trim()).toBe("test");
     });
 
-    it("should throw error if command fails", async () => {
-      await expect(
-        tool.execute({ command: "nonexistent-command" }),
-      ).rejects.toThrow(ToolError);
+    it("if command not found, return error message", async () => {
+      const result = await tool.execute({ command: "nonexistent-command" });
+      expect(result.result).toContain("Command failed with exit code");
     });
   });
 
