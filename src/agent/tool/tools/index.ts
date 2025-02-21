@@ -5,3 +5,4 @@ export * from "./read-file";
 export * from "./execute-command";
 export * from "./stop";
 export * from "./search-files";
+export * from "./attempt-completion";

@@ -1,4 +1,4 @@
-import { LLM } from "./llm";
+import { LLM, Message } from "./llm";
 
 type ClaudeMessageResponse = {
   id: string;
@@ -16,7 +16,7 @@ type ClaudeMessageResponse = {
   };
 };
 
-type Message = {
+type AnthropicMessage = {
   role: "user" | "assistant";
   content: string | Array<{ type: string; text: string }>;
 };
@@ -26,15 +26,13 @@ export class LLMAnthropic implements LLM {
 
   async generate(
     systemPrompt: string,
-    userPrompt: string,
+    messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
-    const messages: Message[] = [
-      {
-        role: "user",
-        content: userPrompt,
-      },
-    ];
+    const anthropicMessages: AnthropicMessage[] = messages.map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
 
     if (jsonMode) {
       messages.push({
@@ -46,7 +44,7 @@ export class LLMAnthropic implements LLM {
     const payload = JSON.stringify({
       model: this.model,
       max_tokens: 4096,
-      messages,
+      messages: anthropicMessages,
       system: systemPrompt,
       temperature: jsonMode ? 0.0 : 1.0,
     });

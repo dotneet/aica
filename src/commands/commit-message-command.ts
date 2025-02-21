@@ -40,9 +40,7 @@ export async function createCommitMessageFromDiff(
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)
     .join("\n");
-  const content = await context.llm.generate(
-    config.commitMessage.prompt.system,
-    `
+  const prompt = `
     ${config.commitMessage.prompt.user}
 
     RULES:
@@ -58,8 +56,11 @@ export async function createCommitMessageFromDiff(
     %DIFF%
     === END OF DIFF ===
     `
-      .replace("\n +", "\n")
-      .replace("%DIFF%", diff),
+    .replace("\n +", "\n")
+    .replace("%DIFF%", diff);
+  const content = await context.llm.generate(
+    config.commitMessage.prompt.system,
+    [{ role: "user", content: prompt }],
     true,
   );
   const replaced = content.replace(/^```json\n/, "").replace(/\n```$/, "");

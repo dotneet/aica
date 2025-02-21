@@ -21,7 +21,11 @@ export async function createBranchName(
   OUTPUT EXAMPLE:
   {"branchName": "feature-add-item"}
   `;
-  const result = await llm.generate(systemPrompt, userPrompt, true);
+  const result = await llm.generate(
+    systemPrompt,
+    [{ role: "user", content: userPrompt }],
+    true,
+  );
   const replaced = result.replace(/^```json\n/, "").replace(/\n```$/, "");
   return JSON.parse(replaced).branchName;
 }

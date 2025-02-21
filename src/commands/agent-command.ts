@@ -22,5 +22,6 @@ export async function executeAgentCommand(args: string[]) {
   const agent = new Agent(gitRepository, llm);
   await agent.startTask(values.prompt, {
     maxIterations: 25,
+    verbose: Bun.env.AICA_VERBOSE === "true",
   });
 }

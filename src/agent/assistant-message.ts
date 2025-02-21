@@ -1,4 +1,4 @@
-import { ToolId, Action } from "./tool/mod";
+import { ToolId, Action, validToolIds, isValidToolId } from "./tool/mod";
 
 export type MessageBlock = PlainMessageBlock | ActionBlock;
 
@@ -10,20 +10,6 @@ export interface PlainMessageBlock {
 export interface ActionBlock {
   type: "action";
   action: Action;
-}
-
-const validToolIds: ToolId[] = [
-  "search_files",
-  "create_file",
-  "edit_file",
-  "list_files",
-  "read_file",
-  "execute_command",
-  "stop",
-];
-
-function isValidToolId(id: string): id is ToolId {
-  return validToolIds.includes(id as ToolId);
 }
 
 function parseToolTag(content: string): Action | null {
@@ -58,6 +44,8 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
   if (!message) {
     return [{ type: "plain", content: "" }];
   }
+  message = message.replace(/<thinking>\s?/g, "");
+  message = message.replace(/\s?<\/thinking>/g, "");
 
   const blocks: MessageBlock[] = [];
   let currentIndex = 0;

@@ -156,7 +156,11 @@ export async function analyzeCodeForBugs(
   );
 
   try {
-    const response = await context.llm.generate(systemPrompt, prompt, true);
+    const response = await context.llm.generate(
+      systemPrompt,
+      [{ role: "user", content: prompt }],
+      true,
+    );
     return buildIssuesFromResponse(source, response);
   } catch (error) {
     console.error("Error:", error);
