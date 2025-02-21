@@ -62,6 +62,7 @@ export class LLMOpenAI implements LLM {
       },
       body: JSON.stringify({
         model,
+        max_completion_tokens: this.maxCompletionTokens,
         messages: [
           {
             role: systemRole,
