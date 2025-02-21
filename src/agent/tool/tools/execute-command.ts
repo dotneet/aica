@@ -22,12 +22,12 @@ export class ExecuteCommandTool implements Tool {
         stdout: "pipe",
         stderr: "pipe",
       });
+      await proc.exited;
       const output = await new Response(proc.stdout).text();
       const error = await new Response(proc.stderr).text();
 
       let result = "";
       if (error) {
-        console.error(error);
         result += `Error: ${error}\n`;
       }
       if (output) {
