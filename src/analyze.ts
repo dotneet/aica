@@ -208,6 +208,9 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
     Rules:
     %RULES%
   
+    You must output the response in JSON format.
+    You must not include any other text in your response.
+
     Response JSON Format:"""
     {"issues": [
       {"line": 5, "file": "hoge.html", "level": "critical", "description": "The attribute target=\"_blank\" must be used in conjunction with rel=\"noreferrer\"."},

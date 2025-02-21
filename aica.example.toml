@@ -4,9 +4,13 @@ provider = 'openai'
 
 [llm.openai]
 model = 'o3-mini'
+temperature = 0.5
+maxCompletionTokens = 4096
 
 [llm.anthropic]
 model = 'claude-3-5-sonnet-20241022'
+temperature = 0.5
+maxTokens = 4096
 
 
 [source]

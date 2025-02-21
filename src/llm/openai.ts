@@ -1,3 +1,4 @@
+import { LLMConfigOpenAI } from "@/config";
 import { LLM, LLMError, Message } from "./llm";
 
 interface GPTResponse {
@@ -9,7 +10,17 @@ interface GPTResponse {
 }
 
 export class LLMOpenAI implements LLM {
-  constructor(private apiKey: string, private model: string) {}
+  private apiKey: string;
+  private model: string;
+  private temperature: number;
+  private maxCompletionTokens: number;
+
+  constructor(config: LLMConfigOpenAI) {
+    this.apiKey = config.apiKey;
+    this.model = config.model;
+    this.temperature = config.temperature;
+    this.maxCompletionTokens = config.maxCompletionTokens;
+  }
 
   public async generate(
     systemPrompt: string,
@@ -37,7 +48,7 @@ export class LLMOpenAI implements LLM {
     // o1 model does not support system role
     const isO1Model = model.indexOf("o") === 0;
     const systemRole = isO1Model ? "user" : "system";
-    const temperature = isO1Model ? undefined : 0.2;
+    const temperature = isO1Model ? undefined : this.temperature;
     if (jsonMode && !isO1Model) {
       additionalBody = {
         response_format: { type: "json_object" },
@@ -51,6 +62,7 @@ export class LLMOpenAI implements LLM {
       },
       body: JSON.stringify({
         model,
+        max_completion_tokens: this.maxCompletionTokens,
         messages: [
           {
             role: systemRole,
