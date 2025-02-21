@@ -61,7 +61,11 @@ export class EditFileTool implements Tool {
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
-      throw new ToolError(`Failed to edit file: ${error.message}`);
+      if (error instanceof Error) {
+        throw new ToolError(`Failed to edit file: ${error.message}`);
+      } else {
+        throw new ToolError(`Failed to edit file: ${error}`);
+      }
     }
   }
 }

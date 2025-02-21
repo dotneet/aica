@@ -74,7 +74,11 @@ export class SearchFilesTool implements Tool {
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
-      throw new ToolError(`Failed to search files: ${error.message}`);
+      if (error instanceof Error) {
+        throw new ToolError(`Failed to search files: ${error.message}`);
+      } else {
+        throw new ToolError(`Failed to search files: ${error}`);
+      }
     }
   }
 }

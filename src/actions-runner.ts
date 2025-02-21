@@ -34,7 +34,13 @@ async function main() {
     // console.log("Context Payload", JSON.stringify(payload, null, 2));
 
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
+    if (!fullRepoName) {
+      throw new Error("GITHUB_REPOSITORY is required");
+    }
     const [owner, repo] = fullRepoName.split("/");
+    if (!payload.pull_request) {
+      throw new Error("pull_request is required");
+    }
     const pull_number = payload.pull_request.number;
 
     console.log("retrieve pull request diff...");
@@ -56,7 +62,11 @@ async function main() {
     const comment = "## Bug Report\n\n" + reviewResultTable;
     await pullRequest.postComment(comment);
   } catch (error) {
-    core.setFailed(error.message);
+    if (error instanceof Error) {
+      core.setFailed(error.message);
+    } else {
+      core.setFailed(String(error));
+    }
   }
 }
 

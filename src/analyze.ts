@@ -30,7 +30,7 @@ export async function createAnalyzeContextFromConfig(
   );
 
   const embeddingProducer = createEmbeddingProducer(config.embedding);
-  let codeSearchDatabase: KnowledgeDatabase | null;
+  let codeSearchDatabase: KnowledgeDatabase | null = null;
   if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.codeSearch;
@@ -48,7 +48,7 @@ export async function createAnalyzeContextFromConfig(
     );
   }
 
-  let documentSearchDatabase: KnowledgeDatabase | null;
+  let documentSearchDatabase: KnowledgeDatabase | null = null;
   if (
     config.knowledge?.documentSearch &&
     config.knowledge.documentSearch.directory

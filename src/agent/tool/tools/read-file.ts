@@ -32,7 +32,11 @@ export class ReadFileTool implements Tool {
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
-      throw new ToolError(`Failed to read file: ${error.message}`);
+      if (error instanceof Error) {
+        throw new ToolError(`Failed to read file: ${error.message}`);
+      } else {
+        throw new ToolError(`Failed to read file: ${error}`);
+      }
     }
   }
 }

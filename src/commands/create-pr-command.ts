@@ -38,10 +38,10 @@ export async function executeCreatePrCommand(
 
   const cwd = process.cwd();
   const gitRoot = await GitRepository.getRepositoryRoot(cwd);
-  const git = new GitRepository(gitRoot);
   if (!gitRoot) {
     throw new Error("Not in a git repository");
   }
+  const git = new GitRepository(gitRoot);
 
   await git.fetchRemote();
 
