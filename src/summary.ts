@@ -55,7 +55,11 @@ export async function summarizeDiff(
     '''`.replace(/^ +/gm, "");
 
   const userPrompt = `${context.userPrompt}`.replace("%CODE%", source);
-  const result = await context.llm.generate(systemPrompt, userPrompt, true);
+  const result = await context.llm.generate(
+    systemPrompt,
+    [{ role: "user", content: userPrompt }],
+    true,
+  );
   try {
     const replaced = result.replace(/^```json\n/, "").replace(/\n```$/, "");
     const json = JSON.parse(replaced);

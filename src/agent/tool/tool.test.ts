@@ -143,14 +143,14 @@ describe("Tools", () => {
       const content = "test content";
       await Bun.write(testFilePath, content);
 
-      const result = await tool.execute({ file: testFilePath });
+      const result = await tool.execute({ path: testFilePath });
 
-      expect(result.result).toBe(`readed ${testFilePath}`);
+      expect(result.result).toBe(`Read ${testFilePath}`);
       expect(result.addedFiles?.[0].content).toBe(content);
     });
 
     it("should return error message if file does not exist", async () => {
-      const result = await tool.execute({ file: testFilePath });
+      const result = await tool.execute({ path: testFilePath });
       expect(result.result).toBe(`File ${testFilePath} does not exist`);
     });
   });

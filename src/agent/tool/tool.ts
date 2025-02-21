@@ -5,7 +5,23 @@ export type ToolId =
   | "search_files"
   | "read_file"
   | "execute_command"
+  | "attempt_completion"
   | "stop";
+
+export const validToolIds: ToolId[] = [
+  "search_files",
+  "create_file",
+  "edit_file",
+  "list_files",
+  "read_file",
+  "execute_command",
+  "attempt_completion",
+  "stop",
+];
+
+export function isValidToolId(id: string): id is ToolId {
+  return validToolIds.includes(id as ToolId);
+}
 
 export interface Action {
   toolId: ToolId;
@@ -27,6 +43,7 @@ export type ToolExecutionResult = {
 export interface Tool {
   name: ToolId;
   description: string;
+  example?: string;
   params: Record<string, { type: string; description: string }>;
   execute(params: Record<string, string>): Promise<ToolExecutionResult>;
 }
@@ -40,6 +57,7 @@ import {
   ReadFileTool,
   SearchFilesTool,
   StopTool,
+  AttemptCompletionTool,
 } from "./tools";
 
 export const tools: Record<string, Tool> = {
@@ -50,22 +68,24 @@ export const tools: Record<string, Tool> = {
   execute_command: new ExecuteCommandTool(),
   stop: new StopTool(),
   search_files: new SearchFilesTool(),
+  attempt_completion: new AttemptCompletionTool(),
 };
+
+function getToolExplanation(tool: Tool): string {
+  return `
+  ${tool.name}
+  Description: ${tool.description}
+  Params:
+  ${Object.entries(tool.params)
+    .map(([key, param]) => ` - ${key}: ${param.type} - ${param.description}`)
+    .join("\n")}
+  ${tool.example ? `Example:\n${tool.example}` : ""}
+  `;
+}
 
 export function generateAvailableTools(): string {
   const toolDescriptions = Object.values(tools)
-    .map(
-      (tool) => `
-    ${tool.name}
-    Description: ${tool.description}
-    Params:
-      ${Object.entries(tool.params)
-        .map(
-          ([key, param]) => ` - ${key}: ${param.type} - ${param.description}`,
-        )
-        .join("\n")}
-    `,
-    )
+    .map((tool) => getToolExplanation(tool))
     .join("\n---\n");
 
   return `

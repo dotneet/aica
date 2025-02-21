@@ -1,4 +1,4 @@
-import { LLM, LLMError } from "./llm";
+import { LLM, LLMError, Message } from "./llm";
 
 interface GPTResponse {
   choices: {
@@ -13,14 +13,14 @@ export class LLMOpenAI implements LLM {
 
   public async generate(
     systemPrompt: string,
-    prompt: string,
+    messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
     const responseObject = await this.fetchOpenAIResponse(
       this.apiKey,
       this.model,
       systemPrompt,
-      prompt,
+      messages,
       jsonMode,
     );
     return responseObject.choices[0].message.content;
@@ -30,7 +30,7 @@ export class LLMOpenAI implements LLM {
     openaiApiKey: string,
     model: string,
     systemPrompt: string,
-    prompt: string,
+    messages: Message[],
     jsonMode: boolean,
   ): Promise<GPTResponse> {
     let additionalBody = {};
@@ -56,10 +56,10 @@ export class LLMOpenAI implements LLM {
             role: systemRole,
             content: systemPrompt,
           },
-          {
-            role: "user",
-            content: prompt,
-          },
+          ...messages.map((message) => ({
+            role: message.role,
+            content: message.content,
+          })),
         ],
         temperature,
         ...additionalBody,
