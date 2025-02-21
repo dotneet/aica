@@ -74,7 +74,9 @@ export async function executeCommit(
   }
 
   const commitMessage = await createCommitMessageFromDiff(config, diff);
-  if (!dryRun) {
+  if (dryRun) {
+    console.log("Dry Run\ncommit message: '" + commitMessage + "'");
+  } else {
     await git.commit(commitMessage);
   }
 

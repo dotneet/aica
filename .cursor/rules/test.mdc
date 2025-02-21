@@ -1,0 +1,30 @@
+---
+description: use bun for test
+globs: *.test.ts
+---
+This project uses Bun.
+
+You can test using the follwing commands.
+
+```bash
+# all test
+bun test
+# test for a file
+bun test path/to/file.test.ts
+```
+
+```
+# test code example
+# bun:test has most of jest functions.
+import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+describe("GitRepository", () => {
+    beforeEach(async () => {
+    });
+    afterEach(async () => {
+    })
+    test('test case', () => {
+        const arr = [1]
+        expect(arr).toHaveLength(1);
+    })
+})
+```

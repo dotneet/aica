@@ -1,5 +1,5 @@
 export class GitRepository {
-  constructor(private gitRootDir: string) {}
+  constructor(public readonly gitRootDir: string) {}
 
   async getGitDiffFromRemoteBranch(remote: string, branch: string) {
     const result = Bun.spawn({

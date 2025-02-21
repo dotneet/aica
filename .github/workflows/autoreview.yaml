@@ -2,7 +2,8 @@ name: Auto Review by AICA
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    # types: [opened, reopened, synchronize]
+    types: [opened, reopened]
   issue_comment:
     types: [created, edited]
 
@@ -18,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: AI Code Analyzer
-        uses: dotneet/aica@v0.0.2
+        uses: dotneet/aica@v0.0.3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

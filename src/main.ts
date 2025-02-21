@@ -29,6 +29,7 @@ import {
   executeIndexCommand as executeReindexCommand,
   indexCommandSchema,
 } from "./commands/index-command";
+import { executeAgentCommand } from "@/commands/agent-command";
 
 type SubCommand =
   | "version"
@@ -40,7 +41,8 @@ type SubCommand =
   | "create-pr"
   | "reindex"
   | "show-config"
-  | "index";
+  | "index"
+  | "agent";
 
 type CommandDefinition = {
   description: string;
@@ -149,6 +151,11 @@ const commands: Record<SubCommand, CommandDefinition> = {
     description: "Show help",
     options: {},
   },
+  agent: {
+    description: "Execute agent commands",
+    options: {},
+    args: [{ name: "prompt", description: "Command prompt for the agent" }],
+  },
 };
 
 async function main() {
@@ -229,6 +236,9 @@ async function main() {
       }
       case "index":
         await executeReindexCommand(values);
+        break;
+      case "agent":
+        await executeAgentCommand(positionals);
         break;
       default:
         console.error("Unknown subcommand:", subCommand);
