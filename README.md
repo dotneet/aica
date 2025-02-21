@@ -12,8 +12,9 @@ So, I decided to create a new tool with the following characteristics:
 
 ## Features
 
+- [x] AI Coding Agent
 - [x] AI Code Review
-- [x] Automatic knowledge retrieving
+- [x] Automatic knowledge retrieving for code review
 - [x] Symbol based code search for retrieving knowledge
 - [x] Vector based document search for retrieving knowledge
 - [x] Generate summary of changes
