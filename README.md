@@ -81,6 +81,17 @@ Options:
 - `--dir`: Target directory path
 - `--slack`: Send notification to Slack
 
+### Agent
+
+```bash
+# execute AI agent with a prompt
+aica agent "your prompt here"
+```
+
+This command executes a task using an AI agent. The agent automatically determines and executes the necessary actions based on the given prompt.
+
+NOTE: This command has potential to break your file system. Please be careful.
+
 ### Reindex
 
 ```bash

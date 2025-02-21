@@ -37,10 +37,14 @@ export class ExecuteCommandTool implements Tool {
 
       const exitCode = await proc.exitCode;
       if (exitCode !== 0) {
-        throw new ToolError(`Command failed with exit code ${exitCode}`);
+        const exitCodeMessage = `Command failed with exit code ${exitCode}`;
+        result += exitCodeMessage;
+        return {
+          result,
+        };
       }
       return {
-        result: `Command '${args.command}' output:\n${result}`,
+        result: `Command '${args.command}' successfully executed.\nOutput:\n${result}`,
       };
     } catch (error) {
       if (error instanceof ToolError) throw error;
