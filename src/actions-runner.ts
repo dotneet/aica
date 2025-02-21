@@ -30,21 +30,28 @@ async function main() {
     const octokit = new Octokit({ auth: token });
     const config = await readConfig(null);
     const payload = github.context.payload;
-    // console.log("Payload", JSON.stringify(payload, null, 2));
+    console.log("Context Payload", JSON.stringify(payload, null, 2));
 
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
     const [owner, repo] = fullRepoName.split("/");
     const pull_number = payload.pull_request.number;
 
+    console.log("retrieve pull request diff...");
     const pullRequest = new PullRequest(octokit, owner, repo, pull_number);
     const diffString = await pullRequest.getDiff(pull_number);
 
+    console.log("generate summary...");
     const summary = await generateSummary(config, diffString);
     const body = (await pullRequest.getBody()) || "";
     const newBody = buildSummaryBody(body, summary);
+
+    console.log("update pull request body...");
     await pullRequest.updateBody(newBody);
 
+    console.log("generate review result table...");
     const reviewResultTable = await generateReview(config, diffString);
+
+    console.log("post comment to pull request...");
     const comment = "## Bug Report\n\n" + reviewResultTable;
     await pullRequest.postComment(comment);
   } catch (error) {
