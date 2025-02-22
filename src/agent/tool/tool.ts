@@ -74,14 +74,14 @@ export const tools: Record<string, Tool> = {
 
 function getToolExplanation(tool: Tool): string {
   return `
-  ${tool.name}
-  Description: ${tool.description}
-  Params:
-  ${Object.entries(tool.params)
-    .map(([key, param]) => ` - ${key}: ${param.type} - ${param.description}`)
-    .join("\n")}
-  ${tool.example ? `Example:\n${tool.example}` : ""}
-  `;
+ToolId: ${tool.name}
+Description: ${tool.description}
+Params:
+${Object.entries(tool.params)
+  .map(([key, param]) => ` - ${key}: ${param.type} - ${param.description}`)
+  .join("\n")}
+${tool.example ? `Example:\n${tool.example}` : ""}
+`.trim();
 }
 
 export function generateAvailableTools(): string {

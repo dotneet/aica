@@ -1,5 +1,6 @@
 import { LLMConfigAnthropic } from "@/config";
 import { extractJsonFromText, LLM, Message } from "./llm";
+import { createLLMLogger, LLMLogger } from "./logger";
 
 type ClaudeMessageResponse = {
   id: string;
@@ -27,12 +28,14 @@ export class LLMAnthropic implements LLM {
   private model: string;
   private temperature: number;
   private maxTokens: number;
+  private logger: LLMLogger;
 
   constructor(config: LLMConfigAnthropic) {
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.temperature = config.temperature;
     this.maxTokens = config.maxTokens;
+    this.logger = createLLMLogger(config.logFile);
   }
 
   async generate(
@@ -40,6 +43,12 @@ export class LLMAnthropic implements LLM {
     messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
+    this.logger.log("================================================");
+    this.logger.log(`System Prompt: ${systemPrompt}`);
+    this.logger.log(
+      `User Prompts: ${messages.map((p) => p.content).join("==========\n")}`,
+    );
+
     const anthropicMessages: AnthropicMessage[] = messages.map((message) => ({
       role: message.role,
       content: message.content,
@@ -86,6 +95,7 @@ export class LLMAnthropic implements LLM {
     if (jsonMode) {
       const json = extractJsonFromText(text);
       if (json) {
+        this.logger.log(`LLM Anthropic response: ${json}`);
         return json;
       } else {
         throw new Error(
@@ -93,6 +103,7 @@ export class LLMAnthropic implements LLM {
         );
       }
     }
+    this.logger.log(`LLM Anthropic response: ${text}`);
     return text;
   }
 }

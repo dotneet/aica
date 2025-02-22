@@ -17,7 +17,7 @@ describe("parseAssistantMessage", () => {
   test("should parse message with single tool use", () => {
     const message = `I will read the file.
 <read_file>
-<file>test.txt</file>
+<path>test.txt</path>
 </read_file>
 Done reading.`;
 
@@ -32,7 +32,7 @@ Done reading.`;
     expect((result[1] as ActionBlock).action).toEqual({
       toolId: "read_file",
       params: {
-        file: "test.txt",
+        path: "test.txt",
       },
     });
 
@@ -47,7 +47,7 @@ Done reading.`;
 </list_files>
 Next step:
 <read_file>
-<file>src/test.txt</file>
+<path>src/test.txt</path>
 </read_file>
 All done.`;
 
@@ -72,7 +72,7 @@ All done.`;
     expect((result[3] as ActionBlock).action).toEqual({
       toolId: "read_file",
       params: {
-        file: "src/test.txt",
+        path: "src/test.txt",
       },
     });
 

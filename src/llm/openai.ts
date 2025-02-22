@@ -1,5 +1,6 @@
 import { LLMConfigOpenAI } from "@/config";
 import { LLM, LLMError, Message } from "./llm";
+import { createLLMLogger, LLMLogger } from "./logger";
 
 interface GPTResponse {
   choices: {
@@ -14,12 +15,14 @@ export class LLMOpenAI implements LLM {
   private model: string;
   private temperature: number;
   private maxCompletionTokens: number;
+  private logger: LLMLogger;
 
   constructor(config: LLMConfigOpenAI) {
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.temperature = config.temperature;
     this.maxCompletionTokens = config.maxCompletionTokens;
+    this.logger = createLLMLogger(config.logFile);
   }
 
   public async generate(
@@ -27,6 +30,12 @@ export class LLMOpenAI implements LLM {
     messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
+    this.logger.log("================================================");
+    this.logger.log(`System Prompt: ${systemPrompt}`);
+    this.logger.log(
+      `User Prompts: ${messages.map((p) => p.content).join("==========\n")}`,
+    );
+
     const responseObject = await this.fetchOpenAIResponse(
       this.apiKey,
       this.model,
@@ -34,7 +43,9 @@ export class LLMOpenAI implements LLM {
       messages,
       jsonMode,
     );
-    return responseObject.choices[0].message.content;
+    const result = responseObject.choices[0].message.content;
+    this.logger.log(`LLM OpenAI response: ${result}`);
+    return result;
   }
 
   private async fetchOpenAIResponse(
