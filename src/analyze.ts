@@ -1,17 +1,16 @@
-import { Config, LLMConfig } from "./config";
 import fs from "fs";
 import path from "path";
+import { Config, LLMConfig } from "./config";
+import { createEmbeddingProducer } from "./embedding/mod";
 import {
   CodeSearchDatabaseOrama,
   DocumentSearchDatabaseOrama,
   KnowledgeDatabase,
 } from "./knowledge/database";
-import { Source, SourceType } from "./source";
 import { createLLM, LLM } from "./llm/mod";
-import { createEmbeddingProducer } from "./embedding/mod";
+import { Source, SourceType } from "./source";
 import {
   getLanguageFromConfig,
-  getLanguageFromEnv,
   getLanguagePromptForJson,
 } from "./utility/language";
 
