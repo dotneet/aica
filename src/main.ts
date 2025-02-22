@@ -31,6 +31,7 @@ import {
   executeIndexCommand as executeReindexCommand,
   indexCommandSchema,
 } from "./commands/index-command";
+import { executeChatCommand, chatCommandSchema } from "./commands/chat-command";
 import { executeAgentCommand } from "@/commands/agent-command";
 
 async function main() {
@@ -206,9 +207,32 @@ async function main() {
         });
       },
     )
+    .command(
+      "chat [prompt]",
+      "Chat with AI assistant",
+      (yargs: Argv) => {
+        return yargs
+          .positional("prompt", {
+            describe: "Chat prompt for the AI assistant",
+            type: "string",
+          })
+          .option("file", {
+            type: "string",
+            alias: "f",
+            description: "Path to a prompt file",
+          });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const chatValues = chatCommandSchema.parse({
+          prompt: argv.prompt as string,
+          file: argv.file as string,
+        });
+        await executeChatCommand(chatValues);
+      },
+    )
     .version(pkg.version)
     .help()
-    .demandCommand(1, "コマンドを指定してください")
+    .demandCommand(1, "Please specify a command")
     .strict().argv;
 }
 

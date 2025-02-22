@@ -120,6 +120,25 @@ NOTE: This command has potential to break your file system. Please be careful.
 aica reindex
 ```
 
+### Chat
+
+```bash
+# chat with AI assistant using a prompt
+aica chat "prompt"
+
+# chat with AI assistant using a prompt file
+aica chat -f prompt.txt
+
+# conversation mode
+aica chat
+```
+
+This command provides functionality to chat with an AI assistant. You can interact with the AI assistant by either directly specifying a prompt or using a prompt file.
+
+Options:
+
+- `--file`, `-f`: Path to a prompt file
+
 ### Summary
 
 ```bash
