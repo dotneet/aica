@@ -7,7 +7,7 @@ import { LLMStub } from "./stub";
 export function createLLM(settings: LLMConfig): LLM {
   const { provider, openai, anthropic } = settings;
   if (provider === "openai") {
-    return new LLMOpenAI(openai.apiKey, openai.model);
+    return new LLMOpenAI(openai);
   } else if (provider === "anthropic") {
     return new LLMAnthropic(anthropic);
   } else if (provider === "stub") {

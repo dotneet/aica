@@ -61,7 +61,10 @@ export async function summarizeDiff(
     true,
   );
   try {
-    const replaced = result.replace(/^```json\n/, "").replace(/\n```$/, "");
+    const replaced = result
+      .trim()
+      .replace(/^```json\n/, "")
+      .replace(/\n```$/, "");
     const json = JSON.parse(replaced);
     return json.changes.map((change: any) => ({
       category: change.category,
