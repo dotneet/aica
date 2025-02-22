@@ -64,7 +64,7 @@ export async function executeCommit(
     }
   }
 
-  if (!dryRun) {
+  if (!staged && !dryRun) {
     await git.addFilesToStage(changes.addingFiles);
   }
 
