@@ -172,8 +172,8 @@ Options:
 
 ### Other Commands
 
-- `aica version`: Show version information
-- `aica help [command]`: Show help information for a specific command or general help
+- `aica --version`: Show version information
+- `aica --help [command]`: Show help information for a specific command or general help
 
 ## GitHub Actions Settings
 

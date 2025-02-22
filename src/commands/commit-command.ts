@@ -19,7 +19,6 @@ export type CommitCommandValues = z.infer<typeof commitCommandSchema>;
 export async function executeCommitCommand(
   values: CommitCommandValues,
 ): Promise<CommitCommandResult> {
-  const { staged, dryRun, push } = values;
   const config = await readConfig();
 
   const cwd = process.cwd();
@@ -28,7 +27,7 @@ export async function executeCommitCommand(
     throw new Error("Not a git repository");
   }
 
-  return executeCommit(gitRoot, config, staged, dryRun);
+  return executeCommit(gitRoot, config, values);
 }
 
 const commitOptionsSchema = z.object({
@@ -96,7 +95,7 @@ export async function executeCommit(
 
   const commitMessage = await createCommitMessageFromDiff(config, diff);
   if (dryRun) {
-    console.log("Dry Run\ncommit message: '" + commitMessage + "'");
+    console.log("DryRun: commit message is '" + commitMessage + "'");
   } else {
     await git.commit(commitMessage);
   }
@@ -107,7 +106,12 @@ export async function executeCommit(
       throw new Error("No remote found");
     }
     const branch = await git.getCurrentBranch();
-    await git.pushToRemote(remote, branch);
+    if (dryRun) {
+      console.log(`DryRun: push ${branch} to ${remote}/${branch}`);
+    } else {
+      await git.pushToRemote(remote, branch);
+      console.log(`Pushed to ${remote}/${branch}`);
+    }
   }
 
   return {
