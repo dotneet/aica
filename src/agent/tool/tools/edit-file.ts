@@ -6,6 +6,7 @@ import {
   createPatchFromDiff,
   Patch,
 } from "@/agent/patch";
+import { applyPatchWithSimilarity } from "@/agent/similarity-patch";
 
 export class EditFileTool implements Tool {
   name: ToolId = "edit_file";
@@ -37,19 +38,7 @@ export class EditFileTool implements Tool {
       }
 
       const currentContent = await file.text();
-      let patch: Patch;
-      try {
-        patch = createPatchFromDiff(args.patch);
-        if (patch.hunks.length === 0 || !checkPatchFormat(patch)) {
-          throw new ToolError(`Invalid patch format. patch:\n${args.patch}`);
-        }
-      } catch (e) {
-        throw new ToolError(
-          `Invalid patch format. patch:\n${args.patch}\nerror:\n${e}`,
-        );
-      }
-
-      const newContent = applyPatch(currentContent, patch);
+      const newContent = applyPatchWithSimilarity(currentContent, args.patch);
       await Bun.write(args.file, newContent);
       return {
         result: `Successfully edited file: ${args.file}`,
