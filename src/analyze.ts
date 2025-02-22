@@ -1,14 +1,18 @@
-import { Config, LLMConfig } from "./config";
 import fs from "fs";
 import path from "path";
+import { Config, LLMConfig } from "./config";
+import { createEmbeddingProducer } from "./embedding/mod";
 import {
   CodeSearchDatabaseOrama,
   DocumentSearchDatabaseOrama,
   KnowledgeDatabase,
 } from "./knowledge/database";
-import { Source, SourceType } from "./source";
 import { createLLM, LLM } from "./llm/mod";
-import { createEmbeddingProducer } from "./embedding/mod";
+import { Source, SourceType } from "./source";
+import {
+  getLanguageFromConfig,
+  getLanguagePromptForJson,
+} from "./utility/language";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
@@ -18,6 +22,7 @@ export type AnalyzeContext = {
   systemPrompt: string;
   rules: string[];
   userPrompt: string;
+  language: string;
 };
 
 export async function createAnalyzeContextFromConfig(
@@ -68,7 +73,7 @@ export async function createAnalyzeContextFromConfig(
       embeddingProducer,
     );
   }
-
+  const language = getLanguageFromConfig(config);
   return createAnalyzeContext(
     knowledgeTexts,
     codeSearchDatabase,
@@ -77,6 +82,7 @@ export async function createAnalyzeContextFromConfig(
     config.review.prompt.system,
     config.review.prompt.rules,
     config.review.prompt.user,
+    language,
   );
 }
 
@@ -88,6 +94,7 @@ export function createAnalyzeContext(
   systemPrompt: string,
   rules: string[],
   userPrompt: string,
+  language: string,
 ): AnalyzeContext {
   const llm = createLLM(llmSettings);
   return {
@@ -98,6 +105,7 @@ export function createAnalyzeContext(
     systemPrompt,
     rules,
     userPrompt,
+    language,
   };
 }
 
@@ -148,6 +156,11 @@ export async function analyzeCodeForBugs(
   const knowledgeText = await createKnowledgeText(context, source);
 
   const rules = context.rules;
+  const language = context.language;
+  if (context.language) {
+    const languagePrompt = getLanguagePromptForJson(language, ["description"]);
+    rules.push(languagePrompt);
+  }
   const systemPrompt = generateSystemPrompt(context.systemPrompt, rules);
   const prompt = generatePromptWithCode(
     source,

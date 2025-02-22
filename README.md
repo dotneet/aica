@@ -46,8 +46,23 @@ cp ./dist/aica path-to-your-bin-directory
 Setup environment variables:
 
 ```bash
+# You can set the following items in your environment variables or aica.toml file.
+# must be set at least one of the following providers.
+
+# OpenAI
+export AICA_LLM_PROVIDER=openai
 export OPENAI_API_KEY=your_api_key
-export OPENAI_MODEL=o3-mini # optional
+export OPENAI_MODEL=o3-mini
+
+# Anthropic
+export AICA_LLM_PROVIDER=anthropic
+export ANTHROPIC_API_KEY=your_api_key
+export ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+
+# Gemini
+export AICA_LLM_PROVIDER=google
+export GOOGLE_API_KEY=your_api_key
+export GOOGLE_MODEL=gemini-2.0-flash
 ```
 
 ## Configuration
@@ -87,6 +102,9 @@ Options:
 ```bash
 # execute AI agent with a prompt
 aica agent "your prompt here"
+
+# execute AI agent with a instruction file
+aica agent -f instruction.txt
 ```
 
 This command executes a task using an AI agent. The agent automatically determines and executes the necessary actions based on the given prompt.
@@ -121,12 +139,16 @@ aica commit [options]
 
 # commit only staged changes with an AI-generated commit message
 aica commit --staged
+
+# commit all changes and push to remote repository
+aica commit --push
 ```
 
 Options:
 
-- `--staged`: Only include staged changes
+- `--staged`: commit only staged changes.
 - `--dryRun`: Show result without execution
+- `--push`: Push to remote repository after committing
 
 ### Create Pull Request
 
@@ -172,8 +194,8 @@ Options:
 
 ### Other Commands
 
-- `aica version`: Show version information
-- `aica help [command]`: Show help information for a specific command or general help
+- `aica --version`: Show version information
+- `aica --help [command]`: Show help information for a specific command or general help
 
 ## GitHub Actions Settings
 

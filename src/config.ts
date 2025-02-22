@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { deepAssign } from "./utility/deep-assign";
 import { GitRepository } from "./git";
 
-export type LLMProvider = "openai" | "anthropic" | "stub";
+export type LLMProvider = "openai" | "anthropic" | "stub" | "google";
 
 export type LLMConfigOpenAI = {
   model: string;
@@ -18,10 +18,18 @@ export type LLMConfigAnthropic = {
   maxTokens: number;
 };
 
+export type LLMConfigGemini = {
+  model: string;
+  apiKey: string;
+  temperature: number;
+  maxTokens: number;
+};
+
 export type LLMConfig = {
   provider: LLMProvider;
   openai: LLMConfigOpenAI;
   anthropic: LLMConfigAnthropic;
+  google: LLMConfigGemini;
   stub: {
     response: string;
   };
@@ -52,10 +60,16 @@ export type Knowledge = {
   documentSearch?: KnowledgeSearch;
 };
 
+export type LanguageConfig = {
+  autoDetect: boolean;
+  language: string;
+};
+
 export type Config = {
   workingDirectory: string;
   llm: LLMConfig;
   embedding: EmbeddingConfig;
+  language: LanguageConfig;
   knowledge?: Knowledge;
   review: {
     prompt: {
@@ -87,7 +101,7 @@ export type Config = {
 export const defaultConfig: Config = {
   workingDirectory: ".",
   llm: {
-    provider: "openai",
+    provider: (Bun.env.AICA_LLM_PROVIDER as LLMProvider) || "openai",
     openai: {
       model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
@@ -100,9 +114,19 @@ export const defaultConfig: Config = {
       temperature: 0.5,
       maxTokens: 4096,
     },
+    google: {
+      model: Bun.env.GOOGLE_MODEL || "gemini-2.0-flash",
+      apiKey: Bun.env.GOOGLE_API_KEY || Bun.env.GEMINI_API_KEY || "",
+      temperature: 0.5,
+      maxTokens: 4096,
+    },
     stub: {
       response: "",
     },
+  },
+  language: {
+    autoDetect: true,
+    language: "",
   },
   embedding: {
     provider: "openai",

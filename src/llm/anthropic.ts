@@ -1,5 +1,5 @@
 import { LLMConfigAnthropic } from "@/config";
-import { LLM, Message } from "./llm";
+import { extractJsonFromText, LLM, Message } from "./llm";
 
 type ClaudeMessageResponse = {
   id: string;
@@ -45,13 +45,6 @@ export class LLMAnthropic implements LLM {
       content: message.content,
     }));
 
-    if (jsonMode) {
-      messages.push({
-        role: "assistant",
-        content: "{",
-      });
-    }
-
     const payload = JSON.stringify({
       model: this.model,
       max_tokens: this.maxTokens,
@@ -91,13 +84,14 @@ export class LLMAnthropic implements LLM {
 
     let text = jsonResponse.content[0].text;
     if (jsonMode) {
-      if (!text.startsWith("{")) {
-        text = `{${text}`;
+      const json = extractJsonFromText(text);
+      if (json) {
+        return json;
+      } else {
+        throw new Error(
+          "Invalid response from Anthropic API: No JSON received",
+        );
       }
-      if (!text.endsWith("}")) {
-        text = `${text}}`;
-      }
-      return text;
     }
     return text;
   }

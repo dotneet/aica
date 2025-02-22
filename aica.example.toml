@@ -1,5 +1,5 @@
 [llm]
-# provider = 'openai' | 'anthropic'
+# provider = 'openai' | 'anthropic' | 'google'
 provider = 'openai'
 
 [llm.openai]
@@ -12,6 +12,16 @@ model = 'claude-3-5-sonnet-20241022'
 temperature = 0.5
 maxTokens = 4096
 
+[llm.google]
+model = 'gemini-2.0-flash'
+temperature = 0.5
+maxTokens = 4096
+
+[language]
+# auto detect language from environment variable.
+autoDetect = true
+# autoDetect is true, so this is ignored.
+language = 'English'
 
 [source]
 includePatterns = [
@@ -32,6 +42,12 @@ excludePatterns = [
     "docs/**",
     "**/*.test.ts",
 ]
+
+[embedding]
+provider = 'openai'
+
+[embedding.openai]
+model = 'text-embedding-3-small'
 
 [knowledge.fixture]
 # these files are embedded in an user prompt as a knowledge always.

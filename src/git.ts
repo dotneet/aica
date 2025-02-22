@@ -85,7 +85,7 @@ export class GitRepository {
     return text;
   }
 
-  async getGitDiffToHead() {
+  async getGitDiffFromHead() {
     const result = Bun.spawn({
       cmd: ["git", "diff", "HEAD"],
       cwd: this.gitRootDir,
@@ -231,6 +231,17 @@ export class GitRepository {
     if (result.exitCode !== 0) {
       const text = (await new Response(result.stderr).text()).trim();
       throw new Error(`Failed to add files to stage: ${text}`);
+    }
+  }
+
+  async resetFiles(files: string[]) {
+    const result = Bun.spawn(["git", "reset", ...files], {
+      cwd: this.gitRootDir,
+    });
+    await result.exited;
+    if (result.exitCode !== 0) {
+      const text = (await new Response(result.stderr).text()).trim();
+      throw new Error(`Failed to reset files: ${text}`);
     }
   }
 

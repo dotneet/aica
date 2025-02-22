@@ -21,7 +21,7 @@ export async function executeSummaryDiffCommand(
   const config = await readConfig();
   const targetDir = process.cwd();
   const git = new GitRepository(targetDir);
-  const diff = await git.getGitDiffToHead();
+  const diff = await git.getGitDiffFromHead();
   if (!diff) {
     throw new Error("No changes to summarize");
   }

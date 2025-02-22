@@ -49,7 +49,7 @@ export async function executeCreatePrCommand(
   const { owner, repo } = await git.getOriginOwnerAndRepo();
 
   // commit the changes
-  await executeCommit(gitRoot, config, staged, dryRun);
+  await executeCommit(gitRoot, config, { staged, dryRun });
 
   // get current branch
   const currentBranch = await git.getCurrentBranch();
@@ -74,7 +74,11 @@ export async function executeCreatePrCommand(
     targetBranchName = await createBranchName(config, diff);
   }
   const prTitle = title || (await createCommitMessageFromDiff(config, diff));
-
+  let prBody = body || "";
+  if (withSummary) {
+    const summary = await generateSummary(config, diff);
+    prBody = prBody ? `${prBody}\n\n${summary}` : summary;
+  }
   if (!dryRun) {
     if (currentBranch !== targetBranchName) {
       await git.createBranch(targetBranchName);
@@ -85,12 +89,6 @@ export async function executeCreatePrCommand(
     const octokit = new Octokit({
       auth: process.env.GITHUB_TOKEN,
     });
-
-    let prBody = body || "";
-    if (withSummary) {
-      const summary = await generateSummary(config, diff);
-      prBody = prBody ? `${prBody}\n\n${summary}` : summary;
-    }
 
     const pr = await PullRequest.create(
       octokit,
@@ -115,10 +113,7 @@ export async function executeCreatePrCommand(
   } else {
     console.log("Dry run: would create pull request with:");
     console.log(`  Title: ${prTitle}`);
-    console.log(`  Body: ${body || ""}`);
-    if (withSummary) {
-      console.log("  Summary would be generated from the diff");
-    }
+    console.log(`  Body: ${prBody}`);
     console.log(`  Head: ${targetBranchName}`);
     console.log(`  Base: ${baseBranch}`);
     console.log(`  Draft: ${draft}`);
