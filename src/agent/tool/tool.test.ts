@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync } from "node:fs";
-import { createPatch } from "@/agent/patch";
+import {
+  createPatch,
+  createPatchFromDiff,
+  createRawPatch,
+  createRawPatchFromString,
+} from "@/agent/patch";
 import { ToolError, executeTool } from "./tool";
 import { CreateFileTool } from "./tools/create-file";
 import { EditFileTool } from "./tools/edit-file";
@@ -67,10 +72,10 @@ describe("Tools", () => {
       const newContent = "const fileName = 'test.ts';";
       await Bun.write(testFilePath, oldContent);
 
-      const patch = createPatch(oldContent, newContent);
+      const patch = await createRawPatchFromString(oldContent, newContent);
       const result = await tool.execute({
         file: testFilePath,
-        patch: JSON.stringify(patch),
+        patch: patch,
       });
 
       expect(result.result).toContain(testFilePath);
@@ -79,16 +84,17 @@ describe("Tools", () => {
     });
 
     it("should throw error if file does not exist", async () => {
-      const patch = createPatch("old", "new");
+      // await Bun.file(testFilePath).delete();
+      const patch = await createRawPatchFromString("old", "new");
       await expect(
-        tool.execute({ file: testFilePath, patch: JSON.stringify(patch) }),
+        tool.execute({ file: testFilePath, patch: patch }),
       ).rejects.toThrow(ToolError);
     });
 
     it("should throw error if patch is invalid", async () => {
       await Bun.write(testFilePath, "content");
       await expect(
-        tool.execute({ file: testFilePath, patch: "invalid json" }),
+        tool.execute({ file: testFilePath, patch: "invalid patch" }),
       ).rejects.toThrow(ToolError);
     });
   });

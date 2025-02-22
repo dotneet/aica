@@ -21,6 +21,17 @@ describe("Patch functionality tests", () => {
     expect(hunk.lines).toEqual([" hello", "-world", "+there", "+world"]);
   });
 
+  test("createPatch - single line file", () => {
+    const src = "single line";
+    const dst = "modified line";
+    const patch = createPatch(src, dst);
+
+    expect(patch.hunks).toHaveLength(1);
+    const hunk = patch.hunks[0];
+    expect(hunk.header).toBe("@@ -1 +1 @@");
+    expect(hunk.lines).toEqual(["-single line", "+modified line"]);
+  });
+
   test("checkPatchFormat - correct unified patch format", () => {
     const patch = {
       hunks: [

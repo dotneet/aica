@@ -1,3 +1,5 @@
+import { $ } from "bun";
+
 export interface Patch {
   hunks: PatchHunk[];
 }
@@ -12,6 +14,46 @@ export interface PatchHunk {
 }
 
 export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
+  // Handle single line format (@@ -1 +1 @@)
+  const singleLineHeaderMatch = lines[i].match(/@@ -(\d+) \+(\d+) @@/);
+  if (singleLineHeaderMatch) {
+    const oldStart = parseInt(singleLineHeaderMatch[1]);
+    const newStart = parseInt(singleLineHeaderMatch[2]);
+    const header = lines[i];
+
+    const hunkLines: string[] = [];
+    let j = i + 1;
+    while (j < lines.length) {
+      const line = lines[j];
+      if (line.startsWith("\\ No newline at end of file")) {
+        j++;
+        continue;
+      }
+      if (
+        !line.startsWith(" ") &&
+        !line.startsWith("+") &&
+        !line.startsWith("-")
+      ) {
+        break;
+      }
+      hunkLines.push(line);
+      j++;
+    }
+
+    return [
+      {
+        oldStart,
+        oldLines: 1,
+        newStart,
+        newLines: 1,
+        header,
+        lines: hunkLines,
+      },
+      j,
+    ];
+  }
+
+  // Handle standard format (@@ -1,1 +1,1 @@)
   const headerMatch = lines[i].match(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
   if (!headerMatch) {
     throw new Error(`Invalid hunk header: ${lines[i]}`);
@@ -46,6 +88,57 @@ export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
     { oldStart, oldLines, newStart, newLines, header, lines: hunkLines },
     j,
   ];
+}
+
+export async function createRawPatch(
+  file1: string,
+  file2: string,
+): Promise<string> {
+  // use diff command to create unified format patch
+  const diff = await Bun.spawn(["diff", "-u", file1, file2], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (diff.exitCode !== 0) {
+    const text = await new Response(diff.stderr).text();
+    throw new Error(`Failed to create patch: ${text}`);
+  }
+  const text = await new Response(diff.stdout).text();
+  return text.trim();
+}
+
+export async function createRawPatchFromString(
+  content1: string,
+  content2: string,
+): Promise<string> {
+  // create temp files with random names to avoid conflicts
+  const tmpDir = "./tmp";
+  if (!(await Bun.file(tmpDir).exists())) {
+    await Bun.spawn(["mkdir", "-p", tmpDir]);
+  }
+  const file1 = `${tmpDir}/${Math.random().toString(36).slice(2)}.txt`;
+  const file2 = `${tmpDir}/${Math.random().toString(36).slice(2)}.txt`;
+  await Bun.write(file1, content1);
+  await Bun.write(file2, content2);
+  // use diff command to create unified format patch
+  const diff = await Bun.spawn(
+    ["diff", "-u", "--label", "file1", file1, "--label", "file2", file2],
+    {
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
+  await diff.exited;
+  if (diff.exitCode === 2) {
+    const text = await new Response(diff.stderr).text();
+    throw new Error(`Failed to create patch: ${text}`);
+  }
+  // remove temp files
+  await Bun.file(file1).delete();
+  await Bun.file(file2).delete();
+
+  const text = await new Response(diff.stdout).text();
+  return text.trim();
 }
 
 export function createPatchFromDiff(diff: string): Patch {
@@ -189,7 +282,11 @@ export function createPatch(src: string, dst: string): Patch {
     // Set hunk start position to hunkStart+1
     const oldStart = hunkStart + 1;
     const newStart = hunkStart + 1;
-    const header = `@@ -${oldStart},${totalOldLines} +${newStart},${totalNewLines} @@`;
+    // Use single line format when both old and new are single lines
+    const header =
+      totalOldLines === 1 && totalNewLines === 1
+        ? `@@ -${oldStart} +${newStart} @@`
+        : `@@ -${oldStart},${totalOldLines} +${newStart},${totalNewLines} @@`;
 
     hunks.push({
       oldStart,
