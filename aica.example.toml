@@ -138,3 +138,6 @@ EXAMPLES:
 withSummary = true
 # if true, create a pull request as a draft.
 draft = false
+
+[chat]
+system = "You are a helpful assistant. Answer the user's question."

@@ -99,6 +99,11 @@ export type Config = {
     withSummary: boolean;
     draft: boolean;
   };
+  chat: {
+    prompt: {
+      system: string;
+    };
+  };
   source: {
     includePatterns: string[];
     excludePatterns: string[];
@@ -191,6 +196,11 @@ export const defaultConfig: Config = {
   pullRequest: {
     withSummary: true,
     draft: false,
+  },
+  chat: {
+    prompt: {
+      system: "You are a helpful assistant. Answer the user's question.",
+    },
   },
   source: {
     includePatterns: [
