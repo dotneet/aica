@@ -1,4 +1,6 @@
-import { parseArgs } from "node:util";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+import type { ArgumentsCamelCase, Argv } from "yargs";
 import {
   commitMessageCommandSchema,
   executeCommitMessageCommand,
@@ -31,279 +33,190 @@ import {
 } from "./commands/index-command";
 import { executeAgentCommand } from "@/commands/agent-command";
 
-type SubCommand =
-  | "version"
-  | "help"
-  | "review"
-  | "commit-message"
-  | "summary"
-  | "commit"
-  | "create-pr"
-  | "reindex"
-  | "show-config"
-  | "index"
-  | "agent";
-
-type CommandDefinition = {
-  description: string;
-  options: Record<
-    string,
-    {
-      type: "string" | "boolean";
-      description: string;
-      default?: boolean | string;
-    }
-  >;
-  args?: { name: string; description: string }[];
-};
-
-const commands: Record<SubCommand, CommandDefinition> = {
-  review: {
-    description: "Review code",
-    options: {
-      dir: { type: "string", description: "Target directory path" },
-      slack: { type: "boolean", description: "Send notification to Slack" },
-    },
-    args: [{ name: "pattern", description: "Search pattern" }],
-  },
-  "commit-message": {
-    description: "Generate commit message based on diff from HEAD",
-    options: {
-      dir: { type: "string", description: "Target directory path" },
-    },
-  },
-  summary: {
-    description: "Summarize diff from HEAD",
-    options: {
-      dir: { type: "string", description: "Target directory path" },
-    },
-  },
-  commit: {
-    description: "Create a commit with auto-generated message",
-    options: {
-      staged: {
-        type: "boolean",
-        description: "Only include staged changes",
-      },
-      dryRun: {
-        type: "boolean",
-        description: "Show result without execution",
-      },
-    },
-  },
-  "create-pr": {
-    description: "Create a pull request",
-    options: {
-      withSummary: {
-        type: "boolean",
-        description: "Generate summary of diff from HEAD",
-        default: true,
-      },
-      body: {
-        type: "string",
-        description: "Pull request body",
-        default: "",
-      },
-      draft: {
-        type: "boolean",
-        description: "Create a draft pull request",
-        default: false,
-      },
-      title: {
-        type: "string",
-        description: "Pull request title",
-        default: "",
-      },
-      branchName: {
-        type: "string",
-        description: "Branch name",
-        default: "",
-      },
-      dryRun: {
-        type: "boolean",
-        description: "Show result without execution",
-      },
-      staged: {
-        type: "boolean",
-        description: "Only include staged changes",
-      },
-    },
-  },
-  reindex: {
-    description: "Create index for code and documentation",
-    options: {},
-  },
-  "show-config": {
-    description: "Show configuration",
-    options: {
-      default: { type: "boolean", description: "Show default configuration" },
-    },
-  },
-  index: {
-    description: "Create index for code and documentation",
-    options: {},
-  },
-  version: {
-    description: "Show version",
-    options: {},
-  },
-  help: {
-    description: "Show help",
-    options: {},
-  },
-  agent: {
-    description: "Execute agent commands",
-    options: {
-      file: {
-        type: "string",
-        description: "path to an instruction file",
-      },
-    },
-    args: [{ name: "prompt", description: "Command prompt for the agent" }],
-  },
-};
-
 async function main() {
-  const subCommand = Bun.argv[2] as SubCommand;
-  if (!subCommand) {
-    showHelp();
-    return;
-  }
-  const commandDef = commands[subCommand];
-  if (!commandDef) {
-    console.error(`Unknown command: ${subCommand}`);
-    process.exit(1);
-  }
-  const args = Bun.argv.slice(3);
-  const options = commandDef.options;
-  let parseResult = null;
-  try {
-    parseResult = parseArgs({
-      args,
-      options,
-      allowPositionals: true,
-    });
-  } catch (e) {
-    showHelp(subCommand);
-    return;
-  }
-  const { values, positionals } = parseResult;
-
-  if (values.version) {
-    console.log(pkg.version);
-    return;
-  }
-
-  if (values.help) {
-    showHelp(subCommand);
-    return;
-  }
-
-  try {
-    switch (subCommand as SubCommand) {
-      case "version":
-        console.log(pkg.version);
-        return;
-      case "help":
-        showHelp();
-        return;
-      case "review":
+  const argv = await yargs(hideBin(process.argv))
+    .command(
+      "review [pattern]",
+      "Review code",
+      (yargs: Argv) => {
+        return yargs
+          .positional("pattern", {
+            describe: "Search pattern",
+            type: "string",
+          })
+          .option("dir", {
+            type: "string",
+            description: "Target directory path",
+          })
+          .option("slack", {
+            type: "boolean",
+            description: "Send notification to Slack",
+          });
+      },
+      async (argv: ArgumentsCamelCase) => {
         const reviewValues = reviewCommandSchema.parse({
-          ...values,
-          pattern: positionals[0],
+          dir: argv.dir,
+          slack: argv.slack,
+          pattern: argv.pattern,
         });
         await executeReviewCommand(reviewValues);
-        break;
-      case "commit-message":
-        const commitMessageValues = commitMessageCommandSchema.parse(values);
-        await executeCommitMessageCommand(commitMessageValues);
-        break;
-      case "summary":
-        const summaryValues = summaryDiffCommandSchema.parse(values);
-        await executeSummaryDiffCommand(summaryValues);
-        break;
-      case "commit":
-        const commitValues = commitCommandSchema.parse(values);
-        await executeCommitCommand(commitValues);
-        break;
-      case "create-pr":
-        const createPRValues = createPrCommandSchema.parse(values);
-        await executeCreatePrCommand(createPRValues);
-        break;
-      case "reindex":
-        const reindexValues = indexCommandSchema.parse(values);
-        await executeReindexCommand(reindexValues);
-        break;
-      case "show-config": {
-        const showConfigValues = showConfigValuesSchema.parse(values);
-        await executeShowConfigCommand(showConfigValues);
-        break;
-      }
-      case "agent": {
-        console.log(values);
-        await executeAgentCommand({
-          prompt: positionals.join(" "),
-          file: values.file,
+      },
+    )
+    .command(
+      "commit-message",
+      "Generate commit message based on diff from HEAD",
+      (yargs: Argv) => {
+        return yargs.option("dir", {
+          type: "string",
+          description: "Target directory path",
         });
-        break;
-      }
-      default:
-        console.error("Unknown subcommand:", subCommand);
-        process.exit(1);
-    }
-  } catch (error) {
-    if (error instanceof CommandError) {
-      console.error(error.message);
-      process.exit(1);
-    } else {
-      throw error;
-    }
-  }
-}
-
-function showHelp(command?: SubCommand) {
-  if (command && command in commands) {
-    const cmd = commands[command];
-    console.log(`
-Usage: aica ${command} ${
-      cmd.args?.map((arg) => `[${arg.name}]`).join(" ") || ""
-    } [options]
-
-${cmd.description}
-
-Options:
-${Object.entries(cmd.options)
-  .map(
-    ([key, opt]) =>
-      `  --${key.padEnd(15)} ${opt.description}${
-        opt.default !== undefined ? ` (default: ${opt.default})` : ""
-      }`,
-  )
-  .join("\n")}
-${
-  cmd.args
-    ? `\nArguments:\n${cmd.args
-        .map((arg) => `  ${arg.name.padEnd(15)} ${arg.description}`)
-        .join("\n")}`
-    : ""
-}
-    `);
-    return;
-  }
-
-  console.log(`
-Usage: aica <command> [options]
-
-Commands:
-${Object.entries(commands)
-  .map(([key, cmd]) => `  ${key.padEnd(15)} ${cmd.description}`)
-  .join("\n")}
-`);
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const commitMessageValues = commitMessageCommandSchema.parse(argv);
+        await executeCommitMessageCommand(commitMessageValues);
+      },
+    )
+    .command(
+      "summary",
+      "Summarize diff from HEAD",
+      (yargs: Argv) => {
+        return yargs.option("dir", {
+          type: "string",
+          description: "Target directory path",
+        });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const summaryValues = summaryDiffCommandSchema.parse(argv);
+        await executeSummaryDiffCommand(summaryValues);
+      },
+    )
+    .command(
+      "commit",
+      "Create a commit with auto-generated message",
+      (yargs: Argv) => {
+        return yargs
+          .option("staged", {
+            type: "boolean",
+            alias: "s",
+            description: "Only include staged changes",
+          })
+          .option("dryRun", {
+            type: "boolean",
+            description: "Show result without execution",
+          });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const commitValues = commitCommandSchema.parse(argv);
+        await executeCommitCommand(commitValues);
+      },
+    )
+    .command(
+      "create-pr",
+      "Create a pull request",
+      (yargs: Argv) => {
+        return yargs
+          .option("withSummary", {
+            type: "boolean",
+            description: "Generate summary of diff from HEAD",
+            default: true,
+          })
+          .option("body", {
+            type: "string",
+            alias: "b",
+            description: "Pull request body",
+            default: "",
+          })
+          .option("draft", {
+            type: "boolean",
+            alias: "d",
+            description: "Create a draft pull request",
+            default: false,
+          })
+          .option("title", {
+            type: "string",
+            alias: "t",
+            description: "Pull request title",
+            default: "",
+          })
+          .option("branchName", {
+            type: "string",
+            alias: "n",
+            description: "Branch name",
+            default: "",
+          })
+          .option("dryRun", {
+            type: "boolean",
+            description: "Show result without execution",
+          })
+          .option("staged", {
+            type: "boolean",
+            description: "Only include staged changes",
+          });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const createPRValues = createPrCommandSchema.parse(argv);
+        await executeCreatePrCommand(createPRValues);
+      },
+    )
+    .command(
+      "reindex",
+      "Create index for code and documentation",
+      {},
+      async (argv: ArgumentsCamelCase) => {
+        const reindexValues = indexCommandSchema.parse(argv);
+        await executeReindexCommand(reindexValues);
+      },
+    )
+    .command(
+      "show-config",
+      "Show configuration",
+      (yargs: Argv) => {
+        return yargs.option("default", {
+          type: "boolean",
+          description: "Show default configuration",
+        });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        const showConfigValues = showConfigValuesSchema.parse(argv);
+        await executeShowConfigCommand(showConfigValues);
+      },
+    )
+    .command(
+      "agent [prompt]",
+      "Execute agent commands",
+      (yargs: Argv) => {
+        return yargs
+          .positional("prompt", {
+            describe: "Command prompt for the agent",
+            type: "string",
+          })
+          .option("file", {
+            type: "string",
+            alias: "f",
+            description: "path to an instruction file",
+          });
+      },
+      async (argv: ArgumentsCamelCase) => {
+        await executeAgentCommand({
+          prompt: argv.prompt as string,
+          file: argv.file,
+        });
+      },
+    )
+    .version(pkg.version)
+    .help()
+    .demandCommand(1, "コマンドを指定してください")
+    .strict().argv;
 }
 
 if (import.meta.main) {
   main().catch((error) => {
-    console.error(error);
-    process.exit(1);
+    if (error instanceof CommandError) {
+      console.error(error.message);
+      process.exit(1);
+    } else {
+      console.error(error);
+      process.exit(1);
+    }
   });
 }
