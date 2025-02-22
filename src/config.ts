@@ -101,7 +101,7 @@ export type Config = {
 export const defaultConfig: Config = {
   workingDirectory: ".",
   llm: {
-    provider: "openai",
+    provider: (Bun.env.AICA_LLM_PROVIDER as LLMProvider) || "openai",
     openai: {
       model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
