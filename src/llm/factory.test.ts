@@ -130,6 +130,51 @@ describe("LLM Factory", () => {
     });
   });
 
+  describe("Google Provider", () => {
+    test("should create Google LLM instance", async () => {
+      if (!Bun.env.GOOGLE_API_KEY) {
+        console.log(
+          "Skipping Google LLM instance test: GOOGLE_API_KEY is not set",
+        );
+        return;
+      }
+
+      const config: LLMConfig = {
+        ...defaultConfig,
+        provider: "google",
+      };
+      const llm = createLLM(config);
+      expect(llm).toBeDefined();
+      expect(llm.generate).toBeInstanceOf(Function);
+    });
+
+    test("should generate text with Google", async () => {
+      if (!Bun.env.GOOGLE_API_KEY) {
+        console.log(
+          "Skipping Google text generation test: GOOGLE_API_KEY is not set",
+        );
+        return;
+      }
+
+      const config: LLMConfig = {
+        ...defaultConfig,
+        provider: "google",
+        google: {
+          ...defaultConfig.google,
+          apiKey: Bun.env.GOOGLE_API_KEY,
+        },
+      };
+      const llm = createLLM(config);
+      const response = await llm.generate(
+        "You are a helpful assistant.",
+        [{ role: "user", content: "Hello" }],
+        false,
+      );
+      expect(response).toBeDefined();
+      expect(typeof response).toBe("string");
+    });
+  });
+
   test("should throw error for unknown provider", async () => {
     const config = {
       ...defaultConfig,

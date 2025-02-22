@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { deepAssign } from "./utility/deep-assign";
 import { GitRepository } from "./git";
 
-export type LLMProvider = "openai" | "anthropic" | "stub";
+export type LLMProvider = "openai" | "anthropic" | "stub" | "google";
 
 export type LLMConfigOpenAI = {
   model: string;
@@ -18,10 +18,18 @@ export type LLMConfigAnthropic = {
   maxTokens: number;
 };
 
+export type LLMConfigGemini = {
+  model: string;
+  apiKey: string;
+  temperature: number;
+  maxTokens: number;
+};
+
 export type LLMConfig = {
   provider: LLMProvider;
   openai: LLMConfigOpenAI;
   anthropic: LLMConfigAnthropic;
+  google: LLMConfigGemini;
   stub: {
     response: string;
   };
@@ -97,6 +105,12 @@ export const defaultConfig: Config = {
     anthropic: {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
+      temperature: 0.5,
+      maxTokens: 4096,
+    },
+    google: {
+      model: Bun.env.GOOGLE_MODEL || "gemini-2.0-flash",
+      apiKey: Bun.env.GOOGLE_API_KEY || Bun.env.GEMINI_API_KEY || "",
       temperature: 0.5,
       maxTokens: 4096,
     },

@@ -1,5 +1,5 @@
 [llm]
-# provider = 'openai' | 'anthropic' | 'gemini'
+# provider = 'openai' | 'anthropic' | 'google'
 provider = 'openai'
 
 [llm.openai]
@@ -12,7 +12,7 @@ model = 'claude-3-5-sonnet-20241022'
 temperature = 0.5
 maxTokens = 4096
 
-[llm.gemini]
+[llm.google]
 model = 'gemini-2.0-flash'
 temperature = 0.5
 maxTokens = 4096
