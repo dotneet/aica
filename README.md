@@ -109,6 +109,8 @@ aica agent -f instruction.txt
 
 This command executes a task using an AI agent. The agent automatically determines and executes the necessary actions based on the given prompt.
 
+Recommend to use anthropic claude 3.5 sonnet for agent.
+
 NOTE: This command has potential to break your file system. Please be careful.
 
 ### Reindex

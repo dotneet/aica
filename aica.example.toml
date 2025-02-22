@@ -1,6 +1,6 @@
 [llm]
 # provider = 'openai' | 'anthropic' | 'google'
-provider = 'openai'
+provider = 'anthropic'
 
 [llm.openai]
 model = 'o3-mini'
