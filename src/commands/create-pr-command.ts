@@ -103,16 +103,6 @@ export async function executeCreatePrCommand(
       targetBranchName,
       draft,
     );
-
-    if (draft) {
-      await octokit.rest.pulls.update({
-        owner,
-        repo,
-        pull_number: pr.number,
-        draft: true,
-      });
-    }
-
     console.log(`Pull request created: ${pr.getUrl()}`);
   } else {
     console.log("Dry run: would create pull request with:");

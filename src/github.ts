@@ -43,6 +43,7 @@ export class PullRequest {
     body: string,
     base: string,
     head: string,
+    draft: boolean,
   ) {
     const response = await octokit.rest.pulls.create({
       owner,
@@ -51,6 +52,7 @@ export class PullRequest {
       body,
       base,
       head,
+      draft,
     });
     return new PullRequest(octokit, owner, repo, response.data.number);
   }
