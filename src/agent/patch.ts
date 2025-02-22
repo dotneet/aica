@@ -25,13 +25,20 @@ export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
 
   const hunkLines: string[] = [];
   let j = i + 1;
-  while (
-    j < lines.length &&
-    (lines[j].startsWith(" ") ||
-      lines[j].startsWith("+") ||
-      lines[j].startsWith("-"))
-  ) {
-    hunkLines.push(lines[j]);
+  while (j < lines.length) {
+    const line = lines[j];
+    if (line.startsWith("\\ No newline at end of file")) {
+      j++;
+      continue;
+    }
+    if (
+      !line.startsWith(" ") &&
+      !line.startsWith("+") &&
+      !line.startsWith("-")
+    ) {
+      break;
+    }
+    hunkLines.push(line);
     j++;
   }
 
@@ -43,7 +50,7 @@ export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
 
 export function createPatchFromDiff(diff: string): Patch {
   const hunks: PatchHunk[] = [];
-  const lines = diff.split("\n").filter((line) => line.length > 0);
+  const lines = diff.split("\n");
   let i = 0;
 
   // Skip file headers (---, +++)
@@ -55,9 +62,13 @@ export function createPatchFromDiff(diff: string): Patch {
   }
 
   while (i < lines.length) {
-    const [hunk, nextIndex] = parseHunk(lines, i);
-    hunks.push(hunk);
-    i = nextIndex;
+    if (lines[i].startsWith("@@")) {
+      const [hunk, nextIndex] = parseHunk(lines, i);
+      hunks.push(hunk);
+      i = nextIndex;
+    } else {
+      i++;
+    }
   }
 
   return { hunks };
@@ -69,11 +80,11 @@ export function createPatch(src: string, dst: string): Patch {
   const hunks: PatchHunk[] = [];
   const context = 1;
 
-  // 変更箇所を見つける
+  // Find changed regions
   const changes: { start: number; end: number }[] = [];
   let i = 0;
   while (i < Math.max(srcLines.length, dstLines.length)) {
-    // 同じ行をスキップ
+    // Skip identical lines
     while (
       i < srcLines.length &&
       i < dstLines.length &&
@@ -86,7 +97,7 @@ export function createPatch(src: string, dst: string): Patch {
       const changeStart = i;
       let changeEnd = i + 1;
 
-      // 変更箇所の終わりを見つける
+      // Find the end of the changed region
       while (
         changeEnd < Math.max(srcLines.length, dstLines.length) &&
         (changeEnd >= srcLines.length ||
@@ -96,39 +107,39 @@ export function createPatch(src: string, dst: string): Patch {
         changeEnd++;
       }
 
-      // 変更箇所を記録
+      // Record the change
       changes.push({ start: changeStart, end: changeEnd });
       i = changeEnd;
     }
   }
 
-  // 変更箇所をマージするかどうかを判断
+  // Determine whether to merge changes
   const mergedChanges: { start: number; end: number }[] = [];
   for (let i = 0; i < changes.length; i++) {
     const current = changes[i];
     const next = i + 1 < changes.length ? changes[i + 1] : null;
 
-    // 次の変更箇所との間の共通行数を計算
+    // Calculate common lines between current and next change
     const commonLines = next ? next.start - current.end : Infinity;
 
-    // 共通行が0行の場合のみマージ（コンテキスト行を共有しない場合）
+    // Only merge if there are no common lines (no shared context)
     if (next && commonLines === 0) {
       mergedChanges.push({
         start: current.start,
         end: next.end,
       });
-      i++; // 次の変更箇所をスキップ
+      i++; // Skip next change
     } else {
       mergedChanges.push(current);
     }
   }
 
-  // 各変更箇所をマージ後、ハンクを生成
-  let previousHunkEnd = -1; // 前のハンクの終了位置を追跡しておく
+  // Generate hunks after merging changes
+  let previousHunkEnd = -1; // Track the end position of previous hunk
   for (let i = 0; i < mergedChanges.length; i++) {
     const change = mergedChanges[i];
 
-    // もし前のハンクと現在の変更箇所がcontext行数以内の場合、コンテキストを重複させない
+    // If current change is within context lines of previous hunk, don't duplicate context
     let hunkStart: number;
     if (change.start <= previousHunkEnd + context) {
       hunkStart = change.start;
@@ -142,14 +153,14 @@ export function createPatch(src: string, dst: string): Patch {
 
     const hunkLines: string[] = [];
 
-    // 前のコンテキストを追加
+    // Add leading context
     for (let k = hunkStart; k < change.start; k++) {
       if (k < srcLines.length && k < dstLines.length) {
         hunkLines.push(" " + srcLines[k]);
       }
     }
 
-    // 変更箇所を追加
+    // Add changed lines
     for (let k = change.start; k < change.end; k++) {
       if (k < srcLines.length) {
         hunkLines.push("-" + srcLines[k]);
@@ -159,14 +170,14 @@ export function createPatch(src: string, dst: string): Patch {
       }
     }
 
-    // 後ろのコンテキストを追加
+    // Add trailing context
     for (let k = change.end; k < hunkEnd; k++) {
       if (k < srcLines.length && k < dstLines.length) {
         hunkLines.push(" " + srcLines[k]);
       }
     }
 
-    // 変更箇所+コンテキスト行数を算出
+    // Calculate total lines (changes + context)
     const oldLines = hunkLines.filter((line) => line.startsWith("-")).length;
     const newLines = hunkLines.filter((line) => line.startsWith("+")).length;
     const contextLines = hunkLines.filter((line) =>
@@ -175,7 +186,7 @@ export function createPatch(src: string, dst: string): Patch {
     const totalOldLines = oldLines + contextLines;
     const totalNewLines = newLines + contextLines;
 
-    // ハンクの開始位置を hunkStart+1
+    // Set hunk start position to hunkStart+1
     const oldStart = hunkStart + 1;
     const newStart = hunkStart + 1;
     const header = `@@ -${oldStart},${totalOldLines} +${newStart},${totalNewLines} @@`;
@@ -189,7 +200,7 @@ export function createPatch(src: string, dst: string): Patch {
       lines: hunkLines,
     });
 
-    // 現在のハンク終了位置を記録
+    // Record current hunk end position
     previousHunkEnd = change.end;
   }
 
