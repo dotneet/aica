@@ -9,7 +9,6 @@ export class LLMGoogle implements LLM {
   constructor(config: LLMConfigGemini) {
     this.config = config;
     this.logger = createLLMLogger(config.logFile);
-    console.log("created logger with logFile: ", config.logFile);
   }
 
   async generate(
