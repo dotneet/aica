@@ -84,6 +84,20 @@ aica.toml must be placed in one of the following directories.
 - ${HOME}/.config/aica/aica.toml
 - ${GITHUB_WORKSPACE}/aica.toml
 
+### Language
+
+You can specify the language for AI output. The language can be specified either through AICA_LANGUAGE or in the language section of aica.toml. By default, the language is automatically detected from the LANG environment variable.
+
+```bash
+export AICA_LANGUAGE=Japanese
+```
+
+Priority:
+
+1. `AICA_LANGUAGE`
+2. `language.language` in aica.toml
+3. Automatic detection from `LANG`
+
 ## Usage
 
 ### Review
