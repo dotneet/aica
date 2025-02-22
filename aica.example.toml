@@ -43,6 +43,12 @@ excludePatterns = [
     "**/*.test.ts",
 ]
 
+[embedding]
+provider = 'openai'
+
+[embedding.openai]
+model = 'text-embedding-3-small'
+
 [knowledge.fixture]
 # these files are embedded in an user prompt as a knowledge always.
 # files = ["testdata/docs/spec.txt"]
