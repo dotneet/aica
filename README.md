@@ -43,7 +43,14 @@ bun run build
 cp ./dist/aica path-to-your-bin-directory
 ```
 
-Setup environment variables:
+Setup GitHub Token:
+
+```bash
+# if GITHUB_TOKEN is not set, aica try to get token from `gh auth token`.
+export GITHUB_TOKEN=your_github_token
+```
+
+Setup LLM:
 
 ```bash
 # You can set the following items in your environment variables or aica.toml file.
