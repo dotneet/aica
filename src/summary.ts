@@ -1,10 +1,12 @@
 import { LLM } from "./llm/mod";
+import { getLanguagePromptForJson } from "./utility/language";
 
 export type SummaryContext = {
   llm: LLM;
   systemPrompt: string;
   rules: string[];
   userPrompt: string;
+  language: string;
 };
 
 export type SummaryDiffItem = {
@@ -17,12 +19,14 @@ export function createSummaryContext(
   systemPrompt: string,
   rules: string[],
   userPrompt: string,
+  language: string,
 ): SummaryContext {
   return {
     llm,
     systemPrompt,
     rules,
     userPrompt,
+    language,
   };
 }
 
@@ -30,6 +34,9 @@ export async function summarizeDiff(
   context: SummaryContext,
   source: string,
 ): Promise<SummaryDiffItem[]> {
+  const language = context.language;
+  const languagePrompt = getLanguagePromptForJson(language, ["description"]);
+
   const systemPrompt = `${context.systemPrompt}
 
     RULES:
@@ -41,6 +48,8 @@ export async function summarizeDiff(
      - feature: new functionality
      - enhance: improvements with change its behavior, optimization, trivial new functionality, CI/CD
      - docs: documentation, code comments
+
+    ${languagePrompt}
 
     JSON Format:'''
     {

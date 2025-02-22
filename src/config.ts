@@ -60,10 +60,16 @@ export type Knowledge = {
   documentSearch?: KnowledgeSearch;
 };
 
+export type LanguageConfig = {
+  autoDetect: boolean;
+  language: string;
+};
+
 export type Config = {
   workingDirectory: string;
   llm: LLMConfig;
   embedding: EmbeddingConfig;
+  language: LanguageConfig;
   knowledge?: Knowledge;
   review: {
     prompt: {
@@ -117,6 +123,10 @@ export const defaultConfig: Config = {
     stub: {
       response: "",
     },
+  },
+  language: {
+    autoDetect: true,
+    language: "",
   },
   embedding: {
     provider: "openai",

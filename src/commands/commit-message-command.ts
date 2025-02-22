@@ -1,6 +1,10 @@
 import { createAnalyzeContextFromConfig } from "@/analyze";
 import { readConfig, type Config } from "@/config";
 import { GitRepository } from "@/git";
+import {
+  getLanguageFromConfig,
+  getLanguagePromptForJson,
+} from "@/utility/language";
 import { z } from "zod";
 
 export const commitMessageCommandSchema = z.object({
@@ -40,14 +44,17 @@ export async function createCommitMessageFromDiff(
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)
     .join("\n");
+  let language = getLanguageFromConfig(config);
+  let languagePrompt = getLanguagePromptForJson(language, ["commitMessage"]);
   const prompt = `
     ${config.commitMessage.prompt.user}
 
     RULES:
     ${rules}
-
     Response must be JSON syntax.
     The only key in the JSON is "commitMessage".
+
+    ${languagePrompt}
 
     JSON EXAMPLE:
     {"commitMessage": "fix: fix the bug"}

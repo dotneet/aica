@@ -17,6 +17,11 @@ model = 'gemini-2.0-flash'
 temperature = 0.5
 maxTokens = 4096
 
+[language]
+# auto detect language from environment variable.
+autoDetect = true
+# autoDetect is true, so this is ignored.
+language = 'English'
 
 [source]
 includePatterns = [
