@@ -25,7 +25,7 @@ export async function createCommitMessage(
   cwd: string,
 ): Promise<string> {
   const git = new GitRepository(cwd);
-  const text = await git.getGitDiffToHead();
+  const text = await git.getGitDiffFromHead();
   if (!text) {
     throw new Error("No changes to commit");
   }

@@ -11,6 +11,7 @@ export type CommitCommandResult = {
 export const commitCommandSchema = z.object({
   staged: z.boolean().default(false),
   dryRun: z.boolean().default(false),
+  push: z.boolean().default(false),
 });
 
 export type CommitCommandValues = z.infer<typeof commitCommandSchema>;
@@ -18,7 +19,7 @@ export type CommitCommandValues = z.infer<typeof commitCommandSchema>;
 export async function executeCommitCommand(
   values: CommitCommandValues,
 ): Promise<CommitCommandResult> {
-  const { staged, dryRun } = values;
+  const { staged, dryRun, push } = values;
   const config = await readConfig();
 
   const cwd = process.cwd();
@@ -30,12 +31,27 @@ export async function executeCommitCommand(
   return executeCommit(gitRoot, config, staged, dryRun);
 }
 
+const commitOptionsSchema = z.object({
+  push: z.boolean().default(false),
+  dryRun: z.boolean().default(false),
+  staged: z.boolean().default(false),
+});
+type CommitOptions = z.infer<typeof commitOptionsSchema>;
+
+const defaultCommitOptions: CommitOptions = {
+  push: false,
+  dryRun: false,
+  staged: false,
+};
+
 export async function executeCommit(
   gitRoot: string,
   config: Config,
-  staged: boolean,
-  dryRun: boolean,
+  opts: Partial<CommitOptions>,
 ): Promise<CommitCommandResult> {
+  const options = { ...defaultCommitOptions, ...opts };
+  const { push, dryRun, staged } = options;
+
   const git = new GitRepository(gitRoot);
   const changes = await git.getAddingFilesToStage();
 
@@ -64,7 +80,12 @@ export async function executeCommit(
     }
   }
 
-  const diff = await git.getGitDiffStageOnly();
+  let diff: string | null = null;
+  if (dryRun) {
+    diff = await git.getGitDiffFromHead();
+  } else {
+    diff = await git.getGitDiffStageOnly();
+  }
   if (!diff) {
     console.log("No changes to commit");
     return {
@@ -78,6 +99,15 @@ export async function executeCommit(
     console.log("Dry Run\ncommit message: '" + commitMessage + "'");
   } else {
     await git.commit(commitMessage);
+  }
+
+  if (push) {
+    const remote = await git.getDefaultRemoteName();
+    if (!remote) {
+      throw new Error("No remote found");
+    }
+    const branch = await git.getCurrentBranch();
+    await git.pushToRemote(remote, branch);
   }
 
   return {

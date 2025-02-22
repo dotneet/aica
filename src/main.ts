@@ -100,6 +100,11 @@ async function main() {
             alias: "s",
             description: "Only include staged changes",
           })
+          .option("push", {
+            type: "boolean",
+            alias: "p",
+            description: "Push to remote repository",
+          })
           .option("dryRun", {
             type: "boolean",
             description: "Show result without execution",
