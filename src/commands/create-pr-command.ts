@@ -13,10 +13,10 @@ export const createPrCommandSchema = z.object({
   dryRun: z.boolean().default(false),
   baseBranch: z.string().default("main"),
   branchName: z.string().optional(),
-  withSummary: z.boolean().default(true),
+  withSummary: z.boolean().optional(),
   title: z.string().optional(),
   body: z.string().optional(),
-  draft: z.boolean().default(false),
+  draft: z.boolean().optional(),
 });
 
 export type CreatePrCommandValues = z.infer<typeof createPrCommandSchema>;
@@ -32,9 +32,12 @@ export async function executeCreatePrCommand(
     branchName,
     title,
     body,
-    draft,
-    withSummary,
+    draft: argDraft,
+    withSummary: argWithSummary,
   } = values;
+
+  const draft = argDraft ?? config.pullRequest.draft;
+  const withSummary = argWithSummary ?? config.pullRequest.withSummary;
 
   const cwd = process.cwd();
   const gitRoot = await GitRepository.getRepositoryRoot(cwd);
@@ -98,17 +101,8 @@ export async function executeCreatePrCommand(
       prBody,
       baseBranch,
       targetBranchName,
+      draft,
     );
-
-    if (draft) {
-      await octokit.rest.pulls.update({
-        owner,
-        repo,
-        pull_number: pr.number,
-        draft: true,
-      });
-    }
-
     console.log(`Pull request created: ${pr.getUrl()}`);
   } else {
     console.log("Dry run: would create pull request with:");
