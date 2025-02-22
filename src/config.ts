@@ -110,10 +110,26 @@ export type Config = {
   };
 };
 
+const getDefaultLLMProvider = (): LLMProvider => {
+  if (Bun.env.AICA_LLM_PROVIDER) {
+    return Bun.env.AICA_LLM_PROVIDER as LLMProvider;
+  }
+  if (Bun.env.ANTHROPIC_API_KEY) {
+    return "anthropic";
+  }
+  if (Bun.env.OPENAI_API_KEY) {
+    return "openai";
+  }
+  if (Bun.env.GOOGLE_API_KEY || Bun.env.GEMINI_API_KEY) {
+    return "google";
+  }
+  return "anthropic";
+};
+
 export const defaultConfig: Config = {
   workingDirectory: ".",
   llm: {
-    provider: (Bun.env.AICA_LLM_PROVIDER as LLMProvider) || "anthropic",
+    provider: getDefaultLLMProvider(),
     openai: {
       model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
