@@ -1,6 +1,6 @@
 import { readConfig, type Config } from "@/config";
 import { GitRepository } from "@/git";
-import { Octokit } from "@/github";
+import { getGitHubToken, Octokit } from "@/github";
 import { z } from "zod";
 import { executeCommit } from "./commit-command";
 import { createCommitMessageFromDiff } from "./commit-message-command";
@@ -89,8 +89,9 @@ export async function executeCreatePrCommand(
     }
     await git.pushToRemote(remoteName, targetBranchName);
 
+    const token = await getGitHubToken();
     const octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN,
+      auth: token,
     });
 
     const pr = await PullRequest.create(
