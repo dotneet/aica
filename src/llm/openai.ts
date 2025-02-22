@@ -1,5 +1,12 @@
 import { LLMConfigOpenAI } from "@/config";
-import { LLM, LLMError, Message } from "./llm";
+import {
+  LLM,
+  LLMError,
+  Message,
+  withRetry,
+  LLMOptions,
+  LLMRateLimitError,
+} from "./llm";
 import { createLLMLogger, LLMLogger } from "./logger";
 
 interface GPTResponse {
@@ -29,15 +36,20 @@ export class LLMOpenAI implements LLM {
     systemPrompt: string,
     messages: Message[],
     jsonMode: boolean,
+    options?: LLMOptions,
   ): Promise<string> {
     this.logger.logRequest(systemPrompt, messages);
 
-    const responseObject = await this.fetchOpenAIResponse(
-      this.apiKey,
-      this.model,
-      systemPrompt,
-      messages,
-      jsonMode,
+    const responseObject = await withRetry(
+      async () =>
+        this.fetchOpenAIResponse(
+          this.apiKey,
+          this.model,
+          systemPrompt,
+          messages,
+          jsonMode,
+        ),
+      options,
     );
     const result = responseObject.choices[0].message.content;
     this.logger.log(`LLM OpenAI response: ${result}`);
@@ -86,6 +98,9 @@ export class LLMOpenAI implements LLM {
     });
     if (!response.ok) {
       const body = await response.json();
+      if (response.status === 429) {
+        throw new LLMRateLimitError("Rate limit exceeded");
+      }
       throw new LLMError(`OpenAI API error: ${body.error.message}`);
     }
     return await response.json();

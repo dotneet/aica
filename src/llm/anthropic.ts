@@ -1,5 +1,12 @@
 import { LLMConfigAnthropic } from "@/config";
-import { extractJsonFromText, LLM, Message } from "./llm";
+import {
+  extractJsonFromText,
+  LLM,
+  Message,
+  withRetry,
+  LLMOptions,
+  LLMRateLimitError,
+} from "./llm";
 import { createLLMLogger, LLMLogger } from "./logger";
 
 type ClaudeMessageResponse = {
@@ -42,52 +49,62 @@ export class LLMAnthropic implements LLM {
     systemPrompt: string,
     messages: Message[],
     jsonMode: boolean,
+    options?: LLMOptions,
   ): Promise<string> {
     this.logger.logRequest(systemPrompt, messages);
 
-    const anthropicMessages: AnthropicMessage[] = messages.map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
+    const responseObject = await withRetry(async () => {
+      const anthropicMessages: AnthropicMessage[] = messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
 
-    const payload = JSON.stringify({
-      model: this.model,
-      max_tokens: this.maxTokens,
-      messages: anthropicMessages,
-      system: systemPrompt,
-      temperature: this.temperature,
-    });
+      const payload = JSON.stringify({
+        model: this.model,
+        max_tokens: this.maxTokens,
+        messages: anthropicMessages,
+        system: systemPrompt,
+        temperature: this.temperature,
+      });
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-Key": this.apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: payload,
-    });
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-Key": this.apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: payload,
+      });
 
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ error: "Unknown error" }));
-      throw new Error(
-        `Anthropic API error: ${response.status} - ${JSON.stringify(
-          errorData,
-        )}`,
-      );
-    }
+      if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = response.headers.get("Retry-After");
+          throw new LLMRateLimitError(
+            "Rate limit exceeded",
+            retryAfter ? parseInt(retryAfter) : undefined,
+          );
+        }
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        throw new Error(
+          `Anthropic API error: ${response.status} - ${JSON.stringify(
+            errorData,
+          )}`,
+        );
+      }
 
-    const jsonResponse: ClaudeMessageResponse = await response.json();
+      return (await response.json()) as ClaudeMessageResponse;
+    }, options);
 
-    if (!jsonResponse.content || jsonResponse.content.length === 0) {
+    if (!responseObject.content || responseObject.content.length === 0) {
       throw new Error(
         "Invalid response from Anthropic API: No content received",
       );
     }
 
-    let text = jsonResponse.content[0].text;
+    let text = responseObject.content[0].text;
     if (jsonMode) {
       const json = extractJsonFromText(text);
       if (json) {
