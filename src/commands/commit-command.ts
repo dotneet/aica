@@ -98,7 +98,7 @@ export async function executeCommit(
     console.log("DryRun: commit message is '" + commitMessage + "'");
   } else {
     await git.commit(commitMessage);
-    console.log(`committed with message: ${commitMessage}`);
+    console.log(`committed: ${commitMessage}`);
   }
 
   if (push) {
@@ -111,7 +111,7 @@ export async function executeCommit(
       console.log(`DryRun: push ${branch} to ${remote}/${branch}`);
     } else {
       await git.pushToRemote(remote, branch);
-      console.log(`pushed to ${remote}/${branch}`);
+      console.log(`pushed ${branch} to ${remote}/${branch}`);
     }
   }
 
