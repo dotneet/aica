@@ -123,7 +123,6 @@ async function main() {
           .option("withSummary", {
             type: "boolean",
             description: "Generate summary of diff from HEAD",
-            default: true,
           })
           .option("body", {
             type: "string",
@@ -135,7 +134,6 @@ async function main() {
             type: "boolean",
             alias: "d",
             description: "Create a draft pull request",
-            default: false,
           })
           .option("title", {
             type: "string",
