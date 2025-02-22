@@ -52,7 +52,7 @@ export class EditFileTool implements Tool {
       const newContent = applyPatch(currentContent, patch);
       await Bun.write(args.file, newContent);
       return {
-        result: `Edited file: ${args.file}`,
+        result: `Successfully edited file: ${args.file}`,
         addedFiles: [Source.fromText(args.file, newContent)],
       };
     } catch (error) {

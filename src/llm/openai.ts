@@ -30,11 +30,7 @@ export class LLMOpenAI implements LLM {
     messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
-    this.logger.log("================================================");
-    this.logger.log(`System Prompt: ${systemPrompt}`);
-    this.logger.log(
-      `User Prompts: ${messages.map((p) => p.content).join("==========\n")}`,
-    );
+    this.logger.logRequest(systemPrompt, messages);
 
     const responseObject = await this.fetchOpenAIResponse(
       this.apiKey,

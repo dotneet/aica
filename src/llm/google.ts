@@ -16,11 +16,7 @@ export class LLMGoogle implements LLM {
     prompts: Message[],
     jsonMode: boolean,
   ): Promise<string> {
-    this.logger.log("================================================");
-    this.logger.log(`System Prompt: ${systemPrompt}`);
-    this.logger.log(
-      `User Prompts: ${prompts.map((p) => p.content).join("==========\n")}`,
-    );
+    this.logger.logRequest(systemPrompt, prompts);
 
     const contents = [
       {

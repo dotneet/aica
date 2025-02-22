@@ -43,11 +43,7 @@ export class LLMAnthropic implements LLM {
     messages: Message[],
     jsonMode: boolean,
   ): Promise<string> {
-    this.logger.log("================================================");
-    this.logger.log(`System Prompt: ${systemPrompt}`);
-    this.logger.log(
-      `User Prompts: ${messages.map((p) => p.content).join("==========\n")}`,
-    );
+    this.logger.logRequest(systemPrompt, messages);
 
     const anthropicMessages: AnthropicMessage[] = messages.map((message) => ({
       role: message.role,
