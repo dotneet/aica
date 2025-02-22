@@ -1,5 +1,12 @@
 import { LLMConfigGemini } from "@/config";
-import { LLM, LLMError, Message } from "./llm";
+import {
+  LLM,
+  LLMError,
+  Message,
+  withRetry,
+  LLMOptions,
+  LLMRateLimitError,
+} from "./llm";
 import { createLLMLogger, LLMLogger } from "./logger";
 
 export class LLMGoogle implements LLM {
@@ -15,21 +22,22 @@ export class LLMGoogle implements LLM {
     systemPrompt: string,
     prompts: Message[],
     jsonMode: boolean,
+    options?: LLMOptions,
   ): Promise<string> {
-    this.logger.logRequest(systemPrompt, prompts);
+    return withRetry(async () => {
+      this.logger.logRequest(systemPrompt, prompts);
 
-    const contents = [
-      {
-        parts: [{ text: systemPrompt }],
-        role: "user",
-      },
-      ...prompts.map((prompt) => ({
-        parts: [{ text: prompt.content }],
-        role: prompt.role,
-      })),
-    ];
+      const contents = [
+        {
+          parts: [{ text: systemPrompt }],
+          role: "user",
+        },
+        ...prompts.map((prompt) => ({
+          parts: [{ text: prompt.content }],
+          role: prompt.role,
+        })),
+      ];
 
-    try {
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${this.config.model}:generateContent?key=${this.config.apiKey}`,
         {
@@ -49,23 +57,23 @@ export class LLMGoogle implements LLM {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        if (response.status === 429) {
+          throw new LLMRateLimitError("Rate limit exceeded");
+        }
+        throw new LLMError(
+          `Google API HTTP error! status: ${response.status}, message: ${errorText}`,
+        );
       }
 
       const data = await response.json();
       if (!data.candidates || data.candidates.length === 0) {
-        throw new Error("No response from Google");
+        throw new LLMError("No response candidates returned from Google API");
       }
 
       const result = data.candidates[0].content.parts[0].text;
       this.logger.log(`LLM Google response: ${result}`);
       return result;
-    } catch (error: unknown) {
-      throw new LLMError(
-        `Google API error: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-      );
-    }
+    }, options);
   }
 }

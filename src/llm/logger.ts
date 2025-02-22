@@ -10,7 +10,12 @@ export function createLLMLogger(logFile: string | undefined): LLMLogger {
   const logger = winston.createLogger({
     level: "info",
     format: winston.format.simple(),
-    transports: [],
+    transports: [
+      new winston.transports.Console({
+        format: winston.format.simple(),
+        level: "error",
+      }),
+    ],
   });
 
   if (logFile) {
