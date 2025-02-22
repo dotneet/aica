@@ -21,7 +21,7 @@ export class AttemptCompletionTool implements Tool {
 <result>The task is complete.</result>
 <command>open index.html</command>
 </attempt_completion>
-`;
+`.trim();
 
   async execute(args: {
     result: string;

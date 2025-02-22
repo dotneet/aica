@@ -112,7 +112,7 @@ export class Agent {
         }
       }
       prompt =
-        "Consider next action. If the task is done, return stop command.";
+        "If the task has been completed, return stop command. Otherwise, consider next action.";
     }
   }
 }

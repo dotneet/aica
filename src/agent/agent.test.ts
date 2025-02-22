@@ -86,7 +86,6 @@ const fileName = 'test.ts';
       const newContent = "const fileName = 'test.ts';";
       await Bun.write(testFilePath, oldContent);
 
-      const patch = createPatch(oldContent, newContent);
       const llm = createLLM({
         provider: "stub",
         openai: {
@@ -104,7 +103,7 @@ const fileName = 'test.ts';
 --- hoge.ts
 +++ hoge.ts
 @@ -1,3 +1,3 @@
--const fileName = 'test.ts';
+-const fielName = 'test.ts';
 +const fileName = 'test.ts';
 </patch>
 </edit_file>`,

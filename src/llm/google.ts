@@ -1,11 +1,14 @@
 import { LLMConfigGemini } from "@/config";
 import { LLM, LLMError, Message } from "./llm";
+import { createLLMLogger, LLMLogger } from "./logger";
 
 export class LLMGoogle implements LLM {
   private config: LLMConfigGemini;
+  private logger: LLMLogger;
 
   constructor(config: LLMConfigGemini) {
     this.config = config;
+    this.logger = createLLMLogger(config.logFile);
   }
 
   async generate(
@@ -13,6 +16,8 @@ export class LLMGoogle implements LLM {
     prompts: Message[],
     jsonMode: boolean,
   ): Promise<string> {
+    this.logger.logRequest(systemPrompt, prompts);
+
     const contents = [
       {
         parts: [{ text: systemPrompt }],
@@ -52,7 +57,9 @@ export class LLMGoogle implements LLM {
         throw new Error("No response from Google");
       }
 
-      return data.candidates[0].content.parts[0].text;
+      const result = data.candidates[0].content.parts[0].text;
+      this.logger.log(`LLM Google response: ${result}`);
+      return result;
     } catch (error: unknown) {
       throw new LLMError(
         `Google API error: ${

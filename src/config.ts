@@ -9,6 +9,7 @@ export type LLMConfigOpenAI = {
   apiKey: string;
   temperature: number;
   maxCompletionTokens: number;
+  logFile: string | undefined;
 };
 
 export type LLMConfigAnthropic = {
@@ -16,6 +17,7 @@ export type LLMConfigAnthropic = {
   apiKey: string;
   temperature: number;
   maxTokens: number;
+  logFile: string | undefined;
 };
 
 export type LLMConfigGemini = {
@@ -23,6 +25,7 @@ export type LLMConfigGemini = {
   apiKey: string;
   temperature: number;
   maxTokens: number;
+  logFile: string | undefined;
 };
 
 export type LLMConfig = {
@@ -107,18 +110,21 @@ export const defaultConfig: Config = {
       apiKey: Bun.env.OPENAI_API_KEY || "",
       temperature: 0.5,
       maxCompletionTokens: 4096,
+      logFile: Bun.env.OPENAI_LOG_FILE || undefined,
     },
     anthropic: {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
       temperature: 0.5,
       maxTokens: 4096,
+      logFile: Bun.env.ANTHROPIC_LOG_FILE || undefined,
     },
     google: {
       model: Bun.env.GOOGLE_MODEL || "gemini-2.0-flash",
       apiKey: Bun.env.GOOGLE_API_KEY || Bun.env.GEMINI_API_KEY || "",
       temperature: 0.5,
       maxTokens: 4096,
+      logFile: Bun.env.GOOGLE_LOG_FILE || undefined,
     },
     stub: {
       response: "",

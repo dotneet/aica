@@ -6,16 +6,19 @@ provider = 'openai'
 model = 'o3-mini'
 temperature = 0.5
 maxCompletionTokens = 4096
+# logFile = '/path/to/openai.log'  # Optional: Path to log OpenAI API calls
 
 [llm.anthropic]
 model = 'claude-3-5-sonnet-20241022'
 temperature = 0.5
 maxTokens = 4096
+# logFile = '/path/to/anthropic.log'  # Optional: Path to log Anthropic API calls
 
 [llm.google]
 model = 'gemini-2.0-flash'
 temperature = 0.5
 maxTokens = 4096
+# logFile = '/path/to/google.log'  # Optional: Path to log Google API calls
 
 [language]
 # auto detect language from environment variable.
@@ -68,9 +71,10 @@ excludePatterns = [
     "out/**",
 ]
 
+
 [knowledge.documentSearch]
 # document search provides vector based search for the given directory.
-directory = "testdata/docs"
+# directory = "testdata/docs"
 persistentFilePath = "knowledge-doc.db"
 includePatterns = ["**/*.{md,txt,adoc,html}"]
 excludePatterns = [
