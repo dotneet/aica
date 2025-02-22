@@ -58,6 +58,7 @@ import {
   SearchFilesTool,
   StopTool,
   AttemptCompletionTool,
+  diffToolPrompt,
 } from "./tools";
 
 export const tools: Record<string, Tool> = {
@@ -93,16 +94,10 @@ export function generateAvailableTools(): string {
 ${toolDescriptions}
 === END OF AVAILABLE TOOLS ===
 
-Unified format diff example:
-=== EXAMPLE of unified format diff ===
---- original
-+++ edited
-@@ -1,3 +1,3 @@
- abc
--def
-+eef
- hij
-=== END OF EXAMPLE ===
+=== UNIFIED FORMAT DIFF EXPLANATION ===
+${diffToolPrompt}
+=== END OF UNIFIED FORMAT DIFF EXPLANATION ===
+
 `;
 }
 
