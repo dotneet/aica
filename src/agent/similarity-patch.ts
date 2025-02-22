@@ -38,7 +38,16 @@ interface Hunk {
  */
 export function parseUnifiedDiff(diffText: string): UnifiedDiff {
   const lines = splitTextIntoLines(diffText);
+
+  // パッチのバリデーション
+  if (!lines.some((line) => line.startsWith("@@"))) {
+    throw new Error("Invalid patch format: No hunk headers found");
+  }
+
   const hunks: Hunk[] = extractHunks(lines);
+  if (hunks.length === 0) {
+    throw new Error("Invalid patch format: No hunks found");
+  }
   return { hunks };
 }
 

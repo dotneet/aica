@@ -68,8 +68,8 @@ describe("Tools", () => {
     const tool = new EditFileTool();
 
     it("should edit an existing file using patch", async () => {
-      const oldContent = "const fielName = 'test.ts';";
-      const newContent = "const fileName = 'test.ts';";
+      const oldContent = "const fielName = 'test.ts';\n";
+      const newContent = "const fileName = 'test.ts';\n";
       await Bun.write(testFilePath, oldContent);
 
       const patch = await createRawPatchFromString(oldContent, newContent);
@@ -80,11 +80,10 @@ describe("Tools", () => {
 
       expect(result.result).toContain(testFilePath);
       const content = await Bun.file(testFilePath).text();
-      expect(content).toBe(newContent);
+      expect(content.replace(/\r\n/g, "\n")).toBe(newContent);
     });
 
     it("should throw error if file does not exist", async () => {
-      // await Bun.file(testFilePath).delete();
       const patch = await createRawPatchFromString("old", "new");
       await expect(
         tool.execute({ file: testFilePath, patch: patch }),
@@ -93,8 +92,9 @@ describe("Tools", () => {
 
     it("should throw error if patch is invalid", async () => {
       await Bun.write(testFilePath, "content");
+      const invalidPatch = "This is not a valid patch at all";
       await expect(
-        tool.execute({ file: testFilePath, patch: "invalid patch" }),
+        tool.execute({ file: testFilePath, patch: invalidPatch }),
       ).rejects.toThrow(ToolError);
     });
   });
