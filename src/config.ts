@@ -95,6 +95,10 @@ export type Config = {
       user: string;
     };
   };
+  pullRequest: {
+    withSummary: boolean;
+    draft: boolean;
+  };
   source: {
     includePatterns: string[];
     excludePatterns: string[];
@@ -183,6 +187,10 @@ export const defaultConfig: Config = {
         - docs: update readme
       `.replaceAll(/\n +/g, "\n"),
     },
+  },
+  pullRequest: {
+    withSummary: true,
+    draft: false,
   },
   source: {
     includePatterns: [
