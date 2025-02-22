@@ -38,6 +38,9 @@ export class LLMAnthropic implements LLM {
   private logger: LLMLogger;
 
   constructor(config: LLMConfigAnthropic) {
+    if (!config.apiKey) {
+      throw new Error("Anthropic API key is not set");
+    }
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.temperature = config.temperature;

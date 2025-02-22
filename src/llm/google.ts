@@ -14,6 +14,9 @@ export class LLMGoogle implements LLM {
   private logger: LLMLogger;
 
   constructor(config: LLMConfigGemini) {
+    if (!config.apiKey) {
+      throw new Error("Google API key is not set");
+    }
     this.config = config;
     this.logger = createLLMLogger(config.logFile);
   }

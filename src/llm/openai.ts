@@ -25,6 +25,9 @@ export class LLMOpenAI implements LLM {
   private logger: LLMLogger;
 
   constructor(config: LLMConfigOpenAI) {
+    if (!config.apiKey) {
+      throw new Error("OpenAI API key is not set");
+    }
     this.apiKey = config.apiKey;
     this.model = config.model;
     this.temperature = config.temperature;
