@@ -12,14 +12,16 @@ export function getLanguagePromptForJson(
 }
 
 export function getLanguageFromConfig(config: Config) {
-  let result = config.language.language || "English";
-  if (config.language.autoDetect) {
-    result = getLanguageFromEnv();
+  const configLang = config.language.language.toLowerCase().trim();
+  if (Bun.env.AICA_LANGUAGE) {
+    return Bun.env.AICA_LANGUAGE;
+  } else if (configLang && configLang !== "auto") {
+    return configLang;
   }
-  return result;
+  return getLanguageFromLang();
 }
 
-export function getLanguageFromEnv() {
+export function getLanguageFromLang() {
   const lang = Bun.env.LANG?.split(".")[0]?.split("_")[0] || "en";
   const fullLangNames = {
     en: "English",

@@ -21,10 +21,10 @@ maxTokens = 4096
 # logFile = '/path/to/google.log'  # Optional: Path to log Google API calls
 
 [language]
-# auto detect language from environment variable.
-autoDetect = true
-# autoDetect is true, so this is ignored.
-language = 'English'
+# if set language to 'auto', aica try to detect language from environment variable.
+# language = 'English'
+# language = 'Japanese'
+language = 'auto'
 
 [source]
 includePatterns = [

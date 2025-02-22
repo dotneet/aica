@@ -64,7 +64,6 @@ export type Knowledge = {
 };
 
 export type LanguageConfig = {
-  autoDetect: boolean;
   language: string;
 };
 
@@ -156,8 +155,7 @@ export const defaultConfig: Config = {
     },
   },
   language: {
-    autoDetect: true,
-    language: "",
+    language: "auto",
   },
   embedding: {
     provider: "openai",
