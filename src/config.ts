@@ -286,19 +286,14 @@ export async function readConfig(
     }
     // search git repository root
     if (!configPath) {
-      try {
-        const cwd = process.cwd();
-        const root = await GitRepository.getRepositoryRoot(cwd);
+      const cwd = process.cwd();
+      const root = await GitRepository.getRepositoryRoot(cwd);
+      if (root) {
         const rootConfigPath = `${root}/aica.toml`;
-        if (root) {
-          workingDirectory = root;
-          if (fs.existsSync(rootConfigPath)) {
-            configPath = rootConfigPath;
-          }
+        workingDirectory = root;
+        if (fs.existsSync(rootConfigPath)) {
+          configPath = rootConfigPath;
         }
-      } catch (e) {
-        // In github actions, some git features are not available as we don't have full access to the repository.
-        console.warn("Failed to get git repository root, using default config");
       }
     }
     // search github actions config

@@ -111,6 +111,9 @@ export class GitRepository {
     await revParseResult.exited;
     if (revParseResult.exitCode !== 0) {
       const text = (await new Response(revParseResult.stderr).text()).trim();
+      if (text.includes("not a git repository")) {
+        return null;
+      }
       throw new Error(`Failed to get git repository root: ${text}`);
     }
     const text = (await new Response(revParseResult.stdout).text()).trim();
