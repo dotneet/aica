@@ -26,33 +26,33 @@ export class LLMError extends Error {
 }
 
 /**
- * テキストから最初のJSONを抽出する関数
- * @param text テキスト
- * @returns 見つかったJSONテキスト。見つからない場合はnull
+ * Function to extract the first JSON from text
+ * @param text input text
+ * @returns found JSON text, or null if not found
  */
 export function extractJsonFromText(text: string): string | null {
-  // コードブロック内のJSONを探す正規表現
+  // Regular expression to find JSON in code blocks
   const codeBlockRegex = /```(?:json)?\n({[\s\S]*?})\n```/;
-  // 通常のテキスト内のJSONを探す正規表現（ネストされたJSONに対応）
+  // Regular expression to find JSON in regular text (handles nested JSON)
   const jsonRegex = /{(?:[^{}]|{(?:[^{}]|{[^{}]*})*})*}/;
 
-  // まずコードブロック内を探す
+  // First search in code blocks
   const codeBlockMatch = text.match(codeBlockRegex);
   if (codeBlockMatch) {
     try {
-      // 抽出したテキストがJSON形式か検証
+      // Validate extracted text is valid JSON
       JSON.parse(codeBlockMatch[1]);
       return codeBlockMatch[1];
     } catch {
-      // JSONとして無効な場合は次の検索に進む
+      // If invalid JSON, continue to next search
     }
   }
 
-  // 次に通常のテキスト内を探す
+  // Then search in regular text
   const matches = text.match(jsonRegex);
   if (matches) {
     try {
-      // 抽出したテキストがJSON形式か検証
+      // Validate extracted text is valid JSON
       JSON.parse(matches[0]);
       return matches[0];
     } catch {
