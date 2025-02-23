@@ -1,25 +1,12 @@
 import { readConfig } from "@/config";
-import { PullRequest } from "@/github";
 import core from "@actions/core";
 import github from "@actions/github";
-import { generateReview, generateSummary } from "./github/mod";
 import { Octokit } from "./github";
-
-function buildSummaryBody(body: string, summary: string): string {
-  const summaryPrefix = "<!-- AICA GENERATED -->\n## Summary";
-  let newBody = "";
-  if (body) {
-    const index = body.indexOf(summaryPrefix);
-    if (index !== -1) {
-      newBody = body.slice(0, index) + summaryPrefix + "\n\n" + summary;
-    } else {
-      newBody = body + "\n\n" + summaryPrefix + "\n\n" + summary;
-    }
-  } else {
-    newBody = summaryPrefix + "\n\n" + summary;
-  }
-  return newBody;
-}
+import { performSummaryAndReview } from "./actions/summary-and-review";
+import { performEdit } from "./actions/edit";
+import { performSummary } from "./actions/summary";
+import { performReviewCommand } from "./actions/review";
+import { $ } from "bun";
 
 async function main() {
   console.log("start actions runner...");
@@ -28,10 +15,16 @@ async function main() {
     if (!token) {
       throw new Error("GITHUB_TOKEN is required");
     }
+
+    if (Bun.env.GITHUB_ACTIONS == "true" && Bun.env.GITHUB_WORKSPACE) {
+      // avoid the following error
+      //fatal: detected dubious ownership in repository at '/github/workspace'
+      await $`git config --global --add safe.directory ${Bun.env.GITHUB_WORKSPACE}`;
+    }
+
     const octokit = new Octokit({ auth: token });
     const config = await readConfig(null);
     const payload = github.context.payload;
-    // console.log("Context Payload", JSON.stringify(payload, null, 2));
 
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
     if (!fullRepoName) {
@@ -41,26 +34,61 @@ async function main() {
     if (!payload.pull_request) {
       throw new Error("pull_request is required");
     }
-    const pull_number = payload.pull_request.number;
+    const eventName = Bun.env.GITHUB_EVENT_NAME;
 
-    console.log("retrieve pull request diff...");
-    const pullRequest = new PullRequest(octokit, owner, repo, pull_number);
-    const diffString = await pullRequest.getDiff(pull_number);
-
-    console.log("generate summary...");
-    const summary = await generateSummary(config, diffString);
-    const body = (await pullRequest.getBody()) || "";
-    const newBody = buildSummaryBody(body, summary);
-
-    console.log("update pull request body...");
-    await pullRequest.updateBody(newBody);
-
-    console.log("generate review result table...");
-    const reviewResultTable = await generateReview(config, diffString);
-
-    console.log("post comment to pull request...");
-    const comment = "## Bug Report\n\n" + reviewResultTable;
-    await pullRequest.postComment(comment);
+    if (eventName === "pull_request" || eventName === "pull_request_target") {
+      const pullNumber = payload.pull_request.number;
+      await performSummaryAndReview(config, octokit, owner, repo, pullNumber);
+    } else if (
+      eventName === "issue_comment" ||
+      eventName === "pull_request_review_comment"
+    ) {
+      const action = payload.action;
+      if (action === "created") {
+        const body = payload.comment?.body || "";
+        console.log(`comment body: ${body}`);
+        const commands = extractCommands(body);
+        for (const command of commands) {
+          switch (command.command) {
+            case "edit":
+              if (command.args.length === 0) {
+                core.setFailed("edit command requires prompt argument");
+                break;
+              }
+              await performEdit(
+                config,
+                octokit,
+                owner,
+                repo,
+                payload.issue?.number || 0,
+                command.args.join(" "),
+              );
+              break;
+            case "summary":
+              await performSummary(
+                config,
+                octokit,
+                owner,
+                repo,
+                payload.issue?.number || 0,
+              );
+              break;
+            case "review":
+              await performReviewCommand(
+                config,
+                octokit,
+                owner,
+                repo,
+                payload.issue?.number || 0,
+              );
+              break;
+            default:
+              core.setFailed(`unknown command: ${command.command}`);
+              break;
+          }
+        }
+      }
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
@@ -68,6 +96,39 @@ async function main() {
       core.setFailed(String(error));
     }
   }
+}
+
+type AicaActionsCommand = {
+  command: string;
+  args: string[];
+};
+
+/**
+ * extract aica actions command from comment body.
+ * multiple commands are allowed in one comment body.
+ * command must start with /aica.
+ *
+ * command format:
+ * /aica edit "your prompt here"
+ * /aica summary
+ * /aica review
+ *
+ * @returns an array of AicaActionsCommand
+ */
+function extractCommands(body: string): AicaActionsCommand[] {
+  const lines = body.split("\n");
+  const commands: AicaActionsCommand[] = [];
+  const prefix = "/aica ";
+  for (const line of lines) {
+    if (line.startsWith(prefix)) {
+      const args = line.slice(prefix.length).trim().split(" ");
+      commands.push({
+        command: args.shift()!,
+        args,
+      });
+    }
+  }
+  return commands;
 }
 
 await main();

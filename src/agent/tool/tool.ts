@@ -6,7 +6,7 @@ export type ToolId =
   | "read_file"
   | "execute_command"
   | "attempt_completion"
-  | "stop";
+  | "ask_followup_question";
 
 export const validToolIds: ToolId[] = [
   "search_files",
@@ -16,7 +16,7 @@ export const validToolIds: ToolId[] = [
   "read_file",
   "execute_command",
   "attempt_completion",
-  "stop",
+  "ask_followup_question",
 ];
 
 export function isValidToolId(id: string): id is ToolId {
@@ -56,8 +56,8 @@ import {
   ListFilesTool,
   ReadFileTool,
   SearchFilesTool,
-  StopTool,
   AttemptCompletionTool,
+  AskFollowupQuestionTool,
   diffToolPrompt,
 } from "./tools";
 
@@ -67,9 +67,9 @@ export const tools: Record<string, Tool> = {
   list_files: new ListFilesTool(),
   read_file: new ReadFileTool(),
   execute_command: new ExecuteCommandTool(),
-  stop: new StopTool(),
   search_files: new SearchFilesTool(),
   attempt_completion: new AttemptCompletionTool(),
+  ask_followup_question: new AskFollowupQuestionTool(),
 };
 
 function getToolExplanation(tool: Tool): string {

@@ -16,6 +16,11 @@ const defaultTaskExecutionOptions: TaskExecutionOptions = {
   verbose: false,
 };
 
+export type PlanResult = {
+  blocks: MessageBlock[];
+  response: string;
+};
+
 export class Agent {
   private gitRepository: GitRepository;
   private llm: LLM;
@@ -34,7 +39,7 @@ export class Agent {
     });
   }
 
-  async plan(prompt: string): Promise<MessageBlock[]> {
+  async plan(prompt: string): Promise<PlanResult> {
     const systemPrompt = this.createSystemPrompt();
     const messages: Message[] = [
       ...this.messages,
@@ -42,7 +47,10 @@ export class Agent {
     ];
     const response = await this.llm.generate(systemPrompt, messages, false);
     this.messages = messages;
-    return parseAssistantMessage(response);
+    return {
+      blocks: parseAssistantMessage(response),
+      response: response,
+    };
   }
 
   addActionResult(actionResult: ActionResult) {
@@ -75,6 +83,7 @@ export class Agent {
       options.maxIterations ?? defaultTaskExecutionOptions.maxIterations;
     let iterations = 0;
     let stopped = false;
+    prompt = `<task>\n${prompt}\n</task>`;
     while (!stopped) {
       if (iterations > maxIterations) {
         console.warn(`Max iterations(${maxIterations}) reached`);
@@ -82,15 +91,16 @@ export class Agent {
       }
       iterations++;
 
-      const blocks = await this.plan(prompt);
+      const { blocks, response } = await this.plan(prompt);
+      this.messages.push({
+        role: "assistant",
+        content: response,
+      });
+      let hasActionResult = false;
       for (const block of blocks) {
         if (block.type === "plain") {
           console.log(block.content);
         } else if (block.type === "action") {
-          if (block.action.toolId === "stop") {
-            stopped = true;
-            break;
-          }
           if (block.action.toolId !== "attempt_completion" || options.verbose) {
             console.log(
               `Executing action: ${
@@ -109,10 +119,19 @@ export class Agent {
             result: toolExecutionResult.result,
           };
           this.addActionResult(actionResult);
+          hasActionResult = true;
+
+          if (block.action.toolId === "attempt_completion") {
+            stopped = true;
+            break;
+          }
         }
       }
+      if (!hasActionResult) {
+        break;
+      }
       prompt =
-        "If the task has been completed, return stop command. Otherwise, consider next action.";
+        "Please evaluate the task content and the tool’s execution results. Only consider the next action if it is necessary to continue the task.";
     }
   }
 }

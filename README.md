@@ -239,6 +239,23 @@ Options:
 - `aica --version`: Show version information
 - `aica --help [command]`: Show help information for a specific command or general help
 
-## GitHub Actions Settings
+## GitHub Actions
+
+### Setup
 
 See [wiki page](https://github.com/dotneet/aica/wiki/GitHub-Actions-Settings) for details.
+
+### Commands
+
+You can interact with AI features by leaving comments with the following commands.
+
+```
+# edit the code with AI
+/aica edit "your prompt here"
+
+# update summary in the pull request body
+/aica summary
+
+# review the latest diff
+/aica review
+```
