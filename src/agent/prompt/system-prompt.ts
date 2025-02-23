@@ -12,7 +12,8 @@ export async function getSystemPrompt(
   referencedFiles: Map<string, Source>,
 ): Promise<string> {
   const rulesFinder = new RulesFinder(cwd, rulesConfig);
-  const rules = await rulesFinder.findAllRules();
+  const filePaths = Array.from(referencedFiles.keys());
+  const rules = await rulesFinder.findAllRules(filePaths);
   const rulesPrompt = RulesFinder.buildPrompt(rules);
   return `
 ${getSystemInfoSection(cwd)}
