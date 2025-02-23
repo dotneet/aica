@@ -32,7 +32,7 @@ export function createLLMLogger(logFile: string | undefined): LLMLogger {
       const userPrompts = messages.map((message) => {
         return `${message.role}: ${message.content}`;
       });
-      logger.info(userPrompts.join("==========\n"));
+      logger.info(userPrompts.join("\n----------\n"));
       logger.info(
         "END OF LLM Request =================================================",
       );

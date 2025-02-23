@@ -5,8 +5,7 @@ export type ToolId =
   | "search_files"
   | "read_file"
   | "execute_command"
-  | "attempt_completion"
-  | "stop";
+  | "attempt_completion";
 
 export const validToolIds: ToolId[] = [
   "search_files",
@@ -16,7 +15,6 @@ export const validToolIds: ToolId[] = [
   "read_file",
   "execute_command",
   "attempt_completion",
-  "stop",
 ];
 
 export function isValidToolId(id: string): id is ToolId {
@@ -56,7 +54,6 @@ import {
   ListFilesTool,
   ReadFileTool,
   SearchFilesTool,
-  StopTool,
   AttemptCompletionTool,
   diffToolPrompt,
 } from "./tools";
@@ -67,7 +64,6 @@ export const tools: Record<string, Tool> = {
   list_files: new ListFilesTool(),
   read_file: new ReadFileTool(),
   execute_command: new ExecuteCommandTool(),
-  stop: new StopTool(),
   search_files: new SearchFilesTool(),
   attempt_completion: new AttemptCompletionTool(),
 };

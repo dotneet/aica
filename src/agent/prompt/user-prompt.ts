@@ -1,5 +1,4 @@
 import { readdirSync } from "fs";
-import { getSystemInfoSection } from "./system-prompt";
 
 export function getEnvironmentDetailsPrompt(cwd: string): string {
   // list all files in the cwd

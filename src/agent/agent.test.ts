@@ -62,7 +62,7 @@ const fileName = 'test.ts';
 
       const gitRepository = new GitRepository(process.cwd());
       const agent = new Agent(gitRepository, llm);
-      const blocks = await agent.plan("create a test file");
+      const { blocks } = await agent.plan("create a test file");
 
       expect(blocks.length).toBe(1);
       const createFileAction = blocks[0];
@@ -112,10 +112,10 @@ const fileName = 'test.ts';
 
       const gitRepository = new GitRepository(process.cwd());
       const agent = new Agent(gitRepository, llm);
-      const actions = await agent.plan("fix a typo in the test file");
+      const { blocks } = await agent.plan("fix a typo in the test file");
 
-      expect(actions.length).toBe(1);
-      const editFileAction = actions[0];
+      expect(blocks.length).toBe(1);
+      const editFileAction = blocks[0];
       expect(editFileAction.type).toBe("action");
       expect((editFileAction as ActionBlock).action.toolId).toBe("edit_file");
       expect((editFileAction as ActionBlock).action.params.file).toBe(
