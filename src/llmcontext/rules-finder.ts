@@ -117,9 +117,12 @@ export class RulesFinder {
     for (const filePath of this.config.files) {
       const fullPath = path.resolve(this.baseDir, filePath);
       try {
-        const content = await Bun.file(fullPath).text();
-        if (content) {
-          rules.push(content);
+        const file = Bun.file(fullPath);
+        if (await file.exists()) {
+          const content = await file.text();
+          if (content) {
+            rules.push(content);
+          }
         }
       } catch (error) {
         console.error(`Error reading fixed rule file ${fullPath}:`, error);

@@ -162,7 +162,7 @@ export const defaultConfig: Config = {
   },
   rules: {
     findCursorRules: true,
-    files: [],
+    files: [".cursorrules", ".clinerules"],
   },
   language: {
     language: "auto",
