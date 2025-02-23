@@ -1,9 +1,9 @@
-import { createLLM } from "@/llm/mod";
-import { describe, it, expect, beforeEach, afterEach } from "bun:test";
-import { Agent } from "./agent";
-import { createPatch } from "./patch";
-import { mkdirSync, existsSync } from "node:fs";
+import { RulesConfig } from "@/config";
 import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/mod";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { existsSync, mkdirSync } from "node:fs";
+import { Agent } from "./agent";
 import { ActionBlock } from "./assistant-message";
 import { executeTool } from "./tool/tool";
 
@@ -45,10 +45,23 @@ describe("Agent", () => {
         openai: {
           model: "gpt-4",
           apiKey: "dummy",
+          temperature: 0,
+          maxCompletionTokens: 1000,
+          logFile: undefined,
+        },
+        google: {
+          model: "gemini-1.5-flash",
+          apiKey: "dummy",
+          temperature: 0,
+          maxTokens: 1000,
+          logFile: undefined,
         },
         anthropic: {
           model: "claude-3",
           apiKey: "dummy",
+          temperature: 0,
+          maxTokens: 1000,
+          logFile: undefined,
         },
         stub: {
           response: `<create_file>
@@ -61,7 +74,11 @@ const fileName = 'test.ts';
       });
 
       const gitRepository = new GitRepository(process.cwd());
-      const agent = new Agent(gitRepository, llm);
+      const rulesConfig: RulesConfig = {
+        files: [],
+        findCursorRules: false,
+      };
+      const agent = new Agent(gitRepository, llm, rulesConfig);
       const { blocks } = await agent.plan("create a test file");
 
       expect(blocks.length).toBe(1);
@@ -91,10 +108,23 @@ const fileName = 'test.ts';
         openai: {
           model: "gpt-4",
           apiKey: "dummy",
+          temperature: 0,
+          maxCompletionTokens: 1000,
+          logFile: undefined,
         },
         anthropic: {
           model: "claude-3",
           apiKey: "dummy",
+          temperature: 0,
+          maxTokens: 1000,
+          logFile: undefined,
+        },
+        google: {
+          model: "gemini-1.5-flash",
+          apiKey: "dummy",
+          temperature: 0,
+          maxTokens: 1000,
+          logFile: undefined,
         },
         stub: {
           response: `<edit_file>
@@ -111,7 +141,11 @@ const fileName = 'test.ts';
       });
 
       const gitRepository = new GitRepository(process.cwd());
-      const agent = new Agent(gitRepository, llm);
+      const rulesConfig: RulesConfig = {
+        files: [],
+        findCursorRules: false,
+      };
+      const agent = new Agent(gitRepository, llm, rulesConfig);
       const { blocks } = await agent.plan("fix a typo in the test file");
 
       expect(blocks.length).toBe(1);

@@ -20,6 +20,14 @@ temperature = 0.5
 maxTokens = 4096
 # logFile = '/path/to/google.log'  # Optional: Path to log Google API calls
 
+[rules]
+# search .cursor/rules/*.mdc and include a file in the context if the file matches the pattern.
+findCursorRules = true
+# always include the following files in the context if exists.
+files = [
+    ".cursorrules",
+]
+
 [language]
 # if set language to 'auto', aica try to detect language from environment variable.
 # language = 'English'

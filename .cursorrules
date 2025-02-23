@@ -1,0 +1,35 @@
+# technology stack of this project
+
+## runtime
+
+using Bun as a runtime.
+
+```bash
+# run typescript file
+bun run foo.ts
+
+# run test
+bun test
+```
+
+## Testing
+
+using `bun test` to run tests.
+
+```bash
+# run all tests
+bun test
+# run a single test file
+bun test foo.test.ts
+```
+
+```typescript
+// bun:test has the same API as Jest.
+import { describe, it, expect } from "bun:test";
+
+describe("foo", () => {
+  it("should be true", () => {
+    expect(true).toBe(true);
+  });
+});
+```

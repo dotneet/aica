@@ -38,6 +38,11 @@ export type LLMConfig = {
   };
 };
 
+export type RulesConfig = {
+  findCursorRules: boolean;
+  files: string[];
+};
+
 export type EmbeddingProvider = "openai" | "stub";
 
 export type EmbeddingConfig = {
@@ -71,6 +76,7 @@ export type Config = {
   workingDirectory: string;
   llm: LLMConfig;
   embedding: EmbeddingConfig;
+  rules: RulesConfig;
   language: LanguageConfig;
   knowledge?: Knowledge;
   review: {
@@ -153,6 +159,10 @@ export const defaultConfig: Config = {
     stub: {
       response: "",
     },
+  },
+  rules: {
+    findCursorRules: true,
+    files: [],
   },
   language: {
     language: "auto",

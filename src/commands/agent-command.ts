@@ -18,7 +18,7 @@ export async function executeAgentCommand(params: any) {
   const config = await readConfig();
   const llm = createLLM(config.llm);
   const gitRepository = new GitRepository(process.cwd());
-  const agent = new Agent(gitRepository, llm);
+  const agent = new Agent(gitRepository, llm, config.rules);
   const isInteractiveMode = prompt === "";
 
   if (values.file) {
