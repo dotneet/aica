@@ -239,6 +239,14 @@ Options:
 - `aica --version`: Show version information
 - `aica --help [command]`: Show help information for a specific command or general help
 
+## Add Context
+
+.cursorrules and .clinerules are automatically added to the context.
+If you want to customize the context, configure the [rules] section in aica.toml.
+
+Additionally, .cursor/rules/\*.mdc files are supported by default.
+This function can be disabled through the settings.
+
 ## GitHub Actions
 
 ### Setup
