@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { listFiles } from "./system-environment";
+import { listFiles, ListFilesResult } from "./system-environment";
 import { mkdir, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -78,71 +78,76 @@ debug/**/debug.log
   });
 
   test("should list files with limit", () => {
-    const result = listFiles(testDir, 2);
-    expect(result).toHaveLength(2);
+    const result: ListFilesResult = listFiles(testDir, 2);
+    expect(result.files).toHaveLength(2);
   });
 
   test("should ignore files in defaultIgnorePatterns", () => {
-    const result = listFiles(testDir, 100);
+    const result: ListFilesResult = listFiles(testDir, 100);
+    const files = result.files;
 
     // node_modules and .env files should be ignored
-    const hasNodeModules = result.some((path) => path.includes("node_modules"));
-    const hasEnvFile = result.some((path) => path.includes(".env"));
+    const hasNodeModules = files.some((path) => path.includes("node_modules"));
+    const hasEnvFile = files.some((path) => path.includes(".env"));
     expect(hasNodeModules).toBe(false);
     expect(hasEnvFile).toBe(false);
 
     // Regular files should be included
-    const hasFile1 = result.some((path) => path.includes("file1.txt"));
-    const hasFile2 = result.some((path) => path.includes("file2.txt"));
+    const hasFile1 = files.some((path) => path.includes("file1.txt"));
+    const hasFile2 = files.some((path) => path.includes("file2.txt"));
     expect(hasFile1).toBe(true);
     expect(hasFile2).toBe(true);
   });
 
   describe("gitignore patterns", () => {
-    // Basic gitignore test
     test("basic ignore patterns", () => {
-      const result = listFiles(testDir, 100);
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
       // Basic ignore patterns
-      expect(result.some((p) => p.includes("ignored-by-gitignore.txt"))).toBe(
+      expect(files.some((p) => p.includes("ignored-by-gitignore.txt"))).toBe(
         false,
       );
-      expect(result.some((p) => p.includes("temp/temp-file.txt"))).toBe(false);
-      expect(result.some((p) => p.endsWith(".log"))).toBe(false);
+      expect(files.some((p) => p.includes("temp/temp-file.txt"))).toBe(false);
+      expect(files.some((p) => p.endsWith(".log"))).toBe(false);
     });
 
     test("prefix patterns", () => {
-      const result = listFiles(testDir, 100);
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
       // Path prefix
-      expect(result.some((p) => p.includes("/build/"))).toBe(false);
-      expect(result.some((p) => p.includes("doc/frotz/"))).toBe(false);
+      expect(files.some((p) => p.includes("/build/"))).toBe(false);
+      expect(files.some((p) => p.includes("doc/frotz/"))).toBe(false);
     });
 
     test("negative patterns", () => {
-      const result = listFiles(testDir, 100);
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
       // Negative patterns
-      expect(result.some((p) => p.includes("src/temp/hello.txt"))).toBe(true);
-      expect(result.some((p) => p.includes("src/hello.txt"))).toBe(true);
+      expect(files.some((p) => p.includes("src/temp/hello.txt"))).toBe(true);
+      expect(files.some((p) => p.includes("src/hello.txt"))).toBe(true);
     });
 
     test("wildcard patterns", () => {
-      const result = listFiles(testDir, 100);
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
       // Wildcard patterns
-      expect(result.some((p) => p.endsWith(".o"))).toBe(false);
-      expect(result.some((p) => p.endsWith(".tmp"))).toBe(false);
+      expect(files.some((p) => p.endsWith(".o"))).toBe(false);
+      expect(files.some((p) => p.endsWith(".tmp"))).toBe(false);
     });
 
     test("** patterns", () => {
-      const result = listFiles(testDir, 100);
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
       // ** patterns
-      expect(result.some((p) => p.includes("debug/a/b/c/debug.log"))).toBe(
+      expect(files.some((p) => p.includes("debug/a/b/c/debug.log"))).toBe(
         false,
       );
     });
   });
 
   test("should return absolute paths", () => {
-    const result = listFiles(testDir, 10);
-    result.forEach((path) => {
+    const result: ListFilesResult = listFiles(testDir, 10);
+    result.files.forEach((path) => {
       expect(path.startsWith("/")).toBe(true);
     });
   });
