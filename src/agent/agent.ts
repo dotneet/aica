@@ -5,7 +5,8 @@ import { MessageBlock, parseAssistantMessage } from "./assistant-message";
 import { getSystemPrompt } from "./prompt/system-prompt";
 import { ActionResult, executeTool, generateAvailableTools } from "./tool/mod";
 import { Source } from "@/source";
-import { getEnvironmentDetailsPrompt } from "./prompt/user-prompt";
+import { getEnvironmentDetailsPrompt } from "@/llmcontext/system-environment";
+import { Config, RulesConfig } from "@/config";
 
 export type TaskExecutionOptions = {
   verbose: boolean;
@@ -24,11 +25,17 @@ export type PlanResult = {
 export class Agent {
   private gitRepository: GitRepository;
   private llm: LLM;
+  private rulesConfig: RulesConfig;
   private history: AgentHistory;
   private messages: Message[] = [];
   private referencedFiles: Map<string, Source> = new Map();
 
-  constructor(gitRepository: GitRepository, llm: LLM) {
+  constructor(
+    gitRepository: GitRepository,
+    llm: LLM,
+    rulesConfig: RulesConfig,
+  ) {
+    this.rulesConfig = rulesConfig;
     this.gitRepository = gitRepository;
     this.llm = llm;
     this.history = new AgentHistory();
@@ -40,7 +47,7 @@ export class Agent {
   }
 
   async plan(prompt: string): Promise<PlanResult> {
-    const systemPrompt = this.createSystemPrompt();
+    const systemPrompt = await this.createSystemPrompt();
     const messages: Message[] = [
       ...this.messages,
       { role: "user", content: prompt },
@@ -64,9 +71,10 @@ export class Agent {
     this.referencedFiles.set(file.path, file);
   }
 
-  private createSystemPrompt(): string {
+  private async createSystemPrompt(): Promise<string> {
     return getSystemPrompt(
       process.cwd(),
+      this.rulesConfig,
       this.gitRepository.gitRootDir,
       generateAvailableTools(),
       this.history.toPromptString(),

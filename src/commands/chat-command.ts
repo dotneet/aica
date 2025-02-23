@@ -4,6 +4,12 @@ import { readFileSync } from "fs";
 import { createInterface } from "readline";
 import { LLM, Message } from "@/llm/mod";
 import { createLLM } from "@/llm/factory";
+import { RulesFinder } from "@/llmcontext/rules-finder";
+import { GitRepository } from "@/git";
+import {
+  getEnvironmentDetailsPrompt,
+  getSystemInfoSection,
+} from "@/llmcontext/system-environment";
 
 export const chatCommandSchema = z.object({
   prompt: z.string().optional(),
@@ -33,8 +39,13 @@ async function handleInteractiveChat(llm: LLM, config: Config): Promise<void> {
 
   console.log("Interactive chat mode started (Press Ctrl+C to exit)");
 
-  const messages: Message[] = [];
+  let baseDir = await GitRepository.getRepositoryRoot(process.cwd());
+  if (!baseDir) {
+    baseDir = process.cwd();
+  }
 
+  const systemPrompt = await buildSystemPrompt(baseDir, config);
+  const messages: Message[] = [];
   while (true) {
     const prompt = await new Promise<string>((resolve) => {
       rl.question("> ", resolve);
@@ -45,11 +56,7 @@ async function handleInteractiveChat(llm: LLM, config: Config): Promise<void> {
     }
 
     messages.push({ role: "user", content: prompt });
-    const response = await llm.generate(
-      config.chat.prompt.system,
-      messages,
-      false,
-    );
+    const response = await llm.generate(systemPrompt, messages, false);
     messages.push({ role: "assistant", content: response });
 
     console.log("\n" + response + "\n");
@@ -81,4 +88,28 @@ export async function executeChatCommand(
   }
 
   await handleInteractiveChat(llm, config);
+}
+
+export async function buildSystemPrompt(
+  baseDir: string,
+  config: Config,
+): Promise<string> {
+  const rulesFinder = new RulesFinder(baseDir, config.rules);
+  const rules = await rulesFinder.findAllRules();
+  const chatSystemPrompt = config.chat.prompt.system;
+  const systemInfoSection = getSystemInfoSection(baseDir);
+  const environmentDetailsPrompt = getEnvironmentDetailsPrompt(baseDir);
+  return `
+${chatSystemPrompt}
+
+=== ADDITIONAL CONTEXT ====
+${rules.fixedContexts.join("\n===\n")}
+${rules.fileRules
+  .map((rule) => `${rule.description}\n\n${rule.content}`)
+  .join("\n===\n")}
+
+${systemInfoSection}
+${environmentDetailsPrompt}
+=== END OF ADDITIONAL CONTEXT ====
+`;
 }

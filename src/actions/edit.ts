@@ -11,38 +11,39 @@ export async function performEdit(
   owner: string,
   repo: string,
   pullNumber: number,
-  prompt: string
+  prompt: string,
 ): Promise<void> {
   console.log("Starting edit process...");
-  
-  const repoDir = Bun.env.GITHUB_WORKSPACE
+
+  const repoDir = Bun.env.GITHUB_WORKSPACE;
   if (!repoDir) {
     throw new Error("GITHUB_WORKSPACE is required");
   }
   const gitRepository = new GitRepository(repoDir);
   const llm = createLLM(config.llm);
-  const agent = new Agent(gitRepository, llm);
-  
+  const rulesConfig = config.rules;
+  const agent = new Agent(gitRepository, llm, rulesConfig);
+
   try {
     // Edit a file
-    await agent.startTask(prompt)
-    
+    await agent.startTask(prompt);
+
     // Commit changes
-    await $`git add .`
-    await $`git commit -m "Edit by AICA"`
-    
+    await $`git add .`;
+    await $`git commit -m "Edit by AICA"`;
+
     // Push changes
     const currentBranch = await gitRepository.getCurrentBranch();
     const remoteName = await gitRepository.getDefaultRemoteName();
-    await $`git push ${remoteName} ${currentBranch}`
-    
+    await $`git push ${remoteName} ${currentBranch}`;
+
     // Comment the result
     octokit.rest.issues.createComment({
       owner,
       repo,
       issue_number: pullNumber,
-      body: "new commit is created by AICA"
-    })
+      body: "new commit is created by AICA",
+    });
   } catch (error) {
     console.error("Error during edit process:", error);
     throw error;
