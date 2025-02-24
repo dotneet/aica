@@ -137,6 +137,10 @@ ${diffToolPrompt}
 `;
 }
 
+export function getToolExecutionLog(action: Action): string {
+  return `use tool: ${action.toolId}(${JSON.stringify(action.params)})`;
+}
+
 export type ActionResult = {
   action: Action;
   result: string;

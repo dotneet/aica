@@ -1,6 +1,7 @@
 import { Readability } from "@mozilla/readability";
 import * as cheerio from "cheerio";
 import { JSDOM } from "jsdom";
+import * as jsdom from "jsdom";
 import fetch from "node-fetch";
 
 // turndown 関連
@@ -46,109 +47,105 @@ export class WebFetchTool implements Tool {
         result: `Successfully fetched from ${args.url}.\n${markdown}`,
       };
     } catch (e) {
+      // const message = e instanceof Error ? e.message : "Unknown error";
       return {
-        result: `Failed to fetch: ${args.url}`,
+        result: `Failed to fetch: ${args.url}.`,
       };
     }
   }
 }
 
-// turndownのインスタンスを作る
+// Create an instance of turndown
 const turndownService = new TurndownService({
-  // コードブロックを ``` で囲むスタイルを使用
+  // Use fenced code block style
   codeBlockStyle: "fenced",
-  headingStyle: "atx", // # Heading スタイル
+  headingStyle: "atx", // # Heading style
 });
 
 async function getMarkdownFromPage(url: string): Promise<string | null> {
-  try {
-    // 1. HTML を取得
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch: ${response.status} ${response.statusText}`,
-      );
-    }
-    const html = await response.text();
+  // 1. Get HTML
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch: ${response.status} ${response.statusText}`,
+    );
+  }
+  const html = await response.text();
 
-    // 2. JSDOM & Readability で本文抽出
-    const dom = new JSDOM(html, { url });
-    const reader = new Readability(dom.window.document);
-    const article = reader.parse();
+  // 2. extract content from html using JSDOM & Readability
+  // use virtualConsole to suppress console.error when css parsing error occurs.
+  const virtualConsole = new jsdom.VirtualConsole();
+  const dom = new JSDOM(html, { url, virtualConsole });
+  const reader = new Readability(dom.window.document);
+  const article = reader.parse();
 
-    if (!article) {
-      return null;
-    }
-
-    // Readabilityが抽出した本文HTML
-    const readableHtml = article.content;
-
-    // 3. Cheerio で不要なタグをクリーニング
-    //    - 例として「許可するタグだけ残す」方式
-    const $ = cheerio.load(readableHtml);
-
-    // 残したいHTMLタグをホワイトリスト化 (必要に応じて調整)
-    const allowedTags = new Set([
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "p",
-      "ul",
-      "ol",
-      "li",
-      "blockquote",
-      "strong",
-      "em",
-      "b",
-      "i",
-      "code",
-      "pre",
-      "br",
-      "hr",
-      "a",
-      "img",
-    ]);
-
-    // タグそのものを削除しつつ子要素のテキストは残す
-    $("*").each((_, el) => {
-      // @ts-ignore
-      const tagName = el.name?.toLowerCase();
-      if (!allowedTags.has(tagName)) {
-        // 子要素のテキストだけを残してタグは削除
-        $(el).replaceWith($(el).contents());
-      }
-    });
-
-    // 不要な属性を削除 (a[href], img[src] など最低限だけ残す)
-    $("*").each((_, el) => {
-      // @ts-ignore
-      const attribs = el.attribs;
-      for (const attrName of Object.keys(attribs)) {
-        // @ts-ignore
-        const tagName = el.name?.toLowerCase();
-        if (
-          (tagName === "a" && attrName === "href") ||
-          (tagName === "img" && attrName === "src")
-        ) {
-          // 許可された属性は保持
-        } else {
-          $(el).removeAttr(attrName);
-        }
-      }
-    });
-
-    // 4. クリーニング後のHTMLを取得
-    const cleanedHtml = $.html();
-
-    // 5. turndown でMarkdownに変換
-    const markdown = turndownService.turndown(cleanedHtml);
-
-    return markdown;
-  } catch (error) {
-    console.error(error);
+  if (!article) {
     return null;
   }
+
+  // Readability extracted content HTML
+  const readableHtml = article.content;
+
+  // 3. Clean up unnecessary tags using Cheerio
+  //    - Example: Only keep allowed tags
+  const $ = cheerio.load(readableHtml);
+
+  // Keep only allowed tags
+  const allowedTags = new Set([
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "p",
+    "ul",
+    "ol",
+    "li",
+    "blockquote",
+    "strong",
+    "em",
+    "b",
+    "i",
+    "code",
+    "pre",
+    "br",
+    "hr",
+    "a",
+    "img",
+  ]);
+
+  // Delete tags while keeping text of child elements
+  $("*").each((_, el) => {
+    // @ts-ignore
+    const tagName = el.name?.toLowerCase();
+    if (!allowedTags.has(tagName)) {
+      // Keep only text of child elements while deleting tags
+      $(el).replaceWith($(el).contents());
+    }
+  });
+
+  // Delete unnecessary attributes (keep only a[href], img[src], etc.)
+  $("*").each((_, el) => {
+    // @ts-ignore
+    const attribs = el.attribs;
+    for (const attrName of Object.keys(attribs)) {
+      // @ts-ignore
+      const tagName = el.name?.toLowerCase();
+      if (
+        (tagName === "a" && attrName === "href") ||
+        (tagName === "img" && attrName === "src")
+      ) {
+        // Keep allowed attributes
+      } else {
+        $(el).removeAttr(attrName);
+      }
+    }
+  });
+
+  // 4. Get cleaned HTML
+  const cleanedHtml = $.html();
+
+  // 5. Convert cleaned HTML to Markdown using turndown
+  return turndownService.turndown(cleanedHtml);
 }
