@@ -1,5 +1,11 @@
 import { Source } from "@/source";
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 
 export class CreateFileTool implements Tool {
   name: ToolId = "create_file";
@@ -15,10 +21,13 @@ export class CreateFileTool implements Tool {
     },
   };
 
-  async execute(args: {
-    file: string;
-    content: string;
-  }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: {
+      file: string;
+      content: string;
+    },
+  ): Promise<ToolExecutionResult> {
     if (!args.file) {
       throw new ToolError("File path is required");
     }

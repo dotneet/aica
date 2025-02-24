@@ -8,6 +8,7 @@ export async function getSystemPrompt(
   rulesConfig: RulesConfig,
   gitRoot: string,
   availableToolsPrompt: string,
+  mcpPrompt: string,
   historyPrompt: string,
   referencedFiles: Map<string, Source>,
 ): Promise<string> {
@@ -24,6 +25,7 @@ ${getCapabilitiesSection(cwd)}
 ${getRulesSection(cwd)}
 ${rulesPrompt}
 ${availableToolsPrompt}
+${mcpPrompt}
 
 === History ===
 ${historyPrompt}

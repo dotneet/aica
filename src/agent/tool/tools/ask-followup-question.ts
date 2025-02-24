@@ -1,4 +1,10 @@
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 
 export class AskFollowupQuestionTool implements Tool {
   name: ToolId = "ask_followup_question";
@@ -17,7 +23,10 @@ export class AskFollowupQuestionTool implements Tool {
 </ask_followup_question>
 `.trim();
 
-  async execute(args: { question: string }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: { question: string },
+  ): Promise<ToolExecutionResult> {
     if (!args.question) {
       throw new ToolError("Question is required");
     }

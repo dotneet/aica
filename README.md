@@ -14,6 +14,7 @@ So, I decided to create a new tool with the following characteristics:
 
 - [x] AI Coding Agent
 - [x] AI Code Review
+- [x] MCP(Model Context Protocol) supported. stdio and SSE transports are supported.
 - [x] Automatic knowledge retrieving for code review
 - [x] Symbol based code search for retrieving knowledge
 - [x] Vector based document search for retrieving knowledge
@@ -246,6 +247,35 @@ If you want to customize the context, configure the [rules] section in aica.toml
 
 Additionally, .cursor/rules/\*.mdc files are supported by default.
 This function can be disabled through the settings.
+
+## MCP(Model Context Protocol)
+
+create a mcp.json file to define the MCP server.
+
+example:
+
+```json
+[
+  {
+    "name": "example-server",
+    "type": "stdio",
+    "command": "node",
+    "args": ["./server.js"]
+  },
+  {
+    "name": "example-server",
+    "type": "sse",
+    "url": "http://localhost:3001/sse"
+  }
+]
+```
+
+set `setupFile` in aica.toml like below.
+
+```toml
+[mcp]
+setupFile = "mcp.json"
+```
 
 ## GitHub Actions
 

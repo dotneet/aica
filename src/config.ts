@@ -79,6 +79,9 @@ export type Config = {
   rules: RulesConfig;
   language: LanguageConfig;
   knowledge?: Knowledge;
+  mcp: {
+    setupFile: string;
+  };
   review: {
     prompt: {
       system: string;
@@ -173,6 +176,9 @@ export const defaultConfig: Config = {
       model: "text-embedding-3-small",
       apiKey: Bun.env.OPENAI_API_KEY || "",
     },
+  },
+  mcp: {
+    setupFile: "",
   },
   review: {
     prompt: {

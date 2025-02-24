@@ -1,4 +1,10 @@
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 
 export class AttemptCompletionTool implements Tool {
   name: ToolId = "attempt_completion";
@@ -23,10 +29,13 @@ export class AttemptCompletionTool implements Tool {
 </attempt_completion>
 `.trim();
 
-  async execute(args: {
-    result: string;
-    command: string;
-  }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: {
+      result: string;
+      command: string;
+    },
+  ): Promise<ToolExecutionResult> {
     if (!args.result) {
       throw new ToolError("Result is required");
     }

@@ -1,5 +1,11 @@
 import { Source } from "@/source";
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 import {
   applyPatch,
   checkPatchFormat,
@@ -23,10 +29,13 @@ export class EditFileTool implements Tool {
     },
   };
 
-  async execute(args: {
-    file: string;
-    patch: string;
-  }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: {
+      file: string;
+      patch: string;
+    },
+  ): Promise<ToolExecutionResult> {
     if (!args.file || !args.patch) {
       throw new ToolError("File path and patch are required");
     }

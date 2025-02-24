@@ -1,4 +1,10 @@
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 
 export class ExecuteCommandTool implements Tool {
   name: ToolId = "execute_command";
@@ -11,7 +17,10 @@ export class ExecuteCommandTool implements Tool {
     },
   };
 
-  async execute(args: { command: string }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: { command: string },
+  ): Promise<ToolExecutionResult> {
     if (!args.command) {
       throw new ToolError("Command is required");
     }

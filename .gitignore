@@ -4,6 +4,7 @@
 knowledge-src.db
 knowledge-doc.db
 aica.toml
+mcp.json
 tmp/
 
 # Logs
