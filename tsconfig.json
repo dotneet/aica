@@ -10,7 +10,8 @@
       "@types/bun",
       "@types/jsdom",
       "@types/turndown",
-      "@types/cheerio"
+      "@types/cheerio",
+      "bun"
     ],
     "target": "ESNext",
     "module": "ESNext",
