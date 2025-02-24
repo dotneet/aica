@@ -1,15 +1,135 @@
-import { RulesConfig } from "@/config";
+import { Config, RulesConfig } from "@/config";
 import { GitRepository } from "@/git";
 import { createLLM } from "@/llm/mod";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync } from "node:fs";
 import { Agent } from "./agent";
 import { ActionBlock } from "./assistant-message";
-import { executeTool } from "./tool/tool";
+import {
+  executeTool,
+  createToolExecutionContext,
+  initializeTools,
+} from "./tool/tool";
+
+function createTestConfig(stubResponse: string = ""): Config {
+  return {
+    workingDirectory: process.cwd(),
+    llm: {
+      provider: "stub",
+      openai: {
+        model: "gpt-4",
+        apiKey: "dummy",
+        temperature: 0,
+        maxCompletionTokens: 1000,
+        logFile: undefined,
+      },
+      google: {
+        model: "gemini-1.5-flash",
+        apiKey: "dummy",
+        temperature: 0,
+        maxTokens: 1000,
+        logFile: undefined,
+      },
+      anthropic: {
+        model: "claude-3",
+        apiKey: "dummy",
+        temperature: 0,
+        maxTokens: 1000,
+        logFile: undefined,
+      },
+      stub: {
+        response: stubResponse,
+      },
+    },
+    embedding: {
+      provider: "openai",
+      openai: {
+        model: "text-embedding-3-small",
+        apiKey: "dummy",
+      },
+    },
+    language: {
+      language: "en",
+    },
+    rules: {
+      files: [],
+      findCursorRules: false,
+    },
+    mcp: {
+      setupFile: "",
+    },
+    review: {
+      prompt: {
+        system: "",
+        rules: [],
+        user: "",
+      },
+    },
+    summary: {
+      prompt: {
+        system: "",
+        rules: [],
+        user: "",
+      },
+    },
+    commitMessage: {
+      prompt: {
+        system: "",
+        rules: [],
+        user: "",
+      },
+    },
+    pullRequest: {
+      withSummary: false,
+      draft: false,
+    },
+    chat: {
+      prompt: {
+        system: "",
+      },
+    },
+    source: {
+      includePatterns: [],
+      excludePatterns: [],
+    },
+  };
+}
+
+function createTestLLM(stubResponse: string) {
+  return createLLM({
+    provider: "stub",
+    openai: {
+      model: "gpt-4",
+      apiKey: "dummy",
+      temperature: 0,
+      maxCompletionTokens: 1000,
+      logFile: undefined,
+    },
+    google: {
+      model: "gemini-1.5-flash",
+      apiKey: "dummy",
+      temperature: 0,
+      maxTokens: 1000,
+      logFile: undefined,
+    },
+    anthropic: {
+      model: "claude-3",
+      apiKey: "dummy",
+      temperature: 0,
+      maxTokens: 1000,
+      logFile: undefined,
+    },
+    stub: {
+      response: stubResponse,
+    },
+  });
+}
 
 describe("Agent", () => {
   const testFilePath = "./tmp/test.ts";
   const testDirPath = "./tmp/test-dir";
+  const tools = initializeTools();
+  const toolExecutionContext = createToolExecutionContext(null);
 
   beforeEach(async () => {
     try {
@@ -40,45 +160,16 @@ describe("Agent", () => {
 
   describe("plan", () => {
     it("should create a file", async () => {
-      const llm = createLLM({
-        provider: "stub",
-        openai: {
-          model: "gpt-4",
-          apiKey: "dummy",
-          temperature: 0,
-          maxCompletionTokens: 1000,
-          logFile: undefined,
-        },
-        google: {
-          model: "gemini-1.5-flash",
-          apiKey: "dummy",
-          temperature: 0,
-          maxTokens: 1000,
-          logFile: undefined,
-        },
-        anthropic: {
-          model: "claude-3",
-          apiKey: "dummy",
-          temperature: 0,
-          maxTokens: 1000,
-          logFile: undefined,
-        },
-        stub: {
-          response: `<create_file>
+      const stubResponse = `<create_file>
 <file>${testFilePath}</file>
 <content>
 const fileName = 'test.ts';
 </content>
-</create_file>`,
-        },
-      });
-
+</create_file>`;
+      const llm = createTestLLM(stubResponse);
+      const config = createTestConfig(stubResponse);
       const gitRepository = new GitRepository(process.cwd());
-      const rulesConfig: RulesConfig = {
-        files: [],
-        findCursorRules: false,
-      };
-      const agent = new Agent(gitRepository, llm, rulesConfig);
+      const agent = new Agent(gitRepository, llm, config);
       const { blocks } = await agent.plan("create a test file");
 
       expect(blocks.length).toBe(1);
@@ -92,6 +183,8 @@ const fileName = 'test.ts';
       );
 
       const result = await executeTool(
+        toolExecutionContext,
+        tools,
         (createFileAction as ActionBlock).action,
       );
       expect(result.result).toContain(testFilePath);
@@ -99,54 +192,25 @@ const fileName = 'test.ts';
     });
 
     it("should edit a file", async () => {
-      const oldContent = "const fielName = 'test.ts';";
-      const newContent = "const fileName = 'test.ts';";
+      const oldContent = "const fielName = 'test.ts';\n";
+      const newContent = "const fileName = 'test.ts';\n";
       await Bun.write(testFilePath, oldContent);
 
-      const llm = createLLM({
-        provider: "stub",
-        openai: {
-          model: "gpt-4",
-          apiKey: "dummy",
-          temperature: 0,
-          maxCompletionTokens: 1000,
-          logFile: undefined,
-        },
-        anthropic: {
-          model: "claude-3",
-          apiKey: "dummy",
-          temperature: 0,
-          maxTokens: 1000,
-          logFile: undefined,
-        },
-        google: {
-          model: "gemini-1.5-flash",
-          apiKey: "dummy",
-          temperature: 0,
-          maxTokens: 1000,
-          logFile: undefined,
-        },
-        stub: {
-          response: `<edit_file>
+      const stubResponse = `<edit_file>
 <file>${testFilePath}</file>
 <patch>
---- hoge.ts
-+++ hoge.ts
-@@ -1,3 +1,3 @@
+--- ${testFilePath}
++++ ${testFilePath}
+@@ -1,1 +1,1 @@
 -const fielName = 'test.ts';
 +const fileName = 'test.ts';
 </patch>
-</edit_file>`,
-        },
-      });
-
+</edit_file>`;
+      const llm = createTestLLM(stubResponse);
+      const config = createTestConfig(stubResponse);
       const gitRepository = new GitRepository(process.cwd());
-      const rulesConfig: RulesConfig = {
-        files: [],
-        findCursorRules: false,
-      };
-      const agent = new Agent(gitRepository, llm, rulesConfig);
-      const { blocks } = await agent.plan("fix a typo in the test file");
+      const agent = new Agent(gitRepository, llm, config);
+      const { blocks } = await agent.plan("fix the typo in the file");
 
       expect(blocks.length).toBe(1);
       const editFileAction = blocks[0];
@@ -155,13 +219,15 @@ const fileName = 'test.ts';
       expect((editFileAction as ActionBlock).action.params.file).toBe(
         testFilePath,
       );
-      expect((editFileAction as ActionBlock).action.params.patch).toBeDefined();
 
-      const result = await executeTool((editFileAction as ActionBlock).action);
+      const result = await executeTool(
+        toolExecutionContext,
+        tools,
+        (editFileAction as ActionBlock).action,
+      );
       expect(result.result).toContain(testFilePath);
-
       const content = await Bun.file(testFilePath).text();
-      expect(content).toBe(newContent);
+      expect(content.replace(/\r\n/g, "\n")).toBe(newContent);
     });
   });
 });
