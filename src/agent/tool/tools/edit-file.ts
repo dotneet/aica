@@ -17,7 +17,8 @@ import {
 export class EditFileTool implements Tool {
   name: ToolId = "edit_file";
   description =
-    "Edits a file. generate precise code changes as a unified format diff.";
+    "Edits a file by generating precise code changes in unified diff format. " +
+    "This tool cannot be used simultaneously with other tools.";
   params = {
     file: {
       type: "string",
