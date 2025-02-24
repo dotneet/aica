@@ -41,6 +41,13 @@ export const validToolIds: ToolId[] = [
   "use_mcp_resource",
 ];
 
+export const readOnlyToolIds: ToolId[] = [
+  "read_file",
+  "web_fetch",
+  "list_files",
+  "search_files",
+];
+
 export function isValidToolId(id: string): id is ToolId {
   return validToolIds.includes(id as ToolId);
 }

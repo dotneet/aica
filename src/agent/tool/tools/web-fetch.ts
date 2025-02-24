@@ -16,7 +16,8 @@ export class WebFetchTool implements Tool {
   name: ToolId = "web_fetch";
   description =
     "Fetch a page content from a web page." +
-    "If user prompt includes a url, use this tool to fetch the page content.";
+    "If user prompt includes a url, use this tool to fetch the page content." +
+    "This tool can be used multiple times at once.";
   params = {
     url: {
       type: "string",

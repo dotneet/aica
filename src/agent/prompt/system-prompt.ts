@@ -2,6 +2,7 @@ import { Config, type RulesConfig } from "@/config";
 import { RulesFinder } from "@/llmcontext/rules-finder";
 import { getSystemInfoSection } from "@/llmcontext/system-environment";
 import type { Source } from "@/source";
+import { readOnlyToolIds } from "../tool/tool";
 
 export async function getSystemPrompt(
   cwd: string,
@@ -56,12 +57,18 @@ You accomplish a given task iteratively, breaking it down into clear steps and w
 5. The user may provide feedback, which you can use to make improvements and try again. But DO NOT continue in pointless back and forth conversations, i.e. don't end your responses with questions or offers for further assistance.`;
 }
 
+const readOnlyToolIdsString = readOnlyToolIds.join(", ");
+
 export function getSharedToolUseSection(): string {
   return `====
 
 TOOL USE
 
-You have access to a set of tools that are executed upon the user's approval. You can use one tool per message, and will receive the result of that tool use in the user's response. You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
+You have access to a set of tools that are executed upon the user's approval.
+You can use one tool per message, and will receive the result of that tool use in the user's response.
+You use tools step-by-step to accomplish a given task, with each tool use informed by the result of the previous tool use.
+Basically, you can use one tool at a time.
+But only special tools(${readOnlyToolIdsString}) can be used simultaneously.
 
 # Tool Use Formatting
 
