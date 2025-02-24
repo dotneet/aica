@@ -12,6 +12,7 @@ import {
   diffToolPrompt,
 } from "./tools";
 import { UseMcpResource, UseMcpTool } from "./tools/mcp";
+import { WebFetchTool } from "./tools/web-fetch";
 
 export type ToolId =
   | "create_file"
@@ -22,6 +23,7 @@ export type ToolId =
   | "execute_command"
   | "attempt_completion"
   | "ask_followup_question"
+  | "web_fetch"
   | "use_mcp_tool"
   | "use_mcp_resource";
 
@@ -34,6 +36,7 @@ export const validToolIds: ToolId[] = [
   "execute_command",
   "attempt_completion",
   "ask_followup_question",
+  "web_fetch",
   "use_mcp_tool",
   "use_mcp_resource",
 ];
@@ -52,6 +55,7 @@ export function initializeTools(): Record<string, Tool> {
     search_files: new SearchFilesTool(),
     attempt_completion: new AttemptCompletionTool(),
     ask_followup_question: new AskFollowupQuestionTool(),
+    web_fetch: new WebFetchTool(),
     use_mcp_tool: new UseMcpTool(),
     use_mcp_resource: new UseMcpResource(),
   };

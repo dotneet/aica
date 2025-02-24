@@ -150,6 +150,17 @@ export class Agent implements AsyncDisposable {
         content: response,
       });
       let hasActionResult = false;
+      const hasMultipleActions =
+        blocks.filter((b) => b.type === "action").length > 1;
+      if (hasMultipleActions) {
+        console.warn(
+          "Multiple tool usage detected. Proceeding to find next action...",
+        );
+        prompt =
+          "Multiple tools cannot be used simultaneously. Please review the task and recent messages again.";
+        continue;
+      }
+
       for (const block of blocks) {
         if (block.type === "plain") {
           console.log(block.content);

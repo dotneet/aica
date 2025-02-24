@@ -9,7 +9,12 @@ import {
 
 export class CreateFileTool implements Tool {
   name: ToolId = "create_file";
-  description = "Creates a new file (args: file, content)";
+  description =
+    "Creates a new file." +
+    "You can use this tool multiple times at once." +
+    "Created files will be stored as referenced files in the system prompt." +
+    "You can use this tool with other tools at the same time.";
+
   params = {
     file: {
       type: "string",
