@@ -5,7 +5,7 @@ import {
   AttemptCompletionTool,
   CreateFileTool,
   EditFileTool,
-  ExecuteCommandTool,
+  UseShellTool,
   ListFilesTool,
   ReadFileTool,
   SearchFilesTool,
@@ -20,7 +20,7 @@ export type ToolId =
   | "list_files"
   | "search_files"
   | "read_file"
-  | "execute_command"
+  | "use_shell"
   | "attempt_completion"
   | "ask_followup_question"
   | "web_fetch"
@@ -33,7 +33,7 @@ export const validToolIds: ToolId[] = [
   "edit_file",
   "list_files",
   "read_file",
-  "execute_command",
+  "use_shell",
   "attempt_completion",
   "ask_followup_question",
   "web_fetch",
@@ -58,7 +58,7 @@ export function initializeTools(): Record<string, Tool> {
     edit_file: new EditFileTool(),
     list_files: new ListFilesTool(),
     read_file: new ReadFileTool(),
-    execute_command: new ExecuteCommandTool(),
+    use_shell: new UseShellTool(),
     search_files: new SearchFilesTool(),
     attempt_completion: new AttemptCompletionTool(),
     ask_followup_question: new AskFollowupQuestionTool(),
