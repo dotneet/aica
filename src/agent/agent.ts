@@ -14,6 +14,7 @@ import {
   createToolExecutionContext,
   executeTool,
   generateAvailableTools,
+  getToolExecutionLog,
   initializeTools,
   readOnlyToolIds,
 } from "./tool/mod";
@@ -170,11 +171,7 @@ export class Agent implements AsyncDisposable {
           console.log(block.content);
         } else if (block.type === "action") {
           if (block.action.toolId !== "attempt_completion" || options.verbose) {
-            console.log(
-              `Executing action: ${
-                block.action.toolId
-              } Params: ${JSON.stringify(block.action.params, null, 2)}`,
-            );
+            console.log(getToolExecutionLog(block.action));
           }
           const toolExecutionResult = await executeTool(
             this.toolExecutionContext,
