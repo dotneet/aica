@@ -21,8 +21,7 @@ export async function performEdit(
   }
   const gitRepository = new GitRepository(repoDir);
   const llm = createLLM(config.llm);
-  const rulesConfig = config.rules;
-  const agent = new Agent(gitRepository, llm, rulesConfig);
+  await using agent = new Agent(gitRepository, llm, config);
 
   try {
     // Edit a file

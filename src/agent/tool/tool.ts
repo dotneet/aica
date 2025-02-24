@@ -1,3 +1,18 @@
+import { Source } from "@/source";
+import {
+  CreateFileTool,
+  EditFileTool,
+  ExecuteCommandTool,
+  ListFilesTool,
+  ReadFileTool,
+  SearchFilesTool,
+  AttemptCompletionTool,
+  AskFollowupQuestionTool,
+  diffToolPrompt,
+} from "./tools";
+import { UseMcpTool, UseMcpResource } from "./tools/mcp";
+import { MCPClientManager } from "@/mcp/client-manager";
+
 export type ToolId =
   | "create_file"
   | "edit_file"
@@ -6,7 +21,9 @@ export type ToolId =
   | "read_file"
   | "execute_command"
   | "attempt_completion"
-  | "ask_followup_question";
+  | "ask_followup_question"
+  | "use_mcp_tool"
+  | "use_mcp_resource";
 
 export const validToolIds: ToolId[] = [
   "search_files",
@@ -17,10 +34,27 @@ export const validToolIds: ToolId[] = [
   "execute_command",
   "attempt_completion",
   "ask_followup_question",
+  "use_mcp_tool",
+  "use_mcp_resource",
 ];
 
 export function isValidToolId(id: string): id is ToolId {
   return validToolIds.includes(id as ToolId);
+}
+
+export function initializeTools(): Record<string, Tool> {
+  return {
+    create_file: new CreateFileTool(),
+    edit_file: new EditFileTool(),
+    list_files: new ListFilesTool(),
+    read_file: new ReadFileTool(),
+    execute_command: new ExecuteCommandTool(),
+    search_files: new SearchFilesTool(),
+    attempt_completion: new AttemptCompletionTool(),
+    ask_followup_question: new AskFollowupQuestionTool(),
+    use_mcp_tool: new UseMcpTool(),
+    use_mcp_resource: new UseMcpResource(),
+  };
 }
 
 export interface Action {
@@ -35,42 +69,33 @@ export class ToolError extends Error {
   }
 }
 
+export type ToolExecutionContext = {
+  mcpClientManager: MCPClientManager | null;
+};
+
 export type ToolExecutionResult = {
   result: string;
   addedFiles?: Source[];
 };
 
 export interface Tool {
-  name: ToolId;
+  name: string;
   description: string;
   example?: string;
   params: Record<string, { type: string; description: string }>;
-  execute(params: Record<string, string>): Promise<ToolExecutionResult>;
+  execute(
+    context: ToolExecutionContext,
+    params: Record<string, string>,
+  ): Promise<ToolExecutionResult>;
 }
 
-import { Source } from "@/source";
-import {
-  CreateFileTool,
-  EditFileTool,
-  ExecuteCommandTool,
-  ListFilesTool,
-  ReadFileTool,
-  SearchFilesTool,
-  AttemptCompletionTool,
-  AskFollowupQuestionTool,
-  diffToolPrompt,
-} from "./tools";
-
-export const tools: Record<string, Tool> = {
-  create_file: new CreateFileTool(),
-  edit_file: new EditFileTool(),
-  list_files: new ListFilesTool(),
-  read_file: new ReadFileTool(),
-  execute_command: new ExecuteCommandTool(),
-  search_files: new SearchFilesTool(),
-  attempt_completion: new AttemptCompletionTool(),
-  ask_followup_question: new AskFollowupQuestionTool(),
-};
+export function createToolExecutionContext(
+  mcpClientManager: MCPClientManager | null,
+): ToolExecutionContext {
+  return {
+    mcpClientManager,
+  };
+}
 
 function getToolExplanation(tool: Tool): string {
   return `
@@ -84,7 +109,7 @@ ${tool.example ? `Example:\n${tool.example}` : ""}
 `.trim();
 }
 
-export function generateAvailableTools(): string {
+export function generateAvailableTools(tools: Record<string, Tool>): string {
   const toolDescriptions = Object.values(tools)
     .map((tool) => getToolExplanation(tool))
     .join("\n---\n");
@@ -107,11 +132,13 @@ export type ActionResult = {
 };
 
 export async function executeTool(
+  toolExecutionContext: ToolExecutionContext,
+  tools: Record<string, Tool>,
   action: Action,
 ): Promise<ToolExecutionResult> {
   const tool = tools[action.toolId];
   if (!tool) {
     throw new ToolError(`Unknown tool: ${action.toolId}`);
   }
-  return await tool.execute(action.params);
+  return await tool.execute(toolExecutionContext, action.params);
 }

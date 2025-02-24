@@ -1,4 +1,10 @@
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 import { readdirSync, mkdirSync, existsSync } from "node:fs";
 
 export class ListFilesTool implements Tool {
@@ -13,7 +19,10 @@ export class ListFilesTool implements Tool {
     },
   };
 
-  async execute(args: { directory?: string }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: { directory?: string },
+  ): Promise<ToolExecutionResult> {
     const dir = args.directory || ".";
     try {
       if (!existsSync(dir)) {

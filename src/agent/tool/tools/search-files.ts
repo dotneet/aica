@@ -1,4 +1,10 @@
-import { Tool, ToolError, ToolExecutionResult, ToolId } from "../tool";
+import {
+  Tool,
+  ToolError,
+  ToolExecutionContext,
+  ToolExecutionResult,
+  ToolId,
+} from "../tool";
 import { globby } from "globby";
 
 export class SearchFilesTool implements Tool {
@@ -20,11 +26,14 @@ export class SearchFilesTool implements Tool {
     },
   };
 
-  async execute(args: {
-    path: string;
-    regex: string;
-    filePattern?: string;
-  }): Promise<ToolExecutionResult> {
+  async execute(
+    context: ToolExecutionContext,
+    args: {
+      path: string;
+      regex: string;
+      filePattern?: string;
+    },
+  ): Promise<ToolExecutionResult> {
     if (!args.path) {
       throw new ToolError("Directory path is required");
     }

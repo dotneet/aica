@@ -149,3 +149,24 @@ draft = false
 
 [chat]
 system = "You are a helpful assistant. Answer the user's question."
+
+[mcp]
+# MCP setup file is a JSON file that describes the MCP server.
+#
+# Example:
+# [{
+#     "name": "product",
+#     "type": "stdio",
+#     "command": "node",
+#     "args": ["./server2.js"]
+# },
+# {
+#     "name": "product",
+#     "type": "sse",
+#     "url": "http://localhost:3001/sse"
+# }
+#]
+#
+# path to MCP setup file
+# setupFile = "mcp.json"
+setupFile = ""
