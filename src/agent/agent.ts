@@ -108,11 +108,11 @@ export class Agent implements AsyncDisposable {
     let mcpPrompt = "=== Available MCP Servers ===\n";
     if (this.mcpClientManager) {
       mcpPrompt +=
-        "You can use the server tool or resource using use_mcp_tool or use_mcp_resource.";
+        "You can use the MCP server tool and resource using use_mcp_tool and use_mcp_resource.";
       mcpPrompt += this.mcpClientManager.getInstructionPrompt();
     } else {
       mcpPrompt +=
-        "No MCP servers are available. You can not use use_mcp_tool or use_mcp_resource.";
+        "No MCP servers are available. You can not use use_mcp_tool and use_mcp_resource.";
     }
     let prompt = await getSystemPrompt(
       process.cwd(),
