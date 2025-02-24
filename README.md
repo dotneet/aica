@@ -57,15 +57,15 @@ Setup LLM:
 # You can set the following items in your environment variables or aica.toml file.
 # Configure at least one of the following providers:
 
+# Anthropic (If you use agent, strongly recommend to use claude sonnet model)
+export AICA_LLM_PROVIDER=anthropic
+export ANTHROPIC_API_KEY=your_api_key
+export ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
+
 # OpenAI
 export AICA_LLM_PROVIDER=openai
 export OPENAI_API_KEY=your_api_key
 export OPENAI_MODEL=o3-mini
-
-# Anthropic
-export AICA_LLM_PROVIDER=anthropic
-export ANTHROPIC_API_KEY=your_api_key
-export ANTHROPIC_MODEL=claude-3-5-sonnet-20241022
 
 # Gemini
 export AICA_LLM_PROVIDER=google
