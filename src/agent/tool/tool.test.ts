@@ -14,7 +14,7 @@ import {
 } from "./tool";
 import { CreateFileTool } from "./tools/create-file";
 import { EditFileTool } from "./tools/edit-file";
-import { ExecuteCommandTool } from "./tools/execute-command";
+import { UseShellTool } from "./tools/execute-command";
 import { ListFilesTool } from "./tools/list-files";
 import { ReadFileTool } from "./tools/read-file";
 
@@ -175,7 +175,7 @@ describe("Tools", () => {
   });
 
   describe("ExecuteCommandTool", () => {
-    const tool = new ExecuteCommandTool();
+    const tool = new UseShellTool();
 
     it("should execute shell command", async () => {
       let output = "";
