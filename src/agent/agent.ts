@@ -14,7 +14,9 @@ import {
   createToolExecutionContext,
   executeTool,
   generateAvailableTools,
+  getToolExecutionLog,
   initializeTools,
+  readOnlyToolIds,
 } from "./tool/mod";
 
 export type TaskExecutionOptions = {
@@ -151,13 +153,16 @@ export class Agent implements AsyncDisposable {
       });
       let hasActionResult = false;
       const hasMultipleActions =
-        blocks.filter((b) => b.type === "action").length > 1;
+        blocks.filter(
+          (b) =>
+            b.type === "action" && !readOnlyToolIds.includes(b.action.toolId),
+        ).length > 1;
       if (hasMultipleActions) {
         console.warn(
           "Multiple tool usage detected. Proceeding to find next action...",
         );
-        prompt =
-          "Multiple tools cannot be used simultaneously. Please review the task and recent messages again.";
+        const readOnlyTools = readOnlyToolIds.join(", ");
+        prompt = `Only ${readOnlyTools} tools can be used simultaneously. Other tools must be used one at a time. Please review the task and recent messages again.`;
         continue;
       }
 
@@ -166,11 +171,7 @@ export class Agent implements AsyncDisposable {
           console.log(block.content);
         } else if (block.type === "action") {
           if (block.action.toolId !== "attempt_completion" || options.verbose) {
-            console.log(
-              `Executing action: ${
-                block.action.toolId
-              } Params: ${JSON.stringify(block.action.params, null, 2)}`,
-            );
+            console.log(getToolExecutionLog(block.action));
           }
           const toolExecutionResult = await executeTool(
             this.toolExecutionContext,
