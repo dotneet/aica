@@ -4,9 +4,15 @@ import github from "@actions/github";
 import { $ } from "bun";
 import { performEdit } from "./actions/edit";
 import { performReviewCommand } from "./actions/review";
+import { performSuggest } from "./actions/suggest";
 import { performSummary } from "./actions/summary";
 import { performSummaryAndReview } from "./actions/summary-and-review";
 import { Octokit } from "./github";
+import type {
+  GitHubIssue,
+  GitHubIssueComment,
+  GitHubPullRequest,
+} from "./github/types";
 
 async function main() {
   console.log("start actions runner...");
@@ -25,6 +31,7 @@ async function main() {
     const octokit = new Octokit({ auth: token });
     const config = await readConfig(null);
     const payload = github.context.payload;
+    console.log(`payload: ${JSON.stringify(payload)}`);
 
     const fullRepoName = Bun.env.GITHUB_REPOSITORY;
     if (!fullRepoName) {
@@ -44,6 +51,21 @@ async function main() {
       eventName === "pull_request_review_comment"
     ) {
       const action = payload.action;
+      let pullRequest = payload.pull_request as unknown as
+        | GitHubPullRequest
+        | undefined;
+      if (!pullRequest) {
+        const issue = payload.issue as GitHubIssue | undefined;
+        pullRequest = (await octokit.rest.pulls.get({
+          owner,
+          repo,
+          pull_number: issue?.number || 0,
+        })) as unknown as GitHubPullRequest;
+      }
+      if (!pullRequest) {
+        console.log("Skipping task: Pull request not found.");
+        return;
+      }
       if (action === "created") {
         const body = payload.comment?.body || "";
         console.log(`comment body: ${body}`);
@@ -60,7 +82,26 @@ async function main() {
                 octokit,
                 owner,
                 repo,
-                payload.issue?.number || 0,
+                pullRequest,
+                payload.comment as GitHubIssueComment | undefined,
+                command.args.join(" "),
+                {
+                  dryRun: Bun.env.GITHUB_ACTIONS_DRY_RUN === "true",
+                },
+              );
+              break;
+            case "suggest":
+              if (command.args.length === 0) {
+                core.setFailed("suggest command requires prompt argument");
+                break;
+              }
+              await performSuggest(
+                config,
+                octokit,
+                owner,
+                repo,
+                pullRequest,
+                payload.comment as GitHubIssueComment | undefined,
                 command.args.join(" "),
               );
               break;
