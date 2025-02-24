@@ -105,12 +105,14 @@ export class Agent implements AsyncDisposable {
   }
 
   private async createSystemPrompt(): Promise<string> {
-    let mcpPrompt = "";
+    let mcpPrompt = "=== Available MCP Servers ===\n";
     if (this.mcpClientManager) {
-      mcpPrompt =
-        "=== Available MCP Servers ===\n" +
+      mcpPrompt +=
         "You can use the server tool or resource using use_mcp_tool or use_mcp_resource.";
-      mcpPrompt = this.mcpClientManager.getInstructionPrompt();
+      mcpPrompt += this.mcpClientManager.getInstructionPrompt();
+    } else {
+      mcpPrompt +=
+        "No MCP servers are available. You can not use use_mcp_tool or use_mcp_resource.";
     }
     let prompt = await getSystemPrompt(
       process.cwd(),
