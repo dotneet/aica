@@ -55,7 +55,7 @@ Setup LLM:
 
 ```bash
 # You can set the following items in your environment variables or aica.toml file.
-# must be set at least one of the following providers.
+# Configure at least one of the following providers:
 
 # OpenAI
 export AICA_LLM_PROVIDER=openai
@@ -94,7 +94,6 @@ export AICA_LANGUAGE=Japanese
 ```
 
 Priority:
-
 1. `AICA_LANGUAGE`
 2. `language.language` in aica.toml
 3. Automatic detection from `LANG`
@@ -178,13 +177,11 @@ This command commits changes with an AI-generated commit message.
 
 ```bash
 # commit all changes(including untracked and unstaged changes) with an AI-generated commit message
-aica commit [options]
+aica commit [options] # commits all changes (including untracked and unstaged changes) with an AI-generated commit message
 
-# commit only staged changes with an AI-generated commit message
-aica commit --staged
+aica commit --staged # commits only staged changes with an AI-generated commit message
 
-# commit all changes and push to remote repository
-aica commit --push
+aica commit --push # commits all changes and pushes to remote repository
 ```
 
 Options:
@@ -198,11 +195,10 @@ Options:
 This command creates a pull request on GitHub.
 
 ```bash
-# create a pull request
-# if there are changes, it will commit them and create a pull request.
+# Creates a pull request. If there are changes, they will be committed automatically.
 aica create-pr [options]
 
-# commit only staged changes and create a pull request
+# Creates a pull request with only staged changes
 aica create-pr --staged
 ```
 
@@ -243,7 +239,7 @@ Options:
 ## Add Context
 
 .cursorrules and .clinerules are automatically added to the context.
-If you want to customize the context, configure the [rules] section in aica.toml.
+To customize the context, configure the [rules] section in aica.toml.
 
 Additionally, .cursor/rules/\*.mdc files are supported by default.
 This function can be disabled through the settings.
