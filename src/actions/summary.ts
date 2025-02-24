@@ -1,5 +1,5 @@
-import { Config } from "@/config";
-import { Octokit, PullRequest } from "@/github";
+import type { Config } from "@/config";
+import { type Octokit, PullRequest } from "@/github";
 import { generateSummary } from "@/github/mod";
 
 function buildSummaryBody(body: string, summary: string): string {
@@ -9,12 +9,12 @@ function buildSummaryBody(body: string, summary: string): string {
   if (body) {
     const index = body.indexOf(summaryPrefix);
     if (index !== -1) {
-      newBody = body.slice(0, index) + summaryPrefix + "\n\n" + summary;
+      newBody = `${body.slice(0, index) + summaryPrefix}\n\n${summary}`;
     } else {
-      newBody = body + "\n\n" + summaryPrefix + "\n\n" + summary;
+      newBody = `${body}\n\n${summaryPrefix}\n\n${summary}`;
     }
   } else {
-    newBody = summaryPrefix + "\n\n" + summary;
+    newBody = `${summaryPrefix}\n\n${summary}`;
   }
   newBody += `\n\nsummary updated at: ${createdAt}`;
   return newBody;
@@ -25,7 +25,7 @@ export async function performSummary(
   octokit: Octokit,
   owner: string,
   repo: string,
-  pullNumber: number
+  pullNumber: number,
 ): Promise<void> {
   console.log("Generating summary...");
   const pullRequest = new PullRequest(octokit, owner, repo, pullNumber);

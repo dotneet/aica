@@ -1,12 +1,12 @@
 import { readConfig } from "@/config";
 import core from "@actions/core";
 import github from "@actions/github";
-import { Octokit } from "./github";
-import { performSummaryAndReview } from "./actions/summary-and-review";
-import { performEdit } from "./actions/edit";
-import { performSummary } from "./actions/summary";
-import { performReviewCommand } from "./actions/review";
 import { $ } from "bun";
+import { performEdit } from "./actions/edit";
+import { performReviewCommand } from "./actions/review";
+import { performSummary } from "./actions/summary";
+import { performSummaryAndReview } from "./actions/summary-and-review";
+import { Octokit } from "./github";
 
 async function main() {
   console.log("start actions runner...");
@@ -16,7 +16,7 @@ async function main() {
       throw new Error("GITHUB_TOKEN is required");
     }
 
-    if (Bun.env.GITHUB_ACTIONS == "true" && Bun.env.GITHUB_WORKSPACE) {
+    if (Bun.env.GITHUB_ACTIONS === "true" && Bun.env.GITHUB_WORKSPACE) {
       // avoid the following error
       //fatal: detected dubious ownership in repository at '/github/workspace'
       await $`git config --global --add safe.directory ${Bun.env.GITHUB_WORKSPACE}`;
@@ -122,10 +122,12 @@ function extractCommands(body: string): AicaActionsCommand[] {
   for (const line of lines) {
     if (line.startsWith(prefix)) {
       const args = line.slice(prefix.length).trim().split(" ");
-      commands.push({
-        command: args.shift()!,
-        args,
-      });
+      const command = args.shift() || "";
+      if (command) {
+        commands.push({ command, args });
+      } else {
+        throw new Error("command is required");
+      }
     }
   }
   return commands;

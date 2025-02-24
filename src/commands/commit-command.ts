@@ -1,4 +1,4 @@
-import { readConfig, type Config } from "@/config";
+import { type Config, readConfig } from "@/config";
 import { GitRepository } from "@/git";
 import { z } from "zod";
 import { createCommitMessageFromDiff } from "./commit-message-command";
@@ -95,7 +95,7 @@ export async function executeCommit(
 
   const commitMessage = await createCommitMessageFromDiff(config, diff);
   if (dryRun) {
-    console.log("DryRun: commit message is '" + commitMessage + "'");
+    console.log(`DryRun: commit message is '${commitMessage}'`);
   } else {
     await git.commit(commitMessage);
     console.log(`committed: ${commitMessage}`);

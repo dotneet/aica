@@ -1,9 +1,9 @@
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
 } from "../tool";
 
 export class ExecuteCommandTool implements Tool {
@@ -59,9 +59,8 @@ export class ExecuteCommandTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to execute command: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to execute command: ${error}`);
       }
+      throw new ToolError(`Failed to execute command: ${error}`);
     }
   }
 }

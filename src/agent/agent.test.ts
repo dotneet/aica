@@ -1,17 +1,17 @@
-import { Config, RulesConfig } from "@/config";
-import { GitRepository } from "@/git";
-import { createLLM } from "@/llm/mod";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, mkdirSync } from "node:fs";
+import { type Config, RulesConfig } from "@/config";
+import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/mod";
 import { Agent } from "./agent";
-import { ActionBlock } from "./assistant-message";
+import type { ActionBlock } from "./assistant-message";
 import {
-  executeTool,
   createToolExecutionContext,
+  executeTool,
   initializeTools,
 } from "./tool/tool";
 
-function createTestConfig(stubResponse: string = ""): Config {
+function createTestConfig(stubResponse = ""): Config {
   return {
     workingDirectory: process.cwd(),
     llm: {

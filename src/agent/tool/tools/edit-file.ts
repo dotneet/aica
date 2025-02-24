@@ -1,18 +1,18 @@
-import { Source } from "@/source";
 import {
-  Tool,
-  ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
-} from "../tool";
-import {
+  Patch,
   applyPatch,
   checkPatchFormat,
   createPatchFromDiff,
-  Patch,
 } from "@/agent/patch";
 import { applyPatchWithSimilarity } from "@/agent/similarity-patch";
+import { Source } from "@/source";
+import {
+  type Tool,
+  ToolError,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
+} from "../tool";
 
 export class EditFileTool implements Tool {
   name: ToolId = "edit_file";
@@ -57,9 +57,8 @@ export class EditFileTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to edit file: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to edit file: ${error}`);
       }
+      throw new ToolError(`Failed to edit file: ${error}`);
     }
   }
 }

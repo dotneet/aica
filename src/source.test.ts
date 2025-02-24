@@ -1,11 +1,11 @@
+import { describe, expect, it } from "bun:test";
 import { Source } from "./source";
-import { describe, it, expect } from "bun:test";
 
 describe("appendLineNumbers", () => {
   it("should return code with correct line numbers", () => {
     const code = Source.fromText(
       "dummy",
-      `function test() {\n  console.log("Hello, world!");\n}`
+      `function test() {\n  console.log("Hello, world!");\n}`,
     );
     const expected = `1: function test() {\n2:   console.log("Hello, world!");\n3: }`;
     expect(code.contentWithLineNumbers).toEqual(expected);

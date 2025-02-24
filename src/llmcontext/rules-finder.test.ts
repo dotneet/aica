@@ -1,8 +1,8 @@
-import { describe, test, expect, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
+import type { RulesConfig } from "../config";
 import { RulesFinder } from "./rules-finder";
-import { RulesConfig } from "../config";
 
 describe("RulesFinder", () => {
   const testDir = ".test-rules-finder";

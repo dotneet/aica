@@ -4,8 +4,11 @@
  * @param sources 割り当てるオブジェクトの可変引数
  * @returns 割り当て後のオブジェクト
  */
-export function deepAssign(target: any, ...sources: any[]): any {
-  sources.forEach((source) => {
+export function deepAssign(
+  target: Record<string, unknown>,
+  ...sources: Partial<Record<string, unknown>>[]
+): Record<string, unknown> {
+  for (const source of sources) {
     // キーごとにループ
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key)) {
@@ -14,13 +17,16 @@ export function deepAssign(target: any, ...sources: any[]): any {
           if (!target[key] || typeof target[key] !== "object") {
             target[key] = {};
           }
-          deepAssign(target[key], source[key]);
+          target[key] = deepAssign(
+            target[key] as Record<string, unknown>,
+            source[key] as Record<string, unknown>,
+          );
         } else {
           // プリミティブ値の場合、直接割り当て
           target[key] = source[key];
         }
       }
     }
-  });
+  }
   return target;
 }

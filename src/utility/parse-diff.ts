@@ -11,11 +11,11 @@ const ignoredLines = ["--- /dev/null"];
 export function parseDiff(diffOutput: string): FileChange[] {
   const files: FileChange[] = [];
   const diffParts = diffOutput.split("diff --git ");
-  diffParts.slice(1).forEach((part) => {
+  for (const part of diffParts.slice(1)) {
     const lines = part.split("\n");
     const header = lines[0];
     const filenameMatch = header.match(/b\/(.*)/);
-    if (!filenameMatch) return;
+    if (!filenameMatch) continue;
 
     const filename = filenameMatch[1];
     const isNewFile = part.includes("new file mode");
@@ -29,7 +29,7 @@ export function parseDiff(diffOutput: string): FileChange[] {
       changeType,
       changes: changeLines,
     });
-  });
+  }
 
   return files;
 }

@@ -6,12 +6,17 @@ import {
   createRawPatch,
   createRawPatchFromString,
 } from "@/agent/patch";
-import { ToolError, executeTool, ToolExecutionContext } from "./tool";
+import {
+  ToolError,
+  type ToolExecutionContext,
+  type ToolId,
+  executeTool,
+} from "./tool";
 import { CreateFileTool } from "./tools/create-file";
 import { EditFileTool } from "./tools/edit-file";
+import { ExecuteCommandTool } from "./tools/execute-command";
 import { ListFilesTool } from "./tools/list-files";
 import { ReadFileTool } from "./tools/read-file";
-import { ExecuteCommandTool } from "./tools/execute-command";
 
 describe("Tools", () => {
   const testFilePath = "./tmp/test.ts";
@@ -212,7 +217,7 @@ describe("Tools", () => {
     it("should throw error for unknown tool", async () => {
       await expect(
         executeTool(context, tools, {
-          toolId: "unknown-tool" as any,
+          toolId: "unknown-tool" as ToolId,
           params: {},
         }),
       ).rejects.toThrow(ToolError);

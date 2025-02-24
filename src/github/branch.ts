@@ -1,4 +1,4 @@
-import { Config } from "@/config";
+import type { Config } from "@/config";
 import { createLLM } from "@/llm/factory";
 
 export async function createBranchName(

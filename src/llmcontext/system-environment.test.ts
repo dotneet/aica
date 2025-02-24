@@ -1,7 +1,7 @@
-import { describe, test, expect, beforeAll, afterAll } from "bun:test";
-import { listFiles, ListFilesResult } from "./system-environment";
-import { mkdir, writeFile, rm } from "node:fs/promises";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { type ListFilesResult, listFiles } from "./system-environment";
 
 describe("listFiles", () => {
   const testDir = join(import.meta.dir, "test-files");
@@ -147,8 +147,8 @@ debug/**/debug.log
 
   test("should return absolute paths", () => {
     const result: ListFilesResult = listFiles(testDir, 10);
-    result.files.forEach((path) => {
+    for (const path of result.files) {
       expect(path.startsWith("/")).toBe(true);
-    });
+    }
   });
 });

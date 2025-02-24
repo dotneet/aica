@@ -1,4 +1,4 @@
-import { ToolId, Action, validToolIds, isValidToolId } from "./tool/mod";
+import { type Action, ToolId, isValidToolId, validToolIds } from "./tool/mod";
 
 export type MessageBlock = PlainMessageBlock | ActionBlock;
 
@@ -44,18 +44,19 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
   if (!message) {
     return [{ type: "plain", content: "" }];
   }
-  message = message.replace(/<thinking>\s?/g, "");
-  message = message.replace(/\s?<\/thinking>/g, "");
+  const processedMessage = message
+    .replace(/<thinking>\s?/g, "")
+    .replace(/\s?<\/thinking>/g, "");
 
   const blocks: MessageBlock[] = [];
   let currentIndex = 0;
 
-  while (currentIndex < message.length) {
-    const toolTagStart = message.indexOf("<", currentIndex);
+  while (currentIndex < processedMessage.length) {
+    const toolTagStart = processedMessage.indexOf("<", currentIndex);
 
     if (toolTagStart === -1) {
       // 残りのテキストをプレーンブロックとして追加
-      const remainingText = message.slice(currentIndex);
+      const remainingText = processedMessage.slice(currentIndex);
       if (remainingText) {
         blocks.push({ type: "plain", content: remainingText });
       }
@@ -66,12 +67,12 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
     if (toolTagStart > currentIndex) {
       blocks.push({
         type: "plain",
-        content: message.slice(currentIndex, toolTagStart),
+        content: processedMessage.slice(currentIndex, toolTagStart),
       });
     }
 
     // ツールタグを探す
-    const potentialToolContent = message.slice(toolTagStart);
+    const potentialToolContent = processedMessage.slice(toolTagStart);
     const action = parseToolTag(potentialToolContent);
 
     if (action) {
@@ -86,7 +87,7 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
       // 無効なタグの場合は、'<'をプレーンテキストとして扱う
       blocks.push({
         type: "plain",
-        content: message[toolTagStart],
+        content: processedMessage[toolTagStart],
       });
       currentIndex = toolTagStart + 1;
     }
@@ -114,5 +115,5 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
 
   return mergedBlocks.length
     ? mergedBlocks
-    : [{ type: "plain", content: message }];
+    : [{ type: "plain", content: processedMessage }];
 }

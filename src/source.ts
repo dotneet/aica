@@ -1,12 +1,12 @@
-import path from "path";
-import Bun from "bun";
 import fs from "node:fs";
-import { FileChange } from "@/utility/parse-diff";
+import path from "node:path";
+import type { FileChange } from "@/utility/parse-diff";
+import Bun from "bun";
 
 export enum SourceType {
-  Text,
-  File,
-  PullRequestDiff,
+  Text = 0,
+  File = 1,
+  PullRequestDiff = 2,
 }
 
 export class Source {
@@ -20,9 +20,8 @@ export class Source {
   get targetSourceContent(): string {
     if (this.type === SourceType.PullRequestDiff) {
       return this.content;
-    } else {
-      return `file: ${this.path}\n\n` + this.contentWithLineNumbers;
     }
+    return `file: ${this.path}\n\n${this.contentWithLineNumbers}`;
   }
 
   get contentWithLineNumbers(): string {
@@ -73,7 +72,7 @@ export class SourceFinder {
 
   async getSources(directory: string, globPattern: string): Promise<Source[]> {
     const glob = new Bun.Glob(globPattern);
-    let sources: Source[] = [];
+    const sources: Source[] = [];
     for await (const file of glob.scan(directory)) {
       const absPath = fs.realpathSync(file);
       sources.push(Source.fromFile(absPath));
@@ -105,13 +104,13 @@ export class SourceFinder {
   }
 
   applyFilters(rootDir: string, sources: Source[]): Source[] {
-    sources = sources.filter((source) => {
+    let filteredSources = sources.filter((source) => {
       const relativePath = path.relative(rootDir, source.path);
       return this.includePatternGlobs.some((include) =>
         include.match(relativePath),
       );
     });
-    sources = sources.filter((source) => {
+    filteredSources = filteredSources.filter((source) => {
       const relativePath = path.relative(rootDir, source.path);
       return !this.excludePatternGlobs.some((exclude) =>
         exclude.match(relativePath),

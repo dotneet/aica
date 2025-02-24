@@ -1,8 +1,8 @@
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
 } from "@/agent/tool/tool";
 
 export class UseMcpTool implements Tool {

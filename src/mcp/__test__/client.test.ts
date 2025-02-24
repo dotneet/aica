@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach, mock } from "bun:test";
-import { MCPClient, MCPSetupItem } from "../client";
-import { join } from "path";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { join } from "node:path";
+import { MCPClient, type MCPSetupItem } from "../client";
 
 // モックの実装
 const mockTransport = {
@@ -47,7 +47,7 @@ describe("MCPClient", () => {
       mock.module("@modelcontextprotocol/sdk/client/sse.js", () => ({
         SSEClientTransport: class {
           constructor() {
-            return mockTransport;
+            Object.assign(this, mockTransport);
           }
         },
       }));
@@ -55,7 +55,7 @@ describe("MCPClient", () => {
       mock.module("@modelcontextprotocol/sdk/client/stdio.js", () => ({
         StdioClientTransport: class {
           constructor() {
-            return mockTransport;
+            Object.assign(this, mockTransport);
           }
         },
       }));
@@ -64,7 +64,7 @@ describe("MCPClient", () => {
       mock.module("@modelcontextprotocol/sdk/client/index.js", () => ({
         Client: class {
           constructor() {
-            return mockClientImplementation;
+            Object.assign(this, mockClientImplementation);
           }
         },
       }));

@@ -1,10 +1,10 @@
-import { Issue } from "./analyze";
-import { SummaryDiffItem } from "./summary";
 import { Octokit as OctokitCore } from "@octokit/core";
 import {
+  type Api,
   restEndpointMethods,
-  Api,
 } from "@octokit/plugin-rest-endpoint-methods";
+import type { Issue } from "./analyze";
+import type { SummaryDiffItem } from "./summary";
 
 export const Octokit = OctokitCore.plugin(restEndpointMethods).defaults({});
 export type Octokit = InstanceType<typeof Octokit> & Api;
@@ -16,7 +16,7 @@ export function createGitHubStyleTableFromSummaryDiffItems(
   const table = summaryDiffItems.map((item) => {
     return `| ${item.category} | ${item.description} |`;
   });
-  return header + "\n" + "|---|---|" + "\n" + table.join("\n");
+  return `${header}\n|---|---|\n${table.join("\n")}`;
 }
 
 export function createGitHubStyleTableFromIssues(issues: Issue[]): string {
@@ -24,7 +24,7 @@ export function createGitHubStyleTableFromIssues(issues: Issue[]): string {
   const table = issues.map((issue) => {
     return `| ${issue.file} | ${issue.description} |`;
   });
-  return header + "\n" + "|---|---|" + "\n" + table.join("\n");
+  return `${header}\n|---|---|\n${table.join("\n")}`;
 }
 
 export class PullRequest {
@@ -67,7 +67,7 @@ export class PullRequest {
   }
 
   async getDiff(pullNumber: number): Promise<string> {
-    const endpoint = `GET /repos/{owner}/{repo}/pulls/{pull_number}`;
+    const endpoint = "GET /repos/{owner}/{repo}/pulls/{pull_number}";
     const response = await this.octokit.request(endpoint, {
       owner: this.owner,
       repo: this.repo,

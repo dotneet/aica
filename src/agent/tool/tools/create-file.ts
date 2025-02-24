@@ -1,10 +1,10 @@
 import { Source } from "@/source";
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
 } from "../tool";
 
 export class CreateFileTool implements Tool {
@@ -47,9 +47,8 @@ export class CreateFileTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to create file: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to create file: ${error}`);
       }
+      throw new ToolError(`Failed to create file: ${error}`);
     }
   }
 }

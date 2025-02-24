@@ -1,14 +1,14 @@
-import fs from "fs";
-import path from "path";
-import { Config, LLMConfig } from "./config";
+import fs from "node:fs";
+import path from "node:path";
+import type { Config, LLMConfig } from "./config";
 import { createEmbeddingProducer } from "./embedding/mod";
 import {
   CodeSearchDatabaseOrama,
   DocumentSearchDatabaseOrama,
-  KnowledgeDatabase,
+  type KnowledgeDatabase,
 } from "./knowledge/database";
-import { createLLM, LLM } from "./llm/mod";
-import { Source, SourceType } from "./source";
+import { type LLM, createLLM } from "./llm/mod";
+import { type Source, SourceType } from "./source";
 import {
   getLanguageFromConfig,
   getLanguagePromptForJson,
@@ -36,7 +36,7 @@ export async function createAnalyzeContextFromConfig(
 
   const embeddingProducer = createEmbeddingProducer(config.embedding);
   let codeSearchDatabase: KnowledgeDatabase | null = null;
-  if (config.knowledge?.codeSearch && config.knowledge.codeSearch.directory) {
+  if (config.knowledge?.codeSearch?.directory) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.codeSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
@@ -54,10 +54,7 @@ export async function createAnalyzeContextFromConfig(
   }
 
   let documentSearchDatabase: KnowledgeDatabase | null = null;
-  if (
-    config.knowledge?.documentSearch &&
-    config.knowledge.documentSearch.directory
-  ) {
+  if (config.knowledge?.documentSearch?.directory) {
     const { directory, persistentFilePath, includePatterns, excludePatterns } =
       config.knowledge.documentSearch;
     const absolutePath = fs.realpathSync(path.join(wd, directory));
@@ -132,10 +129,7 @@ export type Issue = {
   description: string;
 };
 
-export function getCodesAroundIssue(
-  issue: Issue,
-  numLines: number = 3,
-): string {
+export function getCodesAroundIssue(issue: Issue, numLines = 3): string {
   const lines = issue.source.contentWithLineNumbers.split("\n");
   const start = Math.max(0, issue.line - numLines);
   const end = Math.min(lines.length, issue.line + numLines);
@@ -204,11 +198,9 @@ async function createKnowledgeText(
     })
     .join("\n\n");
 
-  const knowledgeText =
-    [...context.knowledgeTexts].join("\n\n") +
-    knowledgeTextFromDb +
-    "\n\n" +
-    documentKnowledgeTexts;
+  const knowledgeText = `${
+    [...context.knowledgeTexts].join("\n\n") + knowledgeTextFromDb
+  }\n\n${documentKnowledgeTexts}`;
 
   return knowledgeText;
 }
@@ -250,12 +242,13 @@ function generatePromptWithCode(
   knowledgeText: string,
 ): string {
   const targetSourceContent = source.targetSourceContent;
+  let finalUserPrompt = userPrompt;
   if (source.type === SourceType.PullRequestDiff) {
-    userPrompt +=
+    finalUserPrompt +=
       "\n the target source is diff format. '-' means removed, '+' means added.";
   }
 
-  return `${userPrompt}
+  return `${finalUserPrompt}
 
   Target Source:
   =====
@@ -280,8 +273,8 @@ function buildIssuesFromResponse(source: Source, response: string): Issue[] {
     jsonStr = response.split("```json")[1].split("```")[0].trim();
   }
   if (jsonStr.indexOf("{") !== 0) {
-    let lparentIndex = jsonStr.indexOf("{");
-    let rparentIndex = jsonStr.lastIndexOf("}");
+    const lparentIndex = jsonStr.indexOf("{");
+    const rparentIndex = jsonStr.lastIndexOf("}");
     jsonStr = jsonStr.slice(lparentIndex, rparentIndex + 1);
   }
   const issues = JSON.parse(jsonStr).issues as ResponseIssue[];

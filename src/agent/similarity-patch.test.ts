@@ -1,12 +1,12 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-  splitTextIntoLines,
+  applyPatchWithSimilarity,
+  computeSimilarity,
+  extractHunks,
+  findMostSimilarBlockIndex,
   joinLinesIntoText,
   parseUnifiedDiff,
-  extractHunks,
-  computeSimilarity,
-  findMostSimilarBlockIndex,
-  applyPatchWithSimilarity,
+  splitTextIntoLines,
 } from "./similarity-patch";
 
 /**
@@ -376,7 +376,7 @@ describe("similarity-patch3 テスト", () => {
       const diffText = [
         "@@ -1,3 +1,4 @@",
         " // 短い行",
-        " " + longString,
+        ` ${longString}`,
         "+// 新しく追加された行",
         " // 別の短い行",
       ].join("\n");

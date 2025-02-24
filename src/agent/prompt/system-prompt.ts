@@ -1,7 +1,7 @@
-import { Config, RulesConfig } from "@/config";
+import { Config, type RulesConfig } from "@/config";
 import { RulesFinder } from "@/llmcontext/rules-finder";
 import { getSystemInfoSection } from "@/llmcontext/system-environment";
-import { Source } from "@/source";
+import type { Source } from "@/source";
 
 export async function getSystemPrompt(
   cwd: string,

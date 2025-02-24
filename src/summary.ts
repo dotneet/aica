@@ -1,4 +1,4 @@
-import { LLM } from "./llm/mod";
+import type { LLM } from "./llm/mod";
 import { getLanguagePromptForJson } from "./utility/language";
 
 export type SummaryContext = {
@@ -75,15 +75,15 @@ export async function summarizeDiff(
       .replace(/^```json\n/, "")
       .replace(/\n```$/, "");
     const json = JSON.parse(replaced);
-    return json.changes.map((change: any) => ({
+    return json.changes.map((change: SummaryDiffItem) => ({
       category: change.category,
       description: change.description,
     }));
   } catch (e) {
     if (e instanceof Error) {
-      console.error(e.message + "\nRESULT:\n" + result);
+      console.error(`${e.message}\nRESULT:\n${result}`);
     } else {
-      console.error(e + "\nRESULT:\n" + result);
+      console.error(`${e}\nRESULT:\n${result}`);
     }
     throw new Error("Failed to parse summary");
   }

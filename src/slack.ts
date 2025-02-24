@@ -1,4 +1,6 @@
-export async function sendToSlack(file: string, bugs: any[]): Promise<void> {
+import type { Issue } from "./analyze";
+
+export async function sendToSlack(file: string, bugs: Issue[]): Promise<void> {
   if (!Bun.env.SLACK_BOT_TOKEN || !Bun.env.SLACK_CHANNEL_ID) {
     console.error("SLACK_BOT_TOKEN or SLACK_CHANNEL_ID is not set.");
     return;

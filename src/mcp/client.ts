@@ -1,8 +1,8 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { Transport } from "@modelcontextprotocol/sdk/shared/transport";
-import { Resource, Tool } from "@modelcontextprotocol/sdk/types";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport";
+import type { Resource, Tool } from "@modelcontextprotocol/sdk/types";
 import { z } from "zod";
 
 export const mcpItemSchema = z.discriminatedUnion("type", [
@@ -124,7 +124,7 @@ ${this.resources.map((r) => createResourcePrompt(r)).join("\n")}
 
   public async callTool(
     name: string,
-    args: Record<string, any>,
+    args: Record<string, unknown>,
   ): Promise<MCPToolResult[]> {
     const result = await this.client.callTool({
       name,

@@ -1,7 +1,7 @@
-import { Config } from "@/config";
+import type { Config } from "@/config";
 import { PullRequest } from "@/github";
+import type { Octokit } from "@/github";
 import { generateReview, generateSummary } from "@/github/mod";
-import { Octokit } from "@/github";
 
 function buildSummaryBody(body: string, summary: string): string {
   const summaryPrefix = "<!-- AICA GENERATED -->\n## Summary";
@@ -9,12 +9,12 @@ function buildSummaryBody(body: string, summary: string): string {
   if (body) {
     const index = body.indexOf(summaryPrefix);
     if (index !== -1) {
-      newBody = body.slice(0, index) + summaryPrefix + "\n\n" + summary;
+      newBody = `${body.slice(0, index) + summaryPrefix}\n\n${summary}`;
     } else {
-      newBody = body + "\n\n" + summaryPrefix + "\n\n" + summary;
+      newBody = `${body}\n\n${summaryPrefix}\n\n${summary}`;
     }
   } else {
-    newBody = summaryPrefix + "\n\n" + summary;
+    newBody = `${summaryPrefix}\n\n${summary}`;
   }
   return newBody;
 }
@@ -24,7 +24,7 @@ export async function performSummaryAndReview(
   octokit: Octokit,
   owner: string,
   repo: string,
-  pull_number: number
+  pull_number: number,
 ): Promise<void> {
   console.log("retrieve pull request diff...");
   const pullRequest = new PullRequest(octokit, owner, repo, pull_number);
@@ -42,6 +42,6 @@ export async function performSummaryAndReview(
   const reviewResultTable = await generateReview(config, diffString);
 
   console.log("post comment to pull request...");
-  const comment = "## Bug Report\n\n" + reviewResultTable;
+  const comment = `## Bug Report\n\n${reviewResultTable}`;
   await pullRequest.postComment(comment);
 }

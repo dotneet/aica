@@ -1,9 +1,9 @@
-import { z } from "zod";
-import { readConfig } from "@/config";
-import { Agent } from "@/agent/agent";
-import { createLLM } from "@/llm/mod";
-import { GitRepository } from "@/git";
 import * as readline from "node:readline";
+import { Agent } from "@/agent/agent";
+import { readConfig } from "@/config";
+import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/mod";
+import { z } from "zod";
 
 export const agentCommandSchema = z.object({
   prompt: z.string().optional(),
@@ -12,7 +12,7 @@ export const agentCommandSchema = z.object({
 
 export type AgentCommandValues = z.infer<typeof agentCommandSchema>;
 
-export async function executeAgentCommand(params: any) {
+export async function executeAgentCommand(params: AgentCommandValues) {
   const values = agentCommandSchema.parse(params);
   let prompt = values.prompt || "";
   const config = await readConfig();
@@ -84,8 +84,11 @@ export async function executeAgentCommand(params: any) {
         console.log(
           "\nEnter your prompt (press Enter twice to submit, type 'exit' to end):",
         );
-      } catch (error: any) {
-        console.error("An error occurred:", error?.message || "Unknown error");
+      } catch (error: unknown) {
+        console.error(
+          "An error occurred:",
+          error instanceof Error ? error.message : "Unknown error",
+        );
         console.log(
           "\nEnter your prompt (press Enter twice to submit, type 'exit' to end):",
         );

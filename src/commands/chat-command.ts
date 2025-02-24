@@ -1,15 +1,15 @@
-import { z } from "zod";
-import { Config, readConfig } from "@/config";
-import { readFileSync } from "fs";
-import { createInterface } from "readline";
-import { LLM, Message } from "@/llm/mod";
-import { createLLM } from "@/llm/factory";
-import { RulesFinder } from "@/llmcontext/rules-finder";
+import { readFileSync } from "node:fs";
+import { createInterface } from "node:readline";
+import { type Config, readConfig } from "@/config";
 import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/factory";
+import type { LLM, Message } from "@/llm/mod";
+import { RulesFinder } from "@/llmcontext/rules-finder";
 import {
   getEnvironmentDetailsPrompt,
   getSystemInfoSection,
 } from "@/llmcontext/system-environment";
+import { z } from "zod";
 
 export const chatCommandSchema = z.object({
   prompt: z.string().optional(),
@@ -59,7 +59,7 @@ async function handleInteractiveChat(llm: LLM, config: Config): Promise<void> {
     const response = await llm.generate(systemPrompt, messages, false);
     messages.push({ role: "assistant", content: response });
 
-    console.log("\n" + response + "\n");
+    console.log(`\n${response}\n`);
   }
 
   rl.close();

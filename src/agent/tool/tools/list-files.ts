@@ -1,11 +1,11 @@
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
 } from "../tool";
-import { readdirSync, mkdirSync, existsSync } from "node:fs";
 
 export class ListFilesTool implements Tool {
   name: ToolId = "list_files";
@@ -36,9 +36,8 @@ export class ListFilesTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to list files: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to list files: ${error}`);
       }
+      throw new ToolError(`Failed to list files: ${error}`);
     }
   }
 }

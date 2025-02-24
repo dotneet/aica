@@ -1,7 +1,7 @@
-import { generateReview } from "./review";
+import { describe, expect, it } from "bun:test";
 import { defaultConfig } from "@/config";
 import { deepAssign } from "@/utility/deep-assign";
-import { describe, it, expect } from "bun:test";
+import { generateReview } from "./review";
 
 // Mock diff string
 const mockDiffString =

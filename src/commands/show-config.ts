@@ -1,5 +1,5 @@
-import { readConfig, defaultConfig } from "../config";
 import { z } from "zod";
+import { defaultConfig, readConfig } from "../config";
 
 export const showConfigValuesSchema = z.object({
   config: z.string().optional(),

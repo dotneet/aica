@@ -12,13 +12,13 @@ export function extractDefinitionSymbols(text: string) {
   ];
   const keywordLines = text
     .split("\n")
-    .filter((line) => keywords.some((keyword) => line.includes(keyword + " ")));
+    .filter((line) => keywords.some((keyword) => line.includes(`${keyword} `)));
 
   const symbols = keywordLines.map((line) => {
     return line
       .replace(
         /(export\s+)?(module|function|func|def|class|struct|type|interface)\s*([a-zA-Z0-9_]+).*/,
-        "$3"
+        "$3",
       )
       .trim();
   });
@@ -30,10 +30,9 @@ export function extractReferenceSymbols(text: string) {
   const keywords = ["import", "require", "use"];
   const keywordLines = text
     .split("\n")
-    .filter((line) => keywords.some((keyword) => line.includes(keyword + " ")));
-
+    .filter((line) => keywords.some((keyword) => line.includes(`${keyword} `)));
   const symbols: string[] = [];
-  keywordLines.forEach((line) => {
+  for (const line of keywordLines) {
     if (line.includes("import")) {
       const words = line
         .replace(/import\s+\{?\s*(\w+\s*(,\s*\w+)*)?\s*\}?/, "$1")
@@ -41,15 +40,14 @@ export function extractReferenceSymbols(text: string) {
         .split(",")
         .map((word) => word.trim());
       symbols.push(...words);
-      return;
-    } else {
-      const symbol = line
-        .replace(/(import|require|use) (\w+)/, "$2")
-        .replace(/({|}|=|;|"|'|,)/g, "")
-        .trim();
-      symbols.push(symbol);
+      continue;
     }
-  });
+    const symbol = line
+      .replace(/(import|require|use) (\w+)/, "$2")
+      .replace(/({|}|=|;|"|'|,)/g, "")
+      .trim();
+    symbols.push(symbol);
+  }
 
   return symbols;
 }
