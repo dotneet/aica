@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { RulesConfig } from "../config";
+import type { RulesConfig } from "../config";
 
 export type MDCContent = {
   description: string;
@@ -151,7 +151,7 @@ export class RulesFinder {
 
         const fullPath = path.join(rulesDir, mdcFile);
         const content = await this.readMDCFile(fullPath);
-        if (content && content.globs) {
+        if (content?.globs) {
           const matches = await this.matchesGlobPattern(
             filePaths,
             content.globs,

@@ -1,12 +1,12 @@
-import { readConfig, type Config } from "@/config";
+import { type Config, readConfig } from "@/config";
 import { GitRepository } from "@/git";
-import { getGitHubToken, Octokit } from "@/github";
+import { Octokit, getGitHubToken } from "@/github";
+import { PullRequest } from "@/github";
+import { createBranchName } from "@/github/branch";
+import { generateSummary } from "@/github/summary";
 import { z } from "zod";
 import { executeCommit } from "./commit-command";
 import { createCommitMessageFromDiff } from "./commit-message-command";
-import { PullRequest } from "@/github";
-import { generateSummary } from "@/github/summary";
-import { createBranchName } from "@/github/branch";
 
 export const createPrCommandSchema = z.object({
   staged: z.boolean().default(false),

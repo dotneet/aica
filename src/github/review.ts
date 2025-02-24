@@ -1,9 +1,9 @@
-import { Config } from "@/config";
 import {
-  Issue,
+  type Issue,
   analyzeCodeForBugs,
   createAnalyzeContextFromConfig,
 } from "@/analyze";
+import type { Config } from "@/config";
 import { Source } from "@/source";
 import { parseDiff } from "@/utility/parse-diff";
 import { createGitHubStyleTableFromIssues } from "../github";

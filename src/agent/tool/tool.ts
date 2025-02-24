@@ -1,17 +1,17 @@
-import { Source } from "@/source";
+import type { MCPClientManager } from "@/mcp/client-manager";
+import type { Source } from "@/source";
 import {
+  AskFollowupQuestionTool,
+  AttemptCompletionTool,
   CreateFileTool,
   EditFileTool,
   ExecuteCommandTool,
   ListFilesTool,
   ReadFileTool,
   SearchFilesTool,
-  AttemptCompletionTool,
-  AskFollowupQuestionTool,
   diffToolPrompt,
 } from "./tools";
-import { UseMcpTool, UseMcpResource } from "./tools/mcp";
-import { MCPClientManager } from "@/mcp/client-manager";
+import { UseMcpResource, UseMcpTool } from "./tools/mcp";
 
 export type ToolId =
   | "create_file"

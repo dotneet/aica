@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import { deepAssign } from "./utility/deep-assign";
 import { GitRepository } from "./git";
+import { deepAssign } from "./utility/deep-assign";
 
 export type LLMProvider = "openai" | "anthropic" | "stub" | "google";
 
@@ -291,14 +291,16 @@ export async function readConfig(
   configPath: string | null = null,
 ): Promise<Config> {
   let workingDirectory = ".";
+  let actualConfigPath = null;
   if (configPath) {
     if (!fs.existsSync(configPath)) {
       throw new Error(`Config file not found: ${configPath}`);
     }
+    actualConfigPath = configPath;
     workingDirectory = fs.realpathSync(configPath);
   } else {
     if (fs.existsSync("./aica.toml")) {
-      configPath = "./aica.toml";
+      actualConfigPath = "./aica.toml";
     }
     // search git repository root
     if (!configPath) {
@@ -308,7 +310,7 @@ export async function readConfig(
         const rootConfigPath = `${root}/aica.toml`;
         workingDirectory = root;
         if (fs.existsSync(rootConfigPath)) {
-          configPath = rootConfigPath;
+          actualConfigPath = rootConfigPath;
         }
       }
     }
@@ -317,31 +319,31 @@ export async function readConfig(
       const cwd = process.cwd();
       const ghConfigPath = `${cwd}/aica.toml`;
       if (fs.existsSync(ghConfigPath)) {
-        configPath = ghConfigPath;
+        actualConfigPath = ghConfigPath;
       }
     }
     // search global config
-    if (!configPath) {
+    if (!actualConfigPath) {
       const home = Bun.env.HOME;
       if (!home) {
         throw new Error("HOME environment variable is not set");
       }
       const homeConfigPath = `${home}/.config/aica/aica.toml`;
       if (fs.existsSync(homeConfigPath)) {
-        configPath = homeConfigPath;
+        actualConfigPath = homeConfigPath;
       }
     }
   }
 
-  if (!configPath) {
+  if (!actualConfigPath) {
     console.warn("No config file found, using default config");
     return defaultConfig;
   }
 
-  const file = fs.readFileSync(configPath);
+  const file = fs.readFileSync(actualConfigPath);
   const config = Bun.TOML.parse(file.toString()) as Config;
   if (!config) {
-    throw new Error(`Invalid config file: ${configPath}`);
+    throw new Error(`Invalid config file: ${actualConfigPath}`);
   }
   return deepAssign(defaultConfig, config, { workingDirectory });
 }

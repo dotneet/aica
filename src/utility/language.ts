@@ -1,4 +1,4 @@
-import { Config } from "@/config";
+import type { Config } from "@/config";
 
 export function getLanguagePromptForJson(
   language: string,
@@ -15,7 +15,8 @@ export function getLanguageFromConfig(config: Config) {
   const configLang = config.language.language.toLowerCase().trim();
   if (Bun.env.AICA_LANGUAGE) {
     return Bun.env.AICA_LANGUAGE;
-  } else if (configLang && configLang !== "auto") {
+  }
+  if (configLang && configLang !== "auto") {
     return configLang;
   }
   return getLanguageFromLang();

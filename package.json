@@ -9,12 +9,17 @@
   "scripts": {
     "start": "bun run src/main.ts",
     "build": "bun build --compile --outfile dist/aica src/main.ts",
-    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts"
+    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
+    "lint": "biome check .",
+    "check": "biome check --write src",
+    "check:unsafe": "biome check --fix --unsafe src"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/bun": "latest",
     "@types/glob": "^8.1.0",
-    "@types/yargs": "^17.0.33"
+    "@types/yargs": "^17.0.33",
+    "lefthook": "^1.11.0"
   },
   "peerDependencies": {
     "typescript": "^5.7.3"

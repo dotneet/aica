@@ -1,8 +1,8 @@
-import { Config } from "@/config";
+import type { Config } from "@/config";
 import { createGitHubStyleTableFromSummaryDiffItems } from "@/github";
+import { getLanguageFromConfig } from "@/utility/language";
 import { createLLM } from "../llm/factory";
 import { createSummaryContext, summarizeDiff } from "../summary";
-import { getLanguageFromConfig } from "@/utility/language";
 
 export async function generateSummary(
   config: Config,

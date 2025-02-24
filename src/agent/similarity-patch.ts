@@ -202,7 +202,7 @@ export function applyPatchWithSimilarity(
 ): string {
   const originalLines = splitTextIntoLines(originalText);
   const unifiedDiff = parseUnifiedDiff(patchText);
-  let updatedLines = [...originalLines];
+  const updatedLines = [...originalLines];
 
   for (const hunk of unifiedDiff.hunks) {
     const segments = splitHunkIntoSegments(hunk);

@@ -1,9 +1,9 @@
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
 } from "../tool";
 
 export class AttemptCompletionTool implements Tool {
@@ -62,9 +62,8 @@ export class AttemptCompletionTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to generate completion: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to generate completion: ${error}`);
       }
+      throw new ToolError(`Failed to generate completion: ${error}`);
     }
   }
 }

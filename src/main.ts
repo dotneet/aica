@@ -1,6 +1,4 @@
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
-import type { ArgumentsCamelCase, Argv } from "yargs";
+import { executeAgentCommand } from "@/commands/agent-command";
 import {
   commitMessageCommandSchema,
   executeCommitMessageCommand,
@@ -9,30 +7,32 @@ import {
   executeReviewCommand,
   reviewCommandSchema,
 } from "@/commands/review-command";
-import pkg from "../package.json";
 import {
   executeSummaryDiffCommand,
   summaryDiffCommandSchema,
 } from "@/commands/summary-diff-command";
-import {
-  createPrCommandSchema,
-  executeCreatePrCommand,
-} from "./commands/create-pr-command";
+import yargs from "yargs";
+import type { ArgumentsCamelCase, Argv } from "yargs";
+import { hideBin } from "yargs/helpers";
+import pkg from "../package.json";
+import { chatCommandSchema, executeChatCommand } from "./commands/chat-command";
 import {
   commitCommandSchema,
   executeCommitCommand,
 } from "./commands/commit-command";
-import { CommandError } from "./commands/error";
 import {
-  executeShowConfigCommand,
-  showConfigValuesSchema,
-} from "./commands/show-config";
+  createPrCommandSchema,
+  executeCreatePrCommand,
+} from "./commands/create-pr-command";
+import { CommandError } from "./commands/error";
 import {
   executeIndexCommand as executeReindexCommand,
   indexCommandSchema,
 } from "./commands/index-command";
-import { executeChatCommand, chatCommandSchema } from "./commands/chat-command";
-import { executeAgentCommand } from "@/commands/agent-command";
+import {
+  executeShowConfigCommand,
+  showConfigValuesSchema,
+} from "./commands/show-config";
 
 async function main() {
   const argv = await yargs(hideBin(process.argv))

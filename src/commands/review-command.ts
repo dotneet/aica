@@ -1,13 +1,13 @@
+import process from "node:process";
 import {
-  Issue,
+  type Issue,
   analyzeCodeForBugs,
   createAnalyzeContextFromConfig,
   getCodesAroundIssue,
 } from "@/analyze";
-import process from "process";
 import { readConfig } from "@/config";
 import { sendToSlack } from "@/slack";
-import { Source, SourceFinder } from "@/source";
+import { type Source, SourceFinder } from "@/source";
 
 import { z } from "zod";
 

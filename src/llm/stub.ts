@@ -1,4 +1,4 @@
-import { LLM, Message } from "./llm";
+import type { LLM, Message } from "./llm";
 
 export class LLMStub implements LLM {
   constructor(private response: string) {}

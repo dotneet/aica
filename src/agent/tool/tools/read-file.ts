@@ -1,11 +1,11 @@
-import {
-  Tool,
-  ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
-} from "../tool";
 import { Source } from "@/source";
+import {
+  type Tool,
+  ToolError,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
+} from "../tool";
 
 export class ReadFileTool implements Tool {
   name: ToolId = "read_file";
@@ -47,9 +47,8 @@ export class ReadFileTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to read file: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to read file: ${error}`);
       }
+      throw new ToolError(`Failed to read file: ${error}`);
     }
   }
 }

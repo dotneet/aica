@@ -1,5 +1,5 @@
 import winston from "winston";
-import { Message } from "./llm";
+import type { Message } from "./llm";
 
 export interface LLMLogger {
   log(message: string): void;

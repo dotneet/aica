@@ -1,4 +1,4 @@
-import { ActionResult } from "./tool";
+import type { ActionResult } from "./tool";
 
 export type AgentHistoryItemType =
   | "user_prompt"

@@ -1,7 +1,7 @@
 import { Agent } from "@/agent/agent";
-import { Config } from "@/config";
+import type { Config } from "@/config";
 import { GitRepository } from "@/git";
-import { Octokit } from "@/github";
+import type { Octokit } from "@/github";
 import { createLLM } from "@/llm/factory";
 import { $ } from "bun";
 

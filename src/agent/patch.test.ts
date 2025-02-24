@@ -1,12 +1,13 @@
-import { expect, test, describe } from "bun:test";
-import { tmpdir } from "os";
-import { join } from "path";
+import { describe, expect, test } from "bun:test";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
-  createPatch,
-  checkPatchFormat,
+  type Patch,
   applyPatch,
-  parseHunk,
+  checkPatchFormat,
+  createPatch,
   createPatchFromDiff,
+  parseHunk,
 } from "./patch";
 
 describe("Patch functionality tests", () => {
@@ -60,7 +61,7 @@ describe("Patch functionality tests", () => {
         },
       ],
     };
-    expect(checkPatchFormat(invalidPatch as any)).toBe(false);
+    expect(checkPatchFormat(invalidPatch as unknown as Patch)).toBe(false);
   });
 
   test("applyPatch - applying unified format patch", () => {

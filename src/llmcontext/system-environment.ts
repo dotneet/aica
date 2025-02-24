@@ -1,8 +1,8 @@
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import os from "node:os";
+import { join, relative } from "node:path";
 import { toPosixPath } from "@/utility/path";
-import { readdirSync, statSync, existsSync, readFileSync } from "fs";
-import os from "os";
 import osName from "os-name";
-import { join, relative } from "path";
 
 function getShellFromEnv(): string | null {
   const { env } = process;
@@ -25,7 +25,7 @@ function getShellFromEnv(): string | null {
 }
 
 export function getSystemInfoSection(cwd: string): string {
-  let details = `====
+  const details = `====
   
   SYSTEM INFORMATION
   

@@ -1,21 +1,21 @@
-import { GitRepository } from "@/git";
-import { LLM, Message } from "@/llm/mod";
+import type { Config, RulesConfig } from "@/config";
+import type { GitRepository } from "@/git";
+import type { LLM, Message } from "@/llm/mod";
+import { getEnvironmentDetailsPrompt } from "@/llmcontext/system-environment";
+import { MCPClientManager } from "@/mcp/client-manager";
+import type { Source } from "@/source";
 import { AgentHistory } from "./agent-history";
-import { MessageBlock, parseAssistantMessage } from "./assistant-message";
+import { type MessageBlock, parseAssistantMessage } from "./assistant-message";
 import { getSystemPrompt } from "./prompt/system-prompt";
 import {
-  ActionResult,
+  type ActionResult,
+  type Tool,
+  type ToolExecutionContext,
   createToolExecutionContext,
   executeTool,
   generateAvailableTools,
   initializeTools,
-  Tool,
-  ToolExecutionContext,
 } from "./tool/mod";
-import { Source } from "@/source";
-import { getEnvironmentDetailsPrompt } from "@/llmcontext/system-environment";
-import { Config, RulesConfig } from "@/config";
-import { MCPClientManager } from "@/mcp/client-manager";
 
 export type TaskExecutionOptions = {
   verbose: boolean;
@@ -114,7 +114,7 @@ export class Agent implements AsyncDisposable {
       mcpPrompt +=
         "No MCP servers are available. You can not use use_mcp_tool and use_mcp_resource.";
     }
-    let prompt = await getSystemPrompt(
+    const prompt = await getSystemPrompt(
       process.cwd(),
       this.rulesConfig,
       this.gitRepository.gitRootDir,
@@ -128,15 +128,15 @@ export class Agent implements AsyncDisposable {
   }
 
   async startTask(
-    prompt: string,
-    options: Partial<TaskExecutionOptions> = {},
+    initialPrompt: string,
+    taskOptions: Partial<TaskExecutionOptions> = {},
   ): Promise<void> {
-    options = { ...defaultTaskExecutionOptions, ...options };
+    const options = { ...defaultTaskExecutionOptions, ...taskOptions };
     const maxIterations =
       options.maxIterations ?? defaultTaskExecutionOptions.maxIterations;
     let iterations = 0;
     let stopped = false;
-    prompt = `<task>\n${prompt}\n</task>`;
+    let prompt = `<task>\n${initialPrompt}\n</task>`;
     while (!stopped) {
       if (iterations > maxIterations) {
         console.warn(`Max iterations(${maxIterations}) reached`);
@@ -167,9 +167,9 @@ export class Agent implements AsyncDisposable {
             block.action,
           );
           if (toolExecutionResult.addedFiles) {
-            toolExecutionResult.addedFiles.forEach((file) =>
-              this.addFile(file),
-            );
+            for (const file of toolExecutionResult.addedFiles) {
+              this.addFile(file);
+            }
           }
           const actionResult = {
             action: block.action,

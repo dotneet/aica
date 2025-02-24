@@ -1,11 +1,11 @@
-import {
-  Tool,
-  ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
-} from "../tool";
 import { globby } from "globby";
+import {
+  type Tool,
+  ToolError,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
+} from "../tool";
 
 export class SearchFilesTool implements Tool {
   name: ToolId = "search_files";
@@ -45,7 +45,7 @@ export class SearchFilesTool implements Tool {
       const pattern = args.filePattern || "**/*";
       const files = await globby(pattern, { cwd: args.path });
       const regExp = new RegExp(args.regex, "g");
-      let results: string[] = [];
+      const results: string[] = [];
 
       for (const file of files) {
         const fullPath = `${args.path}/${file}`;
@@ -85,9 +85,8 @@ export class SearchFilesTool implements Tool {
       if (error instanceof ToolError) throw error;
       if (error instanceof Error) {
         throw new ToolError(`Failed to search files: ${error.message}`);
-      } else {
-        throw new ToolError(`Failed to search files: ${error}`);
       }
+      throw new ToolError(`Failed to search files: ${error}`);
     }
   }
 }

@@ -26,7 +26,7 @@ export async function withRetry<T>(
       if (attempt === maxRetries) {
         throw error;
       }
-      let backoffDelay = retryDelay * Math.pow(2, attempt - 1);
+      let backoffDelay = retryDelay * 2 ** (attempt - 1);
       console.warn(
         `LLM attempt ${attempt} failed, retrying in ${backoffDelay}ms...`,
       );

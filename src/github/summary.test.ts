@@ -1,6 +1,6 @@
+import { describe, expect, it } from "bun:test";
+import { type Config, defaultConfig } from "@/config";
 import { generateSummary } from "./summary";
-import { Config, defaultConfig } from "@/config";
-import { describe, it, expect } from "bun:test";
 
 // テストケース
 describe("generateSummary", () => {

@@ -1,5 +1,5 @@
 import { createAnalyzeContextFromConfig } from "@/analyze";
-import { readConfig, type Config } from "@/config";
+import { type Config, readConfig } from "@/config";
 import { GitRepository } from "@/git";
 import {
   getLanguageFromConfig,
@@ -44,8 +44,8 @@ export async function createCommitMessageFromDiff(
   const rules = config.commitMessage.prompt.rules
     .map((rule) => `- ${rule}`)
     .join("\n");
-  let language = getLanguageFromConfig(config);
-  let languagePrompt = getLanguagePromptForJson(language, ["commitMessage"]);
+  const language = getLanguageFromConfig(config);
+  const languagePrompt = getLanguagePromptForJson(language, ["commitMessage"]);
   const prompt = `
     ${config.commitMessage.prompt.user}
 

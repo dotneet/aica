@@ -1,8 +1,8 @@
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
+  type ActionBlock,
+  type PlainMessageBlock,
   parseAssistantMessage,
-  PlainMessageBlock,
-  ActionBlock,
 } from "./assistant-message";
 
 describe("parseAssistantMessage", () => {

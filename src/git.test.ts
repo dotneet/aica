@@ -1,9 +1,9 @@
-import { describe, it, expect } from "bun:test";
-import { GitRepository } from "./git";
-import { beforeEach, afterEach } from "bun:test";
+import { describe, expect, it } from "bun:test";
+import { afterEach, beforeEach } from "bun:test";
+import { execSync } from "node:child_process";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { execSync } from "node:child_process";
+import { GitRepository } from "./git";
 
 describe("GitRepository", () => {
   const testDir = join(process.cwd(), "test-repo");

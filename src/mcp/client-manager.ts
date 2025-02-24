@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { MCPClient, mcpItemSchema, MCPSetupItem } from "./client";
+import { MCPClient, type MCPSetupItem, mcpItemSchema } from "./client";
 
 export class MCPClientManager implements AsyncDisposable {
   private items: MCPSetupItem[];

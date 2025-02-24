@@ -1,10 +1,10 @@
-import { Orama, create, insert, search } from "@orama/orama";
+import type { EmbeddingProducer } from "@/embedding/mod";
+import { type Orama, create, insert, search } from "@orama/orama";
 import { persist, restore } from "@orama/plugin-data-persistence";
 import { Glob } from "bun";
-import { EmbeddingProducer } from "@/embedding/mod";
 
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
 import {
   extractDefinitionSymbols,
   extractReferenceSymbols,
@@ -98,24 +98,23 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
         excludePatterns,
         embeddingProducer,
       );
-    } else {
-      const db = await CodeSearchDatabaseOrama.create(
-        persistentFilePath,
-        directory,
-        includePatterns,
-        excludePatterns,
-        embeddingProducer,
-      );
-      await db.populate();
-      if (persistentFilePath) {
-        await db.save(persistentFilePath);
-      } else {
-        console.warn(
-          "skip saving knowledge database due to the lack of persistentFilePath in the config.",
-        );
-      }
-      return db;
     }
+    const db = await CodeSearchDatabaseOrama.create(
+      persistentFilePath,
+      directory,
+      includePatterns,
+      excludePatterns,
+      embeddingProducer,
+    );
+    await db.populate();
+    if (persistentFilePath) {
+      await db.save(persistentFilePath);
+    } else {
+      console.warn(
+        "skip saving knowledge database due to the lack of persistentFilePath in the config.",
+      );
+    }
+    return db;
   }
 
   async populate(): Promise<void> {
@@ -154,7 +153,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
 
   async search(
     content: string,
-    limit: number = 5,
+    limit = 5,
   ): Promise<{ content: string; path: string }[]> {
     const symbols = extractReferenceSymbols(content);
     const result = await search(this.db, {
@@ -167,7 +166,7 @@ export class CodeSearchDatabaseOrama implements KnowledgeDatabase {
     return result.hits.map((hit) => {
       let content = hit.document.content;
       if (content.length > 4000) {
-        content = content.substring(0, 4000) + "...";
+        content = `${content.substring(0, 4000)}...`;
       }
       return {
         path: hit.document.path,
@@ -255,24 +254,23 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
         excludePatterns,
         embeddingProducer,
       );
-    } else {
-      const db = await DocumentSearchDatabaseOrama.create(
-        persistentFilePath,
-        directory,
-        includePatterns,
-        excludePatterns,
-        embeddingProducer,
-      );
-      await db.populate();
-      if (persistentFilePath) {
-        await db.save(persistentFilePath);
-        console.warn(
-          "skip saving knowledge database due to the lack of persistentFilePath in the config.",
-        );
-      }
-      console.log("Knowledge database populated.");
-      return db;
     }
+    const db = await DocumentSearchDatabaseOrama.create(
+      persistentFilePath,
+      directory,
+      includePatterns,
+      excludePatterns,
+      embeddingProducer,
+    );
+    await db.populate();
+    if (persistentFilePath) {
+      await db.save(persistentFilePath);
+      console.warn(
+        "skip saving knowledge database due to the lack of persistentFilePath in the config.",
+      );
+    }
+    console.log("Knowledge database populated.");
+    return db;
   }
 
   async populate(): Promise<void> {
@@ -311,11 +309,10 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
 
   async search(
     content: string,
-    limit: number = 3,
+    limit = 3,
   ): Promise<{ content: string; path: string }[]> {
-    const embedding: number[] = await this.embeddingProducer.getEmbedding(
-      content,
-    );
+    const embedding: number[] =
+      await this.embeddingProducer.getEmbedding(content);
     const result = await search(this.db, {
       mode: "vector",
       vector: {
@@ -328,7 +325,7 @@ export class DocumentSearchDatabaseOrama implements KnowledgeDatabase {
     return result.hits.map((hit) => {
       let content = hit.document.content;
       if (content.length > 4000) {
-        content = content.substring(0, 4000) + "...";
+        content = `${content.substring(0, 4000)}...`;
       }
       return {
         path: hit.document.path,

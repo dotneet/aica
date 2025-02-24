@@ -17,8 +17,8 @@ export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
   // Handle single line format (@@ -1 +1 @@)
   const singleLineHeaderMatch = lines[i].match(/@@ -(\d+) \+(\d+) @@/);
   if (singleLineHeaderMatch) {
-    const oldStart = parseInt(singleLineHeaderMatch[1]);
-    const newStart = parseInt(singleLineHeaderMatch[2]);
+    const oldStart = Number.parseInt(singleLineHeaderMatch[1]);
+    const newStart = Number.parseInt(singleLineHeaderMatch[2]);
     const header = lines[i];
 
     const hunkLines: string[] = [];
@@ -59,10 +59,10 @@ export function parseHunk(lines: string[], i: number): [PatchHunk, number] {
     throw new Error(`Invalid hunk header: ${lines[i]}`);
   }
 
-  const oldStart = parseInt(headerMatch[1]);
-  const oldLines = parseInt(headerMatch[2]);
-  const newStart = parseInt(headerMatch[3]);
-  const newLines = parseInt(headerMatch[4]);
+  const oldStart = Number.parseInt(headerMatch[1]);
+  const oldLines = Number.parseInt(headerMatch[2]);
+  const newStart = Number.parseInt(headerMatch[3]);
+  const newLines = Number.parseInt(headerMatch[4]);
   const header = lines[i];
 
   const hunkLines: string[] = [];
@@ -213,7 +213,9 @@ export function createPatch(src: string, dst: string): Patch {
     const next = i + 1 < changes.length ? changes[i + 1] : null;
 
     // Calculate common lines between current and next change
-    const commonLines = next ? next.start - current.end : Infinity;
+    const commonLines = next
+      ? next.start - current.end
+      : Number.POSITIVE_INFINITY;
 
     // Only merge if there are no common lines (no shared context)
     if (next && commonLines === 0) {
@@ -239,7 +241,7 @@ export function createPatch(src: string, dst: string): Patch {
     } else {
       hunkStart = Math.max(0, change.start - context);
     }
-    let hunkEnd = Math.min(
+    const hunkEnd = Math.min(
       Math.max(srcLines.length, dstLines.length),
       change.end + context,
     );
@@ -249,24 +251,24 @@ export function createPatch(src: string, dst: string): Patch {
     // Add leading context
     for (let k = hunkStart; k < change.start; k++) {
       if (k < srcLines.length && k < dstLines.length) {
-        hunkLines.push(" " + srcLines[k]);
+        hunkLines.push(` ${srcLines[k]}`);
       }
     }
 
     // Add changed lines
     for (let k = change.start; k < change.end; k++) {
       if (k < srcLines.length) {
-        hunkLines.push("-" + srcLines[k]);
+        hunkLines.push(`-${srcLines[k]}`);
       }
       if (k < dstLines.length) {
-        hunkLines.push("+" + dstLines[k]);
+        hunkLines.push(`+${dstLines[k]}`);
       }
     }
 
     // Add trailing context
     for (let k = change.end; k < hunkEnd; k++) {
       if (k < srcLines.length && k < dstLines.length) {
-        hunkLines.push(" " + srcLines[k]);
+        hunkLines.push(` ${srcLines[k]}`);
       }
     }
 

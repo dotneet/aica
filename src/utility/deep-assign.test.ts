@@ -1,4 +1,4 @@
-import { it, expect } from "bun:test";
+import { expect, it } from "bun:test";
 import { deepAssign } from "./deep-assign";
 
 it("deepAssign keep the property in the nested object", () => {

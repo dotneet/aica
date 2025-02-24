@@ -1,13 +1,13 @@
-import { LLMConfigAnthropic } from "@/config";
+import type { LLMConfigAnthropic } from "@/config";
 import {
-  extractJsonFromText,
-  LLM,
-  Message,
-  withRetry,
-  LLMOptions,
+  type LLM,
+  type LLMOptions,
   LLMRateLimitError,
+  type Message,
+  extractJsonFromText,
+  withRetry,
 } from "./llm";
-import { createLLMLogger, LLMLogger } from "./logger";
+import { type LLMLogger, createLLMLogger } from "./logger";
 
 type ClaudeMessageResponse = {
   id: string;
@@ -85,7 +85,7 @@ export class LLMAnthropic implements LLM {
           const retryAfter = response.headers.get("Retry-After");
           throw new LLMRateLimitError(
             "Rate limit exceeded",
-            retryAfter ? parseInt(retryAfter) : undefined,
+            retryAfter ? Number.parseInt(retryAfter) : undefined,
           );
         }
         const errorData = await response
@@ -107,17 +107,14 @@ export class LLMAnthropic implements LLM {
       );
     }
 
-    let text = responseObject.content[0].text;
+    const text = responseObject.content[0].text;
     if (jsonMode) {
       const json = extractJsonFromText(text);
       if (json) {
         this.logger.log(`LLM Anthropic response: ${json}`);
         return json;
-      } else {
-        throw new Error(
-          "Invalid response from Anthropic API: No JSON received",
-        );
       }
+      throw new Error("Invalid response from Anthropic API: No JSON received");
     }
     this.logger.log(`LLM Anthropic response: ${text}`);
     return text;

@@ -1,9 +1,9 @@
 import {
-  Tool,
+  type Tool,
   ToolError,
-  ToolExecutionContext,
-  ToolExecutionResult,
-  ToolId,
+  type ToolExecutionContext,
+  type ToolExecutionResult,
+  type ToolId,
 } from "../tool";
 
 export class AskFollowupQuestionTool implements Tool {
@@ -49,7 +49,7 @@ export class AskFollowupQuestionTool implements Tool {
         if (line.trim() === "") {
           break;
         }
-        result += line + "\n";
+        result += `${line}\n`;
         process.stdout.write(prompt);
       }
       console.log("Thank you for your input.");
@@ -63,9 +63,8 @@ export class AskFollowupQuestionTool implements Tool {
         throw new ToolError(
           `Failed to ask followup question: ${error.message}`,
         );
-      } else {
-        throw new ToolError(`Failed to ask followup question: ${error}`);
       }
+      throw new ToolError(`Failed to ask followup question: ${error}`);
     }
   }
 }

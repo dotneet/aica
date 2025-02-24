@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeEach } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
+import { type LLMConfig, type LLMProvider, readConfig } from "@/config";
 import { createLLM } from "./factory";
-import { LLMConfig, readConfig } from "@/config";
 
 describe("LLM Factory", () => {
   let defaultConfig: LLMConfig;
@@ -178,7 +178,7 @@ describe("LLM Factory", () => {
   test("should throw error for unknown provider", async () => {
     const config = {
       ...defaultConfig,
-      provider: "unknown" as any,
+      provider: "unknown" as LLMProvider,
     };
     expect(() => createLLM(config)).toThrow("Unknown LLM provider: unknown");
   });
