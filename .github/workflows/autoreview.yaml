@@ -1,4 +1,4 @@
-name: Auto Review by AICA
+name: aica
 
 on:
   pull_request:
@@ -6,10 +6,12 @@ on:
     types: [opened, reopened]
   issue_comment:
     types: [created, edited]
+  pull_request_review_comment:
+    types: [created]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: write
 
@@ -19,10 +21,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: AI Code Analyzer
         uses: dotneet/aica@main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AICA_LLM_PROVIDER: anthropic
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
