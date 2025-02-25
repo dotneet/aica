@@ -146,7 +146,7 @@ export const defaultConfig: Config = {
       logFile: Bun.env.OPENAI_LOG_FILE || undefined,
     },
     anthropic: {
-      model: Bun.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022",
+      model: Bun.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
       temperature: 0.5,
       maxTokens: 4096,
