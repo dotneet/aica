@@ -118,33 +118,6 @@ export function composeIgnorePatterns(
   return combinedPatterns;
 }
 
-export function matchesAnyIgnorePattern(
-  combinedPatterns: { pattern: string; isNegative: boolean }[],
-  normalizedRelativePath: string,
-): boolean {
-  let isIgnored = false;
-  let hasNegativeMatch = false;
-
-  for (const { pattern, isNegative } of combinedPatterns) {
-    if (matchGitignorePattern(pattern, normalizedRelativePath)) {
-      if (isNegative) {
-        // 否定パターンにマッチした場合は、常に無視しない
-        hasNegativeMatch = true;
-      } else if (!hasNegativeMatch) {
-        // 否定パターンにマッチしていない場合のみ、肯定パターンの結果を適用
-        isIgnored = true;
-      }
-    }
-  }
-
-  // 否定パターンにマッチした場合は、常に無視しない
-  if (hasNegativeMatch) {
-    return false;
-  }
-
-  return isIgnored;
-}
-
 export function matchGitignorePattern(pattern: string, path: string): boolean {
   let regexPattern = pattern;
   regexPattern = regexPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
@@ -152,19 +125,19 @@ export function matchGitignorePattern(pattern: string, path: string): boolean {
   regexPattern = regexPattern.replace(/\*/g, "[^/]*");
   regexPattern = regexPattern.replace(/{{GLOBSTAR}}/g, ".*");
 
-  // パターンがスラッシュで始まる場合は、パスの先頭にマッチする必要がある
+  // If the pattern starts with a slash, it must match the beginning of the path
   if (pattern.startsWith("/")) {
     regexPattern = `^${regexPattern.slice(1)}`;
   }
-  // パターンがスラッシュで終わる場合は、ディレクトリを表す
+  // If the pattern ends with a slash, it represents a directory
   else if (pattern.endsWith("/")) {
     regexPattern = `(^|.*/)${regexPattern}.*$`;
   }
-  // パターンにスラッシュが含まれる場合は、パスの一部として扱う
+  // If the pattern contains a slash, it is treated as part of the path
   else if (pattern.includes("/")) {
     regexPattern = `(^|.*/)${regexPattern}(/.*)?$`;
   }
-  // それ以外の場合は、ファイル名またはディレクトリ名として扱う
+  // Otherwise, it is treated as a filename or directory name
   else {
     regexPattern = `(^|.*/)(${regexPattern})(/.*)?$`;
   }
@@ -182,28 +155,157 @@ export type ListFilesResult = {
   files: string[];
   didHitLimit: boolean;
 };
+
+// Map to cache regular expressions
+const regexCache = new Map<string, RegExp>();
+
+// Cached version of matchGitignorePattern
+function matchGitignorePatternCached(pattern: string, path: string): boolean {
+  let regex = regexCache.get(pattern);
+
+  if (!regex) {
+    let regexPattern = pattern;
+    regexPattern = regexPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+    regexPattern = regexPattern.replace(/\*\*/g, "{{GLOBSTAR}}");
+    regexPattern = regexPattern.replace(/\*/g, "[^/]*");
+    regexPattern = regexPattern.replace(/{{GLOBSTAR}}/g, ".*");
+
+    // If the pattern starts with a slash, it must match the beginning of the path
+    if (pattern.startsWith("/")) {
+      regexPattern = `^${regexPattern.slice(1)}`;
+    }
+    // If the pattern ends with a slash, it represents a directory
+    else if (pattern.endsWith("/")) {
+      regexPattern = `(^|.*/)${regexPattern}.*$`;
+    }
+    // If the pattern contains a slash, it is treated as part of the path
+    else if (pattern.includes("/")) {
+      regexPattern = `(^|.*/)${regexPattern}(/.*)?$`;
+    }
+    // Otherwise, it is treated as a filename or directory name
+    else {
+      regexPattern = `(^|.*/)(${regexPattern})(/.*)?$`;
+    }
+
+    try {
+      regex = new RegExp(regexPattern);
+      regexCache.set(pattern, regex);
+    } catch (error) {
+      console.error(`Invalid regex pattern: ${regexPattern}`, error);
+      return false;
+    }
+  }
+
+  return regex.test(path);
+}
+
+// Optimized version of matchesAnyIgnorePattern
+function matchesAnyIgnorePatternOptimized(
+  combinedPatterns: { pattern: string; isNegative: boolean }[],
+  normalizedRelativePath: string,
+  isDirectory = false,
+): boolean {
+  // Create a path for directories (add a trailing slash)
+  const pathToCheck =
+    isDirectory && !normalizedRelativePath.endsWith("/")
+      ? `${normalizedRelativePath}/`
+      : normalizedRelativePath;
+
+  let isIgnored = false;
+  let hasNegativeMatch = false;
+
+  // Process negative patterns first
+  for (const { pattern, isNegative } of combinedPatterns) {
+    if (isNegative && matchGitignorePatternCached(pattern, pathToCheck)) {
+      hasNegativeMatch = true;
+      break; // Early return if matched a negative pattern
+    }
+  }
+
+  // If matched a negative pattern, don't ignore
+  if (hasNegativeMatch) {
+    return false;
+  }
+
+  // Process positive patterns
+  for (const { pattern, isNegative } of combinedPatterns) {
+    if (!isNegative && matchGitignorePatternCached(pattern, pathToCheck)) {
+      isIgnored = true;
+      break; // Early return if matched a positive pattern
+    }
+  }
+
+  return isIgnored;
+}
+
+// Export for testing
+export const matchesAnyIgnorePattern = matchesAnyIgnorePatternOptimized;
+
 export function listFiles(cwd: string, limit: number): ListFilesResult {
   const result: string[] = [];
-  // composeIgnorePatterns に切り出した
   const combinedPatterns = composeIgnorePatterns(cwd, defaultIgnorePatterns);
 
-  function shouldIgnore(path: string): boolean {
+  // Cache for normalized directory paths
+  const normalizedPathCache = new Map<string, string>();
+
+  function getNormalizedPath(path: string): string {
+    if (normalizedPathCache.has(path)) {
+      return normalizedPathCache.get(path) ?? "";
+    }
+
     const relativePath = relative(cwd, path);
-    if (!relativePath) return false;
+    if (!relativePath) return "";
 
-    // パスを正規化（Windowsのバックスラッシュをフォワードスラッシュに変換）
-    const normalizedRelativePath = relativePath.replace(/\\/g, "/");
+    // Normalize path (convert Windows backslashes to forward slashes)
+    const normalizedPath = relativePath.replace(/\\/g, "/");
+    normalizedPathCache.set(path, normalizedPath);
+    return normalizedPath;
+  }
 
-    // ディレクトリの場合、末尾にスラッシュを追加してチェックする必要がある場合がある
-    // しかし、ここではファイルシステムの状態を確認せずにパターンマッチングのみを行う
-    return matchesAnyIgnorePattern(combinedPatterns, normalizedRelativePath);
+  function shouldIgnore(path: string, isDirectory = false): boolean {
+    const normalizedPath = getNormalizedPath(path);
+    if (!normalizedPath) return false;
+
+    return matchesAnyIgnorePatternOptimized(
+      combinedPatterns,
+      normalizedPath,
+      isDirectory,
+    );
   }
 
   function traverseDirectory(currentPath: string): boolean {
     if (result.length >= limit) return true;
 
     try {
+      // Check if the directory should be ignored first
+      if (shouldIgnore(currentPath, true)) {
+        // Don't completely skip, as there might be files specified by negative patterns
+        // However, early return for directories that should clearly be ignored
+        const normalizedPath = getNormalizedPath(currentPath);
+        let hasNegativePattern = false;
+
+        // Check if there are any negative patterns related to this directory
+        for (const { isNegative, pattern } of combinedPatterns) {
+          if (isNegative) {
+            // If there's a negative pattern that might be related to this directory
+            if (
+              pattern.includes("/") &&
+              normalizedPath.includes(pattern.split("/")[0])
+            ) {
+              hasNegativePattern = true;
+              break;
+            }
+          }
+        }
+
+        // If there are no negative patterns, completely skip this directory
+        if (!hasNegativePattern) {
+          return false;
+        }
+      }
+
       const entries = readdirSync(currentPath);
+      // Sort only if necessary (if tests depend on order)
       const sortedEntries = entries.sort();
 
       for (const entry of sortedEntries) {
@@ -214,11 +316,10 @@ export function listFiles(cwd: string, limit: number): ListFilesResult {
           const stats = statSync(fullPath);
 
           if (stats.isDirectory()) {
-            // ディレクトリの場合、無視されていても再帰的に処理する
-            // 無視されたディレクトリ内にも否定パターンで指定されたファイルがある可能性がある
+            // For directories, process recursively
             traverseDirectory(fullPath);
           } else if (stats.isFile()) {
-            // ファイルの場合、無視パターンに一致するかチェック
+            // For files, check if they match ignore patterns
             if (!shouldIgnore(fullPath)) {
               result.push(fullPath);
             }
