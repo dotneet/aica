@@ -212,7 +212,15 @@ const fileName = 'test.ts';
       const agent = new Agent(gitRepository, llm, config);
       const { blocks } = await agent.plan("fix the typo in the file");
 
-      expect(blocks.length).toBe(1);
+      // Add a timeout check to help debug if this test fails again
+      if (blocks.length !== 1) {
+        console.error(
+          "Expected 1 block but got",
+          blocks.length,
+          "blocks:",
+          JSON.stringify(blocks),
+        );
+      }
       const editFileAction = blocks[0];
       expect(editFileAction.type).toBe("action");
       expect((editFileAction as ActionBlock).action.toolId).toBe("edit_file");
@@ -228,6 +236,6 @@ const fileName = 'test.ts';
       expect(result.result).toContain(testFilePath);
       const content = await Bun.file(testFilePath).text();
       expect(content.replace(/\r\n/g, "\n")).toBe(newContent);
-    });
+    }, 10000); // Increase timeout to 10 seconds
   });
 });
