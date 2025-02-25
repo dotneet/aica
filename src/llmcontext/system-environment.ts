@@ -210,9 +210,6 @@ export function listFiles(cwd: string, limit: number): ListFilesResult {
         if (result.length >= limit) break;
 
         const fullPath = join(currentPath, entry);
-        const relativePath = relative(cwd, fullPath);
-        const normalizedRelativePath = relativePath.replace(/\\/g, "/");
-
         try {
           const stats = statSync(fullPath);
 
@@ -227,7 +224,11 @@ export function listFiles(cwd: string, limit: number): ListFilesResult {
             }
           }
         } catch (error) {
-          console.error(`Error accessing ${fullPath}:`, error);
+          if (error instanceof Error && error.message.includes("ENOENT")) {
+            // ignore error
+          } else {
+            console.error(`Error accessing ${fullPath}:`, error);
+          }
         }
       }
     } catch (error) {
