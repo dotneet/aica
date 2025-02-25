@@ -5,10 +5,10 @@ import {
   AttemptCompletionTool,
   CreateFileTool,
   EditFileTool,
-  UseShellTool,
   ListFilesTool,
   ReadFileTool,
   SearchFilesTool,
+  UseShellTool,
   diffToolPrompt,
 } from "./tools";
 import { UseMcpResource, UseMcpTool } from "./tools/mcp";

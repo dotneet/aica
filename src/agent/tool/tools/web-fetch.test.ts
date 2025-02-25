@@ -1,5 +1,5 @@
-import { expect, describe, it } from "bun:test";
-import { isUnsafeUrl, getMarkdownFromPage } from "./web-fetch";
+import { describe, expect, it } from "bun:test";
+import { getMarkdownFromPage, isUnsafeUrl } from "./web-fetch";
 
 describe("isUnsafeUrl", () => {
   it("should return true for localhost", () => {
