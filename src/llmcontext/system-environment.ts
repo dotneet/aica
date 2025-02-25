@@ -118,24 +118,6 @@ export function composeIgnorePatterns(
   return combinedPatterns;
 }
 
-export function matchesAnyIgnorePattern(
-  combinedPatterns: { pattern: string; isNegative: boolean }[],
-  normalizedRelativePath: string,
-): boolean {
-  let isIgnored = false;
-
-  for (const { pattern, isNegative } of combinedPatterns) {
-    if (matchGitignorePattern(pattern, normalizedRelativePath)) {
-      if (isNegative) {
-        isIgnored = false;
-      } else {
-        isIgnored = true;
-      }
-    }
-  }
-  return isIgnored;
-}
-
 export function matchGitignorePattern(pattern: string, path: string): boolean {
   let regexPattern = pattern;
   regexPattern = regexPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
@@ -143,13 +125,20 @@ export function matchGitignorePattern(pattern: string, path: string): boolean {
   regexPattern = regexPattern.replace(/\*/g, "[^/]*");
   regexPattern = regexPattern.replace(/{{GLOBSTAR}}/g, ".*");
 
+  // If the pattern starts with a slash, it must match the beginning of the path
   if (pattern.startsWith("/")) {
     regexPattern = `^${regexPattern.slice(1)}`;
-  } else if (pattern.endsWith("/")) {
+  }
+  // If the pattern ends with a slash, it represents a directory
+  else if (pattern.endsWith("/")) {
     regexPattern = `(^|.*/)${regexPattern}.*$`;
-  } else if (pattern.includes("/")) {
+  }
+  // If the pattern contains a slash, it is treated as part of the path
+  else if (pattern.includes("/")) {
     regexPattern = `(^|.*/)${regexPattern}(/.*)?$`;
-  } else {
+  }
+  // Otherwise, it is treated as a filename or directory name
+  else {
     regexPattern = `(^|.*/)(${regexPattern})(/.*)?$`;
   }
 
@@ -166,39 +155,181 @@ export type ListFilesResult = {
   files: string[];
   didHitLimit: boolean;
 };
+
+// Map to cache regular expressions
+const regexCache = new Map<string, RegExp>();
+
+// Cached version of matchGitignorePattern
+function matchGitignorePatternCached(pattern: string, path: string): boolean {
+  let regex = regexCache.get(pattern);
+
+  if (!regex) {
+    let regexPattern = pattern;
+    regexPattern = regexPattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&");
+    regexPattern = regexPattern.replace(/\*\*/g, "{{GLOBSTAR}}");
+    regexPattern = regexPattern.replace(/\*/g, "[^/]*");
+    regexPattern = regexPattern.replace(/{{GLOBSTAR}}/g, ".*");
+
+    // If the pattern starts with a slash, it must match the beginning of the path
+    if (pattern.startsWith("/")) {
+      regexPattern = `^${regexPattern.slice(1)}`;
+    }
+    // If the pattern ends with a slash, it represents a directory
+    else if (pattern.endsWith("/")) {
+      regexPattern = `(^|.*/)${regexPattern}.*$`;
+    }
+    // If the pattern contains a slash, it is treated as part of the path
+    else if (pattern.includes("/")) {
+      regexPattern = `(^|.*/)${regexPattern}(/.*)?$`;
+    }
+    // Otherwise, it is treated as a filename or directory name
+    else {
+      regexPattern = `(^|.*/)(${regexPattern})(/.*)?$`;
+    }
+
+    try {
+      regex = new RegExp(regexPattern);
+      regexCache.set(pattern, regex);
+    } catch (error) {
+      console.error(`Invalid regex pattern: ${regexPattern}`, error);
+      return false;
+    }
+  }
+
+  return regex.test(path);
+}
+
+// Optimized version of matchesAnyIgnorePattern
+function matchesAnyIgnorePatternOptimized(
+  combinedPatterns: { pattern: string; isNegative: boolean }[],
+  normalizedRelativePath: string,
+  isDirectory = false,
+): boolean {
+  // Create a path for directories (add a trailing slash)
+  const pathToCheck =
+    isDirectory && !normalizedRelativePath.endsWith("/")
+      ? `${normalizedRelativePath}/`
+      : normalizedRelativePath;
+
+  let isIgnored = false;
+  let hasNegativeMatch = false;
+
+  // Process negative patterns first
+  for (const { pattern, isNegative } of combinedPatterns) {
+    if (isNegative && matchGitignorePatternCached(pattern, pathToCheck)) {
+      hasNegativeMatch = true;
+      break; // Early return if matched a negative pattern
+    }
+  }
+
+  // If matched a negative pattern, don't ignore
+  if (hasNegativeMatch) {
+    return false;
+  }
+
+  // Process positive patterns
+  for (const { pattern, isNegative } of combinedPatterns) {
+    if (!isNegative && matchGitignorePatternCached(pattern, pathToCheck)) {
+      isIgnored = true;
+      break; // Early return if matched a positive pattern
+    }
+  }
+
+  return isIgnored;
+}
+
+// Export for testing
+export const matchesAnyIgnorePattern = matchesAnyIgnorePatternOptimized;
+
 export function listFiles(cwd: string, limit: number): ListFilesResult {
   const result: string[] = [];
-  // composeIgnorePatterns に切り出した
   const combinedPatterns = composeIgnorePatterns(cwd, defaultIgnorePatterns);
 
-  function shouldIgnore(path: string): boolean {
-    const relativePath = relative(cwd, path);
-    if (!relativePath) return false;
+  // Cache for normalized directory paths
+  const normalizedPathCache = new Map<string, string>();
 
-    const normalizedRelativePath = relativePath.replace(/\\/g, "/");
-    return matchesAnyIgnorePattern(combinedPatterns, normalizedRelativePath);
+  function getNormalizedPath(path: string): string {
+    if (normalizedPathCache.has(path)) {
+      return normalizedPathCache.get(path) ?? "";
+    }
+
+    const relativePath = relative(cwd, path);
+    if (!relativePath) return "";
+
+    // Normalize path (convert Windows backslashes to forward slashes)
+    const normalizedPath = relativePath.replace(/\\/g, "/");
+    normalizedPathCache.set(path, normalizedPath);
+    return normalizedPath;
+  }
+
+  function shouldIgnore(path: string, isDirectory = false): boolean {
+    const normalizedPath = getNormalizedPath(path);
+    if (!normalizedPath) return false;
+
+    return matchesAnyIgnorePatternOptimized(
+      combinedPatterns,
+      normalizedPath,
+      isDirectory,
+    );
   }
 
   function traverseDirectory(currentPath: string): boolean {
     if (result.length >= limit) return true;
 
     try {
+      // Check if the directory should be ignored first
+      if (shouldIgnore(currentPath, true)) {
+        // Don't completely skip, as there might be files specified by negative patterns
+        // However, early return for directories that should clearly be ignored
+        const normalizedPath = getNormalizedPath(currentPath);
+        let hasNegativePattern = false;
+
+        // Check if there are any negative patterns related to this directory
+        for (const { isNegative, pattern } of combinedPatterns) {
+          if (isNegative) {
+            // If there's a negative pattern that might be related to this directory
+            if (
+              pattern.includes("/") &&
+              normalizedPath.includes(pattern.split("/")[0])
+            ) {
+              hasNegativePattern = true;
+              break;
+            }
+          }
+        }
+
+        // If there are no negative patterns, completely skip this directory
+        if (!hasNegativePattern) {
+          return false;
+        }
+      }
+
       const entries = readdirSync(currentPath);
+      // Sort only if necessary (if tests depend on order)
       const sortedEntries = entries.sort();
 
       for (const entry of sortedEntries) {
         if (result.length >= limit) break;
 
         const fullPath = join(currentPath, entry);
-        const stats = statSync(fullPath);
+        try {
+          const stats = statSync(fullPath);
 
-        // Directory: we go inside even if it matches ignore patterns, because some files could be excluded from ignore by a negative pattern
-        if (stats.isDirectory()) {
-          traverseDirectory(fullPath);
-        } else if (stats.isFile()) {
-          // File: we check the ignore pattern here
-          if (shouldIgnore(fullPath)) continue;
-          result.push(fullPath);
+          if (stats.isDirectory()) {
+            // For directories, process recursively
+            traverseDirectory(fullPath);
+          } else if (stats.isFile()) {
+            // For files, check if they match ignore patterns
+            if (!shouldIgnore(fullPath)) {
+              result.push(fullPath);
+            }
+          }
+        } catch (error) {
+          if (error instanceof Error && error.message.includes("ENOENT")) {
+            // ignore error
+          } else {
+            console.error(`Error accessing ${fullPath}:`, error);
+          }
         }
       }
     } catch (error) {
