@@ -123,16 +123,25 @@ export function matchesAnyIgnorePattern(
   normalizedRelativePath: string,
 ): boolean {
   let isIgnored = false;
+  let hasNegativeMatch = false;
 
   for (const { pattern, isNegative } of combinedPatterns) {
     if (matchGitignorePattern(pattern, normalizedRelativePath)) {
       if (isNegative) {
-        isIgnored = false;
-      } else {
+        // 否定パターンにマッチした場合は、常に無視しない
+        hasNegativeMatch = true;
+      } else if (!hasNegativeMatch) {
+        // 否定パターンにマッチしていない場合のみ、肯定パターンの結果を適用
         isIgnored = true;
       }
     }
   }
+
+  // 否定パターンにマッチした場合は、常に無視しない
+  if (hasNegativeMatch) {
+    return false;
+  }
+
   return isIgnored;
 }
 
@@ -143,13 +152,20 @@ export function matchGitignorePattern(pattern: string, path: string): boolean {
   regexPattern = regexPattern.replace(/\*/g, "[^/]*");
   regexPattern = regexPattern.replace(/{{GLOBSTAR}}/g, ".*");
 
+  // パターンがスラッシュで始まる場合は、パスの先頭にマッチする必要がある
   if (pattern.startsWith("/")) {
     regexPattern = `^${regexPattern.slice(1)}`;
-  } else if (pattern.endsWith("/")) {
+  }
+  // パターンがスラッシュで終わる場合は、ディレクトリを表す
+  else if (pattern.endsWith("/")) {
     regexPattern = `(^|.*/)${regexPattern}.*$`;
-  } else if (pattern.includes("/")) {
+  }
+  // パターンにスラッシュが含まれる場合は、パスの一部として扱う
+  else if (pattern.includes("/")) {
     regexPattern = `(^|.*/)${regexPattern}(/.*)?$`;
-  } else {
+  }
+  // それ以外の場合は、ファイル名またはディレクトリ名として扱う
+  else {
     regexPattern = `(^|.*/)(${regexPattern})(/.*)?$`;
   }
 
@@ -175,7 +191,11 @@ export function listFiles(cwd: string, limit: number): ListFilesResult {
     const relativePath = relative(cwd, path);
     if (!relativePath) return false;
 
+    // パスを正規化（Windowsのバックスラッシュをフォワードスラッシュに変換）
     const normalizedRelativePath = relativePath.replace(/\\/g, "/");
+
+    // ディレクトリの場合、末尾にスラッシュを追加してチェックする必要がある場合がある
+    // しかし、ここではファイルシステムの状態を確認せずにパターンマッチングのみを行う
     return matchesAnyIgnorePattern(combinedPatterns, normalizedRelativePath);
   }
 
@@ -190,15 +210,24 @@ export function listFiles(cwd: string, limit: number): ListFilesResult {
         if (result.length >= limit) break;
 
         const fullPath = join(currentPath, entry);
-        const stats = statSync(fullPath);
+        const relativePath = relative(cwd, fullPath);
+        const normalizedRelativePath = relativePath.replace(/\\/g, "/");
 
-        // Directory: we go inside even if it matches ignore patterns, because some files could be excluded from ignore by a negative pattern
-        if (stats.isDirectory()) {
-          traverseDirectory(fullPath);
-        } else if (stats.isFile()) {
-          // File: we check the ignore pattern here
-          if (shouldIgnore(fullPath)) continue;
-          result.push(fullPath);
+        try {
+          const stats = statSync(fullPath);
+
+          if (stats.isDirectory()) {
+            // ディレクトリの場合、無視されていても再帰的に処理する
+            // 無視されたディレクトリ内にも否定パターンで指定されたファイルがある可能性がある
+            traverseDirectory(fullPath);
+          } else if (stats.isFile()) {
+            // ファイルの場合、無視パターンに一致するかチェック
+            if (!shouldIgnore(fullPath)) {
+              result.push(fullPath);
+            }
+          }
+        } catch (error) {
+          console.error(`Error accessing ${fullPath}:`, error);
         }
       }
     } catch (error) {

@@ -22,6 +22,8 @@ describe("listFiles", () => {
     "src/hello.tmp",
     "src/temp/hello.txt",
     "debug/a/b/c/debug.log",
+    "ignored-dir/file1.txt",
+    "ignored-dir/subdir/file2.txt",
   ];
 
   beforeAll(async () => {
@@ -35,6 +37,7 @@ describe("listFiles", () => {
     await mkdir(join(testDir, "build"), { recursive: true });
     await mkdir(join(testDir, "src", "temp"), { recursive: true });
     await mkdir(join(testDir, "debug", "a", "b", "c"), { recursive: true });
+    await mkdir(join(testDir, "ignored-dir", "subdir"), { recursive: true });
 
     // Create .gitignore file
     await writeFile(
@@ -59,6 +62,9 @@ src/temp/
 
 # Multiple * tests
 debug/**/debug.log
+
+# Directory ignore test
+ignored-dir/
 `,
     );
 
@@ -142,6 +148,22 @@ debug/**/debug.log
       expect(files.some((p) => p.includes("debug/a/b/c/debug.log"))).toBe(
         false,
       );
+    });
+
+    test("directory ignore patterns", () => {
+      const result: ListFilesResult = listFiles(testDir, 100);
+      const files = result.files;
+
+      // ディレクトリ全体が無視されるパターン
+      expect(files.some((p) => p.includes("ignored-dir/file1.txt"))).toBe(
+        false,
+      );
+      expect(
+        files.some((p) => p.includes("ignored-dir/subdir/file2.txt")),
+      ).toBe(false);
+
+      // 比較のため、無視されないファイルが含まれていることを確認
+      expect(files.some((p) => p.includes("file1.txt"))).toBe(true);
     });
   });
 
