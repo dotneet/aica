@@ -8,8 +8,9 @@
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
-    "build": "bun build --compile --outfile dist/aica src/main.ts",
-    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
+    "build": "bun build --compile --outfile dist/aica src/main.ts --external yoga-wasm-web && bun run copy-wasm",
+    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts --external yoga-wasm-web && bun run copy-wasm",
+    "copy-wasm": "mkdir -p dist && cp node_modules/yoga-wasm-web/dist/yoga.wasm dist/",
     "lint": "biome check .",
     "check": "biome check --write src",
     "check:unsafe": "biome check --fix --unsafe src"
@@ -54,6 +55,7 @@
     "turndown": "^7.2.0",
     "winston": "^3.17.0",
     "yargs": "^17.7.2",
+    "yoga-wasm-web": "^0.3.3",
     "zod": "^3.24.2"
   }
 }
