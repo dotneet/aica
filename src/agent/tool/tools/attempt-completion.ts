@@ -41,7 +41,12 @@ export class AttemptCompletionTool implements Tool {
     }
 
     try {
-      console.log(args.result);
+      context.agentConsole.assistant(args.result);
+      context.addMessage({
+        role: "assistant",
+        content: args.result,
+      });
+
       if (args.command) {
         const proc = Bun.spawn([args.command], {
           stdout: "pipe",

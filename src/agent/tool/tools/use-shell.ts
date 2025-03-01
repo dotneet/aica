@@ -26,7 +26,7 @@ export class UseShellTool implements Tool {
     }
 
     try {
-      console.log("use_shell", args.command);
+      context.agentConsole.tool(`use_shell ${args.command}`);
       const proc = Bun.spawn(["sh", "-c", args.command], {
         stdout: "pipe",
         stderr: "pipe",
@@ -40,7 +40,7 @@ export class UseShellTool implements Tool {
         result += `Error: ${error}\n`;
       }
       if (output) {
-        console.log(output);
+        context.agentConsole.tool(output);
         result += output;
       }
 

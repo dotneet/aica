@@ -138,6 +138,16 @@ Recommend to use anthropic claude 3.5 sonnet for agent.
 
 NOTE: This command has potential to break your file system. Please be careful.
 
+### MCP Server
+
+```bash
+# start a MCP server
+aica mcp server
+
+# start a MCP server with a config file
+aica mcp server --config aica.toml
+```
+
 ### Reindex
 
 ```bash

@@ -24,7 +24,10 @@ export class MCPClientManager implements AsyncDisposable {
     for (const item of mcpSchemaObject) {
       try {
         const parsedItem = mcpItemSchema.parse(item);
-        this.items.push(parsedItem);
+        // enabled: falseのアイテムは無視する
+        if (parsedItem.enabled !== false) {
+          this.items.push(parsedItem);
+        }
       } catch (error) {
         throw new Error(
           `Invald MCP setup file: ${setupFilePath}\n${JSON.stringify(

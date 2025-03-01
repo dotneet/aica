@@ -7,6 +7,7 @@ import type { Source } from "@/source";
 import { AgentHistory } from "./agent-history";
 import { type MessageBlock, parseAssistantMessage } from "./assistant-message";
 import { getSystemPrompt } from "./prompt/system-prompt";
+import chalk from "chalk";
 import {
   type ActionResult,
   type Tool,
@@ -18,6 +19,7 @@ import {
   initializeTools,
   readOnlyToolIds,
 } from "./tool/mod";
+import { type AgentConsole, createAgentConsole } from "./agent-console";
 
 export type TaskExecutionOptions = {
   verbose: boolean;
@@ -43,8 +45,18 @@ export class Agent implements AsyncDisposable {
   private mcpClientManager: MCPClientManager | null = null;
   private tools: Record<string, Tool>;
   private toolExecutionContext: ToolExecutionContext;
+  private agentConsole: AgentConsole;
 
-  constructor(gitRepository: GitRepository, llm: LLM, config: Config) {
+  constructor(
+    gitRepository: GitRepository,
+    llm: LLM,
+    config: Config,
+    options: {
+      consoleOutput: boolean;
+    } = {
+      consoleOutput: true,
+    },
+  ) {
     this.tools = initializeTools();
     this.rulesConfig = config.rules;
     this.gitRepository = gitRepository;
@@ -59,8 +71,11 @@ export class Agent implements AsyncDisposable {
     if (config.mcp.setupFile) {
       this.mcpClientManager = new MCPClientManager(config.mcp.setupFile);
     }
+    this.agentConsole = createAgentConsole(options.consoleOutput);
     this.toolExecutionContext = createToolExecutionContext(
       this.mcpClientManager,
+      (message) => this.messages.push(message),
+      this.agentConsole,
     );
     this.start();
   }
@@ -132,7 +147,7 @@ export class Agent implements AsyncDisposable {
   async startTask(
     initialPrompt: string,
     taskOptions: Partial<TaskExecutionOptions> = {},
-  ): Promise<void> {
+  ): Promise<Message[]> {
     const options = { ...defaultTaskExecutionOptions, ...taskOptions };
     const maxIterations =
       options.maxIterations ?? defaultTaskExecutionOptions.maxIterations;
@@ -167,11 +182,13 @@ export class Agent implements AsyncDisposable {
       }
 
       for (const block of blocks) {
-        if (block.type === "plain") {
-          console.log(block.content);
+        if (block.type === "thinking") {
+          this.agentConsole.thinking(block.content);
+        } else if (block.type === "plain") {
+          this.agentConsole.assistant(block.content);
         } else if (block.type === "action") {
           if (block.action.toolId !== "attempt_completion" || options.verbose) {
-            console.log(getToolExecutionLog(block.action));
+            this.agentConsole.tool(getToolExecutionLog(block.action));
           }
           const toolExecutionResult = await executeTool(
             this.toolExecutionContext,
@@ -203,5 +220,6 @@ export class Agent implements AsyncDisposable {
       prompt =
         "Please evaluate the task content and the tool's execution results. Only consider the next action if it is necessary to continue the task.";
     }
+    return this.messages;
   }
 }

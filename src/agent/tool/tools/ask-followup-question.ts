@@ -32,8 +32,8 @@ export class AskFollowupQuestionTool implements Tool {
     }
 
     try {
-      console.log("Followup question:\n", args.question);
-      console.log(
+      context.agentConsole.assistant(`Followup question:\n${args.question}`);
+      context.agentConsole.assistant(
         "\nPlease input additional information. Enter an empty line to submit.\n",
       );
       let result = "";
@@ -52,7 +52,7 @@ export class AskFollowupQuestionTool implements Tool {
         result += `${line}\n`;
         process.stdout.write(prompt);
       }
-      console.log("Thank you for your input.");
+      context.agentConsole.assistant("Thank you for your input.");
       result = `User answered: ${result}`;
       return {
         result: result,

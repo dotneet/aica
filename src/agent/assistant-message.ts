@@ -1,6 +1,11 @@
 import { type Action, ToolId, isValidToolId, validToolIds } from "./tool/mod";
 
-export type MessageBlock = PlainMessageBlock | ActionBlock;
+export type MessageBlock = PlainMessageBlock | ActionBlock | ThinkingBlock;
+
+export interface ThinkingBlock {
+  type: "thinking";
+  content: string;
+}
 
 export interface PlainMessageBlock {
   type: "plain";
@@ -44,35 +49,45 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
   if (!message) {
     return [{ type: "plain", content: "" }];
   }
-  const processedMessage = message
-    .replace(/<thinking>\s?/g, "")
-    .replace(/\s?<\/thinking>/g, "");
 
   const blocks: MessageBlock[] = [];
   let currentIndex = 0;
 
-  while (currentIndex < processedMessage.length) {
-    const toolTagStart = processedMessage.indexOf("<", currentIndex);
+  while (currentIndex < message.length) {
+    const tagStart = message.indexOf("<", currentIndex);
 
-    if (toolTagStart === -1) {
+    if (tagStart === -1) {
       // 残りのテキストをプレーンブロックとして追加
-      const remainingText = processedMessage.slice(currentIndex);
+      const remainingText = message.slice(currentIndex);
       if (remainingText) {
         blocks.push({ type: "plain", content: remainingText });
       }
       break;
     }
 
-    // ツールタグの前のテキストをプレーンブロックとして追加
-    if (toolTagStart > currentIndex) {
+    // タグの前のテキストをプレーンブロックとして追加
+    if (tagStart > currentIndex) {
       blocks.push({
         type: "plain",
-        content: processedMessage.slice(currentIndex, toolTagStart),
+        content: message.slice(currentIndex, tagStart),
       });
     }
 
+    // thinkingタグかどうかを確認
+    if (message.slice(tagStart).startsWith("<thinking>")) {
+      const thinkingEndTag = message.indexOf("</thinking>", tagStart);
+      if (thinkingEndTag !== -1) {
+        const thinkingContent = message
+          .slice(tagStart + "<thinking>".length, thinkingEndTag)
+          .trim();
+        blocks.push({ type: "thinking", content: thinkingContent });
+        currentIndex = thinkingEndTag + "</thinking>".length;
+        continue;
+      }
+    }
+
     // ツールタグを探す
-    const potentialToolContent = processedMessage.slice(toolTagStart);
+    const potentialToolContent = message.slice(tagStart);
     const action = parseToolTag(potentialToolContent);
 
     if (action) {
@@ -82,14 +97,14 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
         potentialToolContent.indexOf(`</${action.toolId}>`) +
         action.toolId.length +
         3;
-      currentIndex = toolTagStart + toolTagEnd;
+      currentIndex = tagStart + toolTagEnd;
     } else {
       // 無効なタグの場合は、'<'をプレーンテキストとして扱う
       blocks.push({
         type: "plain",
-        content: processedMessage[toolTagStart],
+        content: message[tagStart],
       });
-      currentIndex = toolTagStart + 1;
+      currentIndex = tagStart + 1;
     }
   }
 
@@ -115,5 +130,5 @@ export function parseAssistantMessage(message: string): MessageBlock[] {
 
   return mergedBlocks.length
     ? mergedBlocks
-    : [{ type: "plain", content: processedMessage }];
+    : [{ type: "plain", content: message }];
 }

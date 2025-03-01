@@ -13,6 +13,8 @@ import {
 } from "./tools";
 import { UseMcpResource, UseMcpTool } from "./tools/mcp";
 import { WebFetchTool } from "./tools/web-fetch";
+import type { Message } from "@/llm/llm";
+import type { AgentConsole } from "../agent-console";
 
 export type ToolId =
   | "create_file"
@@ -82,6 +84,8 @@ export class ToolError extends Error {
 
 export type ToolExecutionContext = {
   mcpClientManager: MCPClientManager | null;
+  addMessage: (message: Message) => void;
+  agentConsole: AgentConsole;
 };
 
 export type ToolExecutionResult = {
@@ -102,9 +106,13 @@ export interface Tool {
 
 export function createToolExecutionContext(
   mcpClientManager: MCPClientManager | null,
+  addMessage: (message: Message) => void,
+  agentConsole: AgentConsole,
 ): ToolExecutionContext {
   return {
     mcpClientManager,
+    addMessage,
+    agentConsole,
   };
 }
 
