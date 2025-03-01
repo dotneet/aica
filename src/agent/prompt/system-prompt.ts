@@ -18,6 +18,9 @@ export async function getSystemPrompt(
   const rules = await rulesFinder.findAllRules(filePaths);
   const rulesPrompt = RulesFinder.buildPrompt(rules);
   return `
+Your name is Aica.
+You are an agent that help software developers to smoothly complete their tasks.
+
 ${getSystemInfoSection(cwd)}
 ${getObjectiveSection()}
 ${getSharedToolUseSection()}
