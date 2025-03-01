@@ -94,6 +94,7 @@ export AICA_LANGUAGE=Japanese
 ```
 
 Priority:
+
 1. `AICA_LANGUAGE`
 2. `language.language` in aica.toml
 3. Automatic detection from `LANG`
@@ -126,6 +127,9 @@ aica agent "your prompt here"
 
 # execute AI agent with a instruction file
 aica agent -f instruction.txt
+
+# conversation mode. You can interact with AI agent by typing your prompt.
+aica agent
 ```
 
 This command executes a task using an AI agent. The agent automatically determines and executes the necessary actions based on the given prompt.
@@ -140,25 +144,6 @@ NOTE: This command has potential to break your file system. Please be careful.
 # reindex the code and document databases
 aica reindex
 ```
-
-### Chat
-
-```bash
-# chat with AI assistant using a prompt
-aica chat "prompt"
-
-# chat with AI assistant using a prompt file
-aica chat -f prompt.txt
-
-# conversation mode
-aica chat
-```
-
-This command provides functionality to chat with an AI assistant. You can interact with the AI assistant by either directly specifying a prompt or using a prompt file.
-
-Options:
-
-- `--file`, `-f`: Path to a prompt file
 
 ### Summary
 
