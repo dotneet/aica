@@ -15,7 +15,6 @@ import yargs from "yargs";
 import type { ArgumentsCamelCase, Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
 import pkg from "../package.json";
-import { chatCommandSchema, executeChatCommand } from "./commands/chat-command";
 import {
   commitCommandSchema,
   executeCommitCommand,
@@ -198,36 +197,20 @@ async function main() {
             type: "string",
             alias: "f",
             description: "path to an instruction file",
+          })
+          .option("interactive", {
+            type: "boolean",
+            alias: "i",
+            description: "Start in interactive chat mode",
+            default: false,
           });
       },
       async (argv: ArgumentsCamelCase) => {
         await executeAgentCommand({
           prompt: argv.prompt as string,
-          file: argv.file,
+          file: argv.file as string | undefined,
+          interactive: argv.interactive as boolean,
         });
-      },
-    )
-    .command(
-      "chat [prompt]",
-      "Chat with AI assistant",
-      (yargs: Argv) => {
-        return yargs
-          .positional("prompt", {
-            describe: "Chat prompt for the AI assistant",
-            type: "string",
-          })
-          .option("file", {
-            type: "string",
-            alias: "f",
-            description: "Path to a prompt file",
-          });
-      },
-      async (argv: ArgumentsCamelCase) => {
-        const chatValues = chatCommandSchema.parse({
-          prompt: argv.prompt as string,
-          file: argv.file as string,
-        });
-        await executeChatCommand(chatValues);
       },
     )
     .version(pkg.version)

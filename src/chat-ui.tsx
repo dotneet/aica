@@ -13,14 +13,20 @@ import {
 // Fix for ink-spinner module import error
 // @ts-ignore
 import Spinner from "ink-spinner";
+// Import Agent
 import { Agent } from "@/agent/agent";
 import { GitRepository } from "@/git";
 import { createLLM } from "@/llm/factory";
-import { readConfig, type Config } from "@/config";
+import { readConfig } from "@/config";
+import type { Config } from "@/config";
 import * as path from "node:path";
 import * as fs from "node:fs";
 // chalk only supports ESM, so fix the import
 import chalk from "chalk";
+// Import Message type
+import type { Message, LLM } from "@/llm/llm";
+// Import system prompt builder function
+import { getSystemPrompt } from "@/agent/prompt/system-prompt";
 
 // Constants
 const WELCOME_MESSAGE = "Welcome to AICA Project! How can I assist you today?";
@@ -83,7 +89,8 @@ const printProcessingIndicator = () => {
   console.log(chalk.yellow("Processing..."));
 };
 
-const clearConsole = () => {
+// Export the function to clear console
+export const clearConsole = () => {
   console.clear();
 };
 
@@ -102,16 +109,16 @@ const InputField: React.FC<{
     focus("input-field");
   }, [focus]);
 
-  // 初期化時のみカーソル位置を更新
+  // Update cursor position only during initialization
   useEffect(() => {
-    // 初期化時のみカーソルを末尾に設定
+    // Set cursor to the end only during initialization
     if (prevValueRef.current === "" && value !== "") {
       setCursorPosition(value.length);
     }
     prevValueRef.current = value;
   }, [value]);
 
-  // 値の変更とカーソル位置を同時に管理する関数
+  // Function to manage both value change and cursor position
   const handleChange = (newValue: string, newCursorPosition: number) => {
     onChange(newValue);
     setCursorPosition(newCursorPosition);
@@ -119,36 +126,36 @@ const InputField: React.FC<{
 
   useFocus({ id: "input-field", autoFocus: true });
 
-  // カーソル位置に基づいて表示するテキストを生成
+  // Generate display text based on cursor position
   const displayText = () => {
     if (!value) return "Enter your message...";
 
-    // 改行を処理するために文字列を行に分割
+    // Split string into lines to handle line breaks
     const lines = value.split("\n");
     let currentPos = 0;
     let cursorLine = 0;
     let cursorCol = 0;
 
-    // カーソル位置がある行と列を特定
+    // Identify the line and column where the cursor is
     for (let i = 0; i < lines.length; i++) {
       if (currentPos + lines[i].length >= cursorPosition) {
         cursorLine = i;
         cursorCol = cursorPosition - currentPos;
         break;
       }
-      // 改行文字も位置としてカウント
+      // Count line break character as position
       currentPos += lines[i].length + 1;
     }
 
-    // 各行を処理して、カーソル位置に背景色を適用
+    // Process each line and apply background color at cursor position
     return (
       <Box flexDirection="column">
         {lines.map((line, lineIndex) => {
-          // 各行に一意のキーを生成
+          // Generate unique key for each line
           const lineKey = `line-${lineIndex}-${line.substring(0, 3)}`;
 
           if (lineIndex === cursorLine) {
-            // カーソルがある行
+            // Line with cursor
             const beforeCursor = line.slice(0, cursorCol);
             const atCursor = line.charAt(cursorCol) || " ";
             const afterCursor = line.slice(cursorCol + 1);
@@ -162,7 +169,7 @@ const InputField: React.FC<{
             );
           }
 
-          // カーソルがない行
+          // Line without cursor
           return (
             <Box key={lineKey}>
               <Text>{line}</Text>
@@ -173,7 +180,7 @@ const InputField: React.FC<{
     );
   };
 
-  // 改行の挿入処理
+  // Handle line break insertion
   const handleNewLine = () => {
     const newValue = `${value.slice(0, cursorPosition)}\n${value.slice(
       cursorPosition,
@@ -189,7 +196,7 @@ const InputField: React.FC<{
         onSubmit();
       } else if (key.delete || key.backspace) {
         if (cursorPosition > 0) {
-          // カーソル位置の前の文字を削除
+          // Delete character before cursor position
           const newValue =
             value.slice(0, cursorPosition - 1) + value.slice(cursorPosition);
           handleChange(newValue, cursorPosition - 1);
@@ -198,15 +205,15 @@ const InputField: React.FC<{
         // Clear input with Esc key
         handleChange("", 0);
       } else if (key.leftArrow) {
-        // カーソルを左に移動
+        // Move cursor left
         setCursorPosition(Math.max(0, cursorPosition - 1));
       } else if (key.rightArrow) {
-        // カーソルを右に移動
+        // Move cursor right
         setCursorPosition(Math.min(value.length, cursorPosition + 1));
       } else if (input === "\n") {
         handleNewLine();
       } else if (!key.ctrl && !key.meta && input.length > 0) {
-        // カーソル位置に文字を挿入
+        // Insert character at cursor position
         const newValue =
           value.slice(0, cursorPosition) + input + value.slice(cursorPosition);
         handleChange(newValue, cursorPosition + input.length);
@@ -243,8 +250,11 @@ const InputField: React.FC<{
   );
 };
 
-// Main chat component
-const Chat: React.FC<{ agent: Agent }> = ({ agent }) => {
+// Main chat component - Modified to use Agent and LLM
+export const Chat: React.FC<{
+  agent: Agent;
+  config: Config;
+}> = ({ agent, config }) => {
   const { exit } = useApp();
   const [input, setInput] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -318,7 +328,7 @@ const Chat: React.FC<{ agent: Agent }> = ({ agent }) => {
     return false;
   };
 
-  // Function to send message
+  // Function to send message - Modified to use Agent
   const sendMessage = async () => {
     if (input.trim() === "") return;
 
@@ -342,11 +352,11 @@ const Chat: React.FC<{ agent: Agent }> = ({ agent }) => {
     printProcessingIndicator();
 
     try {
-      // Send prompt to Agent
-      const result = await agent.plan(input);
-
-      // Display response
-      printMessage("assistant", result.response, new Date());
+      // Execute task using Agent
+      await agent.startTask(input, {
+        maxIterations: 25,
+        verbose: Bun.env.AICA_VERBOSE === "true",
+      });
     } catch (error) {
       // Display error message
       const errorMessage = `An error occurred: ${
@@ -371,8 +381,8 @@ const Chat: React.FC<{ agent: Agent }> = ({ agent }) => {
   );
 };
 
-// Main function
-const main = async () => {
+// Main function - Modified to use Agent
+export const main = async () => {
   try {
     const config = await readConfig();
     if (!config) {
@@ -380,24 +390,23 @@ const main = async () => {
       process.exit(1);
     }
 
-    // Initialize Git repository
-    const gitRepo = new GitRepository(process.cwd());
-
     // Initialize LLM
     const llm = createLLM(config.llm);
-
+    
+    // Initialize GitRepository
+    const gitRepository = new GitRepository(process.cwd());
+    
     // Initialize Agent
-    const agent = new Agent(gitRepo, llm, config);
+    await using agent = new Agent(gitRepository, llm, config);
 
     // Clear console
     clearConsole();
 
-    // Render UI
-    render(<Chat agent={agent} />);
+    // Render UI with Agent
+    render(<Chat agent={agent} config={config} />);
 
     // Cleanup
-    process.on("SIGINT", async () => {
-      await agent[Symbol.asyncDispose]();
+    process.on("SIGINT", () => {
       process.exit(0);
     });
   } catch (error) {

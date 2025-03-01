@@ -4,10 +4,14 @@ import { readConfig } from "@/config";
 import { GitRepository } from "@/git";
 import { createLLM } from "@/llm/mod";
 import { z } from "zod";
+import { render } from "ink";
+import { Chat, clearConsole } from "../chat-ui";
+import * as React from "react";
 
 export const agentCommandSchema = z.object({
   prompt: z.string().optional(),
   file: z.string().optional(),
+  interactive: z.boolean().optional().default(false),
 });
 
 export type AgentCommandValues = z.infer<typeof agentCommandSchema>;
@@ -19,7 +23,7 @@ export async function executeAgentCommand(params: AgentCommandValues) {
   const llm = createLLM(config.llm);
   const gitRepository = new GitRepository(process.cwd());
   await using agent = new Agent(gitRepository, llm, config);
-  const isInteractiveMode = prompt === "";
+  const isInteractiveMode = prompt === "" || values.interactive;
 
   if (values.file) {
     const file = await Bun.file(values.file).text();
@@ -70,30 +74,14 @@ export async function executeAgentCommand(params: AgentCommandValues) {
       );
     }
 
-    console.log("Starting interactive agent mode");
-    console.log("Enter your prompt (press Enter twice to submit)");
-    while (true) {
-      const input = (await readUserInput()).trim();
-      if (input.toLowerCase() === "exit") {
-        console.log("Exiting interactive mode");
-        break;
-      }
-      console.log("Starting task...");
-      try {
-        await executePrompt(input);
-        console.log(
-          "\nEnter your prompt (press Enter twice to submit, type 'exit' to end):",
-        );
-      } catch (error: unknown) {
-        console.error(
-          "An error occurred:",
-          error instanceof Error ? error.message : "Unknown error",
-        );
-        console.log(
-          "\nEnter your prompt (press Enter twice to submit, type 'exit' to end):",
-        );
-      }
-    }
+    // Use Chat UI for interactive mode
+    clearConsole();
+    render(React.createElement(Chat, { agent, config }));
+
+    // Cleanup
+    process.on("SIGINT", () => {
+      process.exit(0);
+    });
   } else {
     await executePrompt(prompt);
   }
