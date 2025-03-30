@@ -8,9 +8,8 @@
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
-    "build": "bun build --compile --outfile dist/aica src/main.ts --external yoga-wasm-web && bun run copy-wasm",
-    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts --external yoga-wasm-web && bun run copy-wasm",
-    "copy-wasm": "mkdir -p dist && cp node_modules/yoga-wasm-web/dist/yoga.wasm dist/",
+    "build": "bun build --compile --outfile dist/aica src/main.ts",
+    "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
     "lint": "biome check .",
     "check": "biome check --write src",
     "check:unsafe": "biome check --fix --unsafe src"
@@ -45,7 +44,7 @@
     "cheerio": "^1.0.0",
     "default-shell": "^2.2.0",
     "globby": "^14.1.0",
-    "ink": "^5.1.0",
+    "ink": "^5.2.0",
     "ink-spinner": "^5.0.0",
     "jsdom": "^26.0.0",
     "os-name": "^6.0.0",
