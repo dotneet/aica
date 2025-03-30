@@ -8,20 +8,37 @@ export interface AgentConsole {
 }
 
 export class StdoutAgentConsole implements AgentConsole {
+  constructor(private readonly color: boolean = true) {}
   thinking(message: string) {
-    console.log(chalk.gray(`<thinking>\n${message}\n</thinking>`));
+    if (this.color) {
+      console.log(chalk.gray(`<thinking>\n${message}\n</thinking>`));
+    } else {
+      console.log(`<thinking>\n${message}\n</thinking>`);
+    }
   }
 
   tool(message: string) {
-    console.log(chalk.green(message));
+    if (this.color) {
+      console.log(chalk.green(message));
+    } else {
+      console.log(message);
+    }
   }
 
   assistant(message: string) {
-    console.log(chalk.blue(message));
+    if (this.color) {
+      console.log(chalk.blue(message));
+    } else {
+      console.log(message);
+    }
   }
 
   user(message: string) {
-    console.log(message);
+    if (this.color) {
+      console.log(chalk.yellow(message));
+    } else {
+      console.log(message);
+    }
   }
 }
 

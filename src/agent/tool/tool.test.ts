@@ -17,6 +17,7 @@ import { EditFileTool } from "./tools/edit-file";
 import { UseShellTool } from "./tools/use-shell";
 import { ListFilesTool } from "./tools/list-files";
 import { ReadFileTool } from "./tools/read-file";
+import { StdoutAgentConsole } from "../agent-console";
 
 describe("Tools", () => {
   const testFilePath = "./tmp/test.ts";
@@ -24,7 +25,7 @@ describe("Tools", () => {
   const context: ToolExecutionContext = {
     mcpClientManager: null,
     addMessage: () => {},
-    say: () => {},
+    agentConsole: new StdoutAgentConsole(false),
   };
 
   beforeEach(async () => {
