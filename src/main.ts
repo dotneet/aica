@@ -219,21 +219,24 @@ async function main() {
       },
     )
     .command("mcp", "MCP related commands", (yargs: Argv) => {
-      return yargs.command(
-        "server",
-        "Start as an MCP server",
-        (yargs: Argv) => {
-          return yargs.option("config", {
-            type: "string",
-            alias: "c",
-            description: "Path to the configuration file",
-          });
-        },
-        async (argv: ArgumentsCamelCase) => {
-          const mcpServerValues = mcpServerCommandSchema.parse(argv);
-          await executeMcpServerCommand(mcpServerValues);
-        },
-      );
+      return yargs
+        .command(
+          "server",
+          "Start as an MCP server",
+          (yargs: Argv) => {
+            return yargs.option("config", {
+              type: "string",
+              alias: "c",
+              description: "Path to the configuration file",
+            });
+          },
+          async (argv: ArgumentsCamelCase) => {
+            const mcpServerValues = mcpServerCommandSchema.parse(argv);
+            await executeMcpServerCommand(mcpServerValues);
+          },
+        )
+        .demandCommand(1, "Please specify an MCP subcommand")
+        .help();
     })
     .version(pkg.version)
     .help()
