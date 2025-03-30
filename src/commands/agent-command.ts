@@ -17,6 +17,7 @@ export const agentCommandSchema = z.object({
 export type AgentCommandValues = z.infer<typeof agentCommandSchema>;
 
 export async function executeAgentCommand(params: AgentCommandValues) {
+
   const values = agentCommandSchema.parse(params);
   let prompt = values.prompt || "";
   const config = await readConfig();

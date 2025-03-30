@@ -4,6 +4,10 @@ import {
   executeCommitMessageCommand,
 } from "@/commands/commit-message-command";
 import {
+  executeMcpServerCommand,
+  mcpServerCommandSchema,
+} from "@/commands/mcp-server-command";
+import {
   executeReviewCommand,
   reviewCommandSchema,
 } from "@/commands/review-command";
@@ -213,6 +217,23 @@ async function main() {
         });
       },
     )
+    .command("mcp", "MCP related commands", (yargs: Argv) => {
+      return yargs.command(
+        "server",
+        "Start as an MCP server",
+        (yargs: Argv) => {
+          return yargs.option("config", {
+            type: "string",
+            alias: "c",
+            description: "Path to the configuration file",
+          });
+        },
+        async (argv: ArgumentsCamelCase) => {
+          const mcpServerValues = mcpServerCommandSchema.parse(argv);
+          await executeMcpServerCommand(mcpServerValues);
+        },
+      );
+    })
     .version(pkg.version)
     .help()
     .demandCommand(1, "Please specify a command")

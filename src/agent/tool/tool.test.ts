@@ -14,14 +14,19 @@ import {
 } from "./tool";
 import { CreateFileTool } from "./tools/create-file";
 import { EditFileTool } from "./tools/edit-file";
-import { UseShellTool } from "./tools/execute-command";
+import { UseShellTool } from "./tools/use-shell";
 import { ListFilesTool } from "./tools/list-files";
 import { ReadFileTool } from "./tools/read-file";
+import { StdoutAgentConsole } from "../agent-console";
 
 describe("Tools", () => {
   const testFilePath = "./tmp/test.ts";
   const testDirPath = "./tmp/test-dir";
-  const context: ToolExecutionContext = { mcpClientManager: null };
+  const context: ToolExecutionContext = {
+    mcpClientManager: null,
+    addMessage: () => {},
+    agentConsole: new StdoutAgentConsole(false),
+  };
 
   beforeEach(async () => {
     try {

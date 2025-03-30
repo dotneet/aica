@@ -11,11 +11,13 @@ export const mcpItemSchema = z.discriminatedUnion("type", [
     type: z.literal("stdio"),
     command: z.string(),
     args: z.array(z.string()),
+    enabled: z.boolean().optional().default(true),
   }),
   z.object({
     name: z.string(),
     type: z.literal("sse"),
     url: z.string(),
+    enabled: z.boolean().optional().default(true),
   }),
 ]);
 
