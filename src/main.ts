@@ -39,6 +39,7 @@ import {
 
 async function main() {
   const argv = await yargs(hideBin(process.argv))
+    .scriptName("aica")
     .command(
       "review [pattern]",
       "Review code",
