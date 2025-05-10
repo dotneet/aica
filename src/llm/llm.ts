@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 export interface LLMOptions {
   maxRetries?: number;
   retryDelay?: number;
@@ -8,6 +10,7 @@ export interface LLM {
     systemPrompt: string,
     prompts: Message[],
     jsonMode: boolean,
+    responseSchema?: z.ZodSchema,
     options?: LLMOptions,
   ): Promise<string>;
 }

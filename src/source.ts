@@ -18,10 +18,11 @@ export class Source {
   ) {}
 
   get targetSourceContent(): string {
-    if (this.type === SourceType.PullRequestDiff) {
-      return this.content;
-    }
     return `file: ${this.path}\n\n${this.contentWithLineNumbers}`;
+  }
+
+  get diff(): string | null {
+    return this.fileChange?.diff ?? null;
   }
 
   get contentWithLineNumbers(): string {
@@ -37,13 +38,13 @@ export class Source {
     return new Source(SourceType.File, filePath, content, null);
   }
 
-  static fromPullRequestDiff(change: FileChange): Source {
-    return new Source(
-      SourceType.PullRequestDiff,
-      change.filename,
-      change.changes.join("\n"),
-      change,
-    );
+  static fromPullRequestDiff(
+    repositoryDir: string,
+    change: FileChange,
+  ): Source {
+    const filePath = path.join(repositoryDir, change.filename);
+    const content = fs.readFileSync(filePath, "utf8");
+    return new Source(SourceType.PullRequestDiff, filePath, content, change);
   }
 
   private appendLineNumbers(code: string): string {

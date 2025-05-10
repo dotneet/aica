@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import type { Config, LLMConfig } from "./config";
 import { createEmbeddingProducer } from "./embedding/mod";
 import {
@@ -167,6 +168,7 @@ export async function analyzeCodeForBugs(
       systemPrompt,
       [{ role: "user", content: prompt }],
       true,
+      issuesSchema,
     );
     return buildIssuesFromResponse(source, response);
   } catch (error) {
@@ -202,7 +204,7 @@ async function createKnowledgeText(
     [...context.knowledgeTexts].join("\n\n") + knowledgeTextFromDb
   }\n\n${documentKnowledgeTexts}`;
 
-  return knowledgeText;
+  return knowledgeText.trim();
 }
 
 function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
@@ -226,7 +228,8 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
     Issue type definition:"""
     type Issue = {
       line: number;
-      level: "critical" | "high";
+      file: string;
+      level: "critical" | "high" | "medium" | "low";
       description: string;
     }
     """
@@ -236,6 +239,17 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
     .replace("%RULES%", rulesString);
 }
 
+const issuesSchema = z.object({
+  issues: z.array(
+    z.object({
+      line: z.number(),
+      file: z.string(),
+      level: z.enum(["critical", "high", "medium", "low"]),
+      description: z.string(),
+    }),
+  ),
+});
+
 function generatePromptWithCode(
   source: Source,
   userPrompt: string,
@@ -243,12 +257,25 @@ function generatePromptWithCode(
 ): string {
   const targetSourceContent = source.targetSourceContent;
   let finalUserPrompt = userPrompt;
-  if (source.type === SourceType.PullRequestDiff) {
+  const sourceDiff = source.diff;
+  let diffSection = "";
+  if (
+    sourceDiff &&
+    source.type === SourceType.PullRequestDiff &&
+    source.fileChange
+  ) {
     finalUserPrompt +=
       "\n the target source is diff format. '-' means removed, '+' means added.";
+    diffSection = `
+    Diff:
+    =====
+    %DIFF_CONTENT%
+    =====`.replace("%DIFF_CONTENT%", sourceDiff ?? "");
   }
 
   return `${finalUserPrompt}
+
+  ${diffSection}
 
   Target Source:
   =====
@@ -260,8 +287,7 @@ function generatePromptWithCode(
   Knowledge:
   =====
   %KNOWLEDGE_TEXT%
-  =====
-  `
+  =====`
     .replace(/\n +/g, "\n")
     .replace("%TARGET_SOURCE%", targetSourceContent)
     .replace("%KNOWLEDGE_TEXT%", knowledgeText);

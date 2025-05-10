@@ -5,7 +5,7 @@ import { generateReview } from "./review";
 
 // Mock diff string
 const mockDiffString =
-  "diff --git a/file1.js b/file1.js\nindex 83db48f..bf3a6c4 100644\n--- a/file1.js\n+++ b/file1.js\n@@ -1,4 +1,4 @@\n-console.log('Hello World');\n+console.log('Hello, World!');";
+  "diff --git a/testdata/src/file1.ts b/testdata/src/file1.ts\nindex 83db48f..bf3a6c4 100644\n--- a/file1.js\n+++ b/file1.js\n@@ -1,4 +1,4 @@\n-console.log('Hello World');\n+console.log('Hello, World!');";
 
 // Test cases
 describe("generateReview", () => {

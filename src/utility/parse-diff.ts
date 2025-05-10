@@ -3,10 +3,8 @@ export type ChangeType = "add" | "remove" | "modify";
 export interface FileChange {
   filename: string;
   changeType: ChangeType;
-  changes: string[];
+  diff: string;
 }
-
-const ignoredLines = ["--- /dev/null"];
 
 export function parseDiff(diffOutput: string): FileChange[] {
   const files: FileChange[] = [];
@@ -20,14 +18,11 @@ export function parseDiff(diffOutput: string): FileChange[] {
     const filename = filenameMatch[1];
     const isNewFile = part.includes("new file mode");
     const changeType: ChangeType = isNewFile ? "add" : "modify";
-    const changeLines = lines
-      .filter((line) => line.startsWith("+") || line.startsWith("-"))
-      .filter((line) => !ignoredLines.includes(line));
 
     files.push({
       filename,
       changeType,
-      changes: changeLines,
+      diff: part,
     });
   }
 
