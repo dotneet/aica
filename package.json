@@ -37,7 +37,7 @@
     "@orama/orama": "^2.1.1",
     "@orama/plugin-data-persistence": "^2.1.1",
     "@orama/plugin-parsedoc": "^2.1.0",
-    "@orama/plugin-secure-proxy": "^2.1.1",
+    "@orama/plugin-secure-proxy": "^3.1.6",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.0",
     "chalk": "^5.4.1",
