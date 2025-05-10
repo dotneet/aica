@@ -11,7 +11,7 @@
         "@octokit/core": "^6.1.4",
         "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
         "@orama/orama": "^2.1.1",
-        "@orama/plugin-data-persistence": "^2.1.1",
+        "@orama/plugin-data-persistence": "^3.1.6",
         "@orama/plugin-parsedoc": "^2.1.0",
         "@orama/plugin-secure-proxy": "^3.1.6",
         "@types/react": "18.2.0",
@@ -147,7 +147,7 @@
 
     "@orama/orama": ["@orama/orama@2.1.1", "", {}, "sha512-euTV/2kya290SNkl5m8e/H1na8iDygk74nNtl4E0YZNyYIrEMwE1JwamoroMKGZw2Uz+in/8gH3m1+2YfP0j1w=="],
 
-    "@orama/plugin-data-persistence": ["@orama/plugin-data-persistence@2.1.1", "", { "dependencies": { "@msgpack/msgpack": "^2.7.2", "@orama/orama": "2.1.1", "dpack": "^0.6.22" } }, "sha512-JocJ7Q9mv/2+1jr6194mSiQUvbJ3/7WRZipzg5z8LI6kKcbCFMcYQgJ5RP65bIrXS8EeR36mt5hsRTJdEo+ZbA=="],
+    "@orama/plugin-data-persistence": ["@orama/plugin-data-persistence@3.1.6", "", { "dependencies": { "@msgpack/msgpack": "^2.7.2", "@orama/orama": "3.1.6", "dpack": "^0.6.22" } }, "sha512-6he5bwPZUzC7D7WSaLg3kdIRjk/DsedpnJQDPuiDBL+TYBD9heBVZx19C9aypys7vojFj+3t0brHhccoM0vReA=="],
 
     "@orama/plugin-parsedoc": ["@orama/plugin-parsedoc@2.1.0", "", { "dependencies": { "@orama/orama": "2.1.0", "glob": "^8.1.0", "hast-util-from-html": "^1.0.1", "hast-util-from-string": "^2.0.0", "hast-util-to-html": "^8.0.4", "hast-util-to-string": "^2.0.0", "rehype": "^12.0.1", "rehype-document": "^6.1.0", "rehype-parse": "^8.0.4", "rehype-preset-minify": "^6.0.0", "remark-parse": "^10.0.1", "remark-rehype": "^10.1.0", "unified": "^10.1.2" } }, "sha512-xY8k95mJ+ACvUe09PLsu9s3wJ9ZOKEMfR7jufIyeBO0TUHVR0xlIFQeRMHG0ZH95xy7zy+MfPwNtdHVtIZpxYA=="],
 
@@ -932,6 +932,8 @@
     "@octokit/plugin-paginate-rest/@octokit/types": ["@octokit/types@12.6.0", "", { "dependencies": { "@octokit/openapi-types": "^20.0.0" } }, "sha512-1rhSOfRa6H9w4YwK0yrf5faDaDTb+yLyBUKOCV4xtCDB5VmIPqd/v9yr9o6SAzOAlRxMiRiCic6JVM1/kunVkw=="],
 
     "@octokit/plugin-rest-endpoint-methods/@octokit/types": ["@octokit/types@14.0.0", "", { "dependencies": { "@octokit/openapi-types": "^25.0.0" } }, "sha512-VVmZP0lEhbo2O1pdq63gZFiGCKkm8PPp8AUOijlwPO6hojEVjspA0MWKP7E4hbvGxzFKNqKr6p0IYtOH/Wf/zA=="],
+
+    "@orama/plugin-data-persistence/@orama/orama": ["@orama/orama@3.1.6", "", {}, "sha512-qtSrqCqRU93SjEBedz987tvWao1YQSELjBhGkHYGVP7Dg0lBWP6d+uZEIt5gxTAYio/YWWlhivmRABvRfPLmnQ=="],
 
     "@orama/plugin-parsedoc/@orama/orama": ["@orama/orama@2.1.0", "", {}, "sha512-6Z6acBHmXGhp2Dom0ZvGJsJ1tkCwvs+uqNZUnhBbUTDvX4U1EMSGiTZt3fJFXy1enLKse6lOpG+E76/MnQIdBw=="],
 

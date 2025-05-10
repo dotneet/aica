@@ -35,7 +35,7 @@
     "@octokit/core": "^6.1.4",
     "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
     "@orama/orama": "^2.1.1",
-    "@orama/plugin-data-persistence": "^2.1.1",
+    "@orama/plugin-data-persistence": "^3.1.6",
     "@orama/plugin-parsedoc": "^2.1.0",
     "@orama/plugin-secure-proxy": "^3.1.6",
     "@types/react": "18.2.0",
