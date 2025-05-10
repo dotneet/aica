@@ -141,7 +141,7 @@ export const defaultConfig: Config = {
   llm: {
     provider: getDefaultLLMProvider(),
     openai: {
-      model: Bun.env.OPENAI_MODEL || "o3-mini",
+      model: Bun.env.OPENAI_MODEL || "o4-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
       temperature: 0.5,
       maxCompletionTokens: 20000,

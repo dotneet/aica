@@ -15,7 +15,10 @@ export async function generateReview(
   const fileChanges = parseDiff(diffString);
   const sources: Source[] = [];
   for (const fileChange of fileChanges) {
-    const source = Source.fromPullRequestDiff(fileChange);
+    const source = Source.fromPullRequestDiff(
+      config.workingDirectory,
+      fileChange,
+    );
     sources.push(source);
   }
 

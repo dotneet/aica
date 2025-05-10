@@ -7,9 +7,11 @@ import {
 } from "@/analyze";
 import { readConfig } from "@/config";
 import { sendToSlack } from "@/slack";
-import { type Source, SourceFinder } from "@/source";
+import { Source, SourceFinder } from "@/source";
 
 import { z } from "zod";
+import { GitRepository } from "@/git";
+import { parseDiff } from "@/utility/parse-diff";
 
 export const reviewCommandSchema = z.object({
   config: z.string().optional(),
@@ -43,9 +45,12 @@ export async function executeReviewCommand(values: ReviewCommandValues) {
     } else {
       const repositoryDir = values.dir || config.workingDirectory;
       process.chdir(repositoryDir);
-      sources.push(
-        ...(await sourceFinder.getModifiedFilesFromRepository(repositoryDir)),
-      );
+      const git = new GitRepository(repositoryDir);
+      const diff = await git.getGitDiffFromHead();
+      const fileChanges = parseDiff(diff);
+      for (const fileChange of fileChanges) {
+        sources.push(Source.fromPullRequestDiff(repositoryDir, fileChange));
+      }
     }
 
     if (sources.length === 0) {

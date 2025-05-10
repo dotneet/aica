@@ -204,7 +204,7 @@ async function createKnowledgeText(
     [...context.knowledgeTexts].join("\n\n") + knowledgeTextFromDb
   }\n\n${documentKnowledgeTexts}`;
 
-  return knowledgeText;
+  return knowledgeText.trim();
 }
 
 function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
@@ -257,12 +257,25 @@ function generatePromptWithCode(
 ): string {
   const targetSourceContent = source.targetSourceContent;
   let finalUserPrompt = userPrompt;
-  if (source.type === SourceType.PullRequestDiff) {
+  const sourceDiff = source.diff;
+  let diffSection = "";
+  if (
+    sourceDiff &&
+    source.type === SourceType.PullRequestDiff &&
+    source.fileChange
+  ) {
     finalUserPrompt +=
       "\n the target source is diff format. '-' means removed, '+' means added.";
+    diffSection = `
+    Diff:
+    =====
+    %DIFF_CONTENT%
+    =====`.replace("%DIFF_CONTENT%", sourceDiff ?? "");
   }
 
   return `${finalUserPrompt}
+
+  ${diffSection}
 
   Target Source:
   =====
@@ -274,8 +287,7 @@ function generatePromptWithCode(
   Knowledge:
   =====
   %KNOWLEDGE_TEXT%
-  =====
-  `
+  =====`
     .replace(/\n +/g, "\n")
     .replace("%TARGET_SOURCE%", targetSourceContent)
     .replace("%KNOWLEDGE_TEXT%", knowledgeText);
