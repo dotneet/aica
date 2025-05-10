@@ -17,11 +17,14 @@ interface GPTResponse {
   }[];
 }
 
+export type OpenAIReasoningEffort = "low" | "medium" | "high";
+
 export class LLMOpenAI implements LLM {
   private apiKey: string;
   private model: string;
   private temperature: number;
   private maxCompletionTokens: number;
+  private reasoningEffort?: OpenAIReasoningEffort;
   private logger: LLMLogger;
 
   constructor(config: LLMConfigOpenAI) {
@@ -32,6 +35,7 @@ export class LLMOpenAI implements LLM {
     this.model = config.model;
     this.temperature = config.temperature;
     this.maxCompletionTokens = config.maxCompletionTokens;
+    this.reasoningEffort = config.reasoningEffort;
     this.logger = createLLMLogger(config.logFile);
   }
 
@@ -68,12 +72,20 @@ export class LLMOpenAI implements LLM {
   ): Promise<GPTResponse> {
     let additionalBody = {};
     // o1 model does not support system role
-    const isO1Model = model.indexOf("o") === 0;
-    const systemRole = isO1Model ? "user" : "system";
-    const temperature = isO1Model ? undefined : this.temperature;
-    if (jsonMode && !isO1Model) {
+    const isOSeriesModel = model.indexOf("o") === 0;
+    const systemRole = isOSeriesModel ? "user" : "system";
+    const temperature = isOSeriesModel ? undefined : this.temperature;
+    if (jsonMode && !isOSeriesModel) {
       additionalBody = {
         response_format: { type: "json_object" },
+      };
+    }
+
+    // Set reasoning_effort only for o-series models
+    if (isOSeriesModel && this.reasoningEffort) {
+      additionalBody = {
+        ...additionalBody,
+        reasoning_effort: this.reasoningEffort,
       };
     }
     const response = await fetch("https://api.openai.com/v1/chat/completions", {

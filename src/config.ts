@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import { GitRepository } from "./git";
 import { deepAssign } from "./utility/deep-assign";
+import { OpenAIReasoningEffort } from "./llm/openai";
 
 export type LLMProvider = "openai" | "anthropic" | "stub" | "google";
 
@@ -10,6 +11,7 @@ export type LLMConfigOpenAI = {
   temperature: number;
   maxCompletionTokens: number;
   logFile: string | undefined;
+  reasoningEffort?: OpenAIReasoningEffort;
 };
 
 export type LLMConfigAnthropic = {
@@ -144,6 +146,7 @@ export const defaultConfig: Config = {
       temperature: 0.5,
       maxCompletionTokens: 4096,
       logFile: Bun.env.OPENAI_LOG_FILE || undefined,
+      reasoningEffort: "medium",
     },
     anthropic: {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219",

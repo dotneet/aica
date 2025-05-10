@@ -6,6 +6,7 @@ provider = 'anthropic'
 model = 'o3-mini'
 temperature = 0.5
 maxCompletionTokens = 4096
+reasoningEffort = 'medium'
 # logFile = '/path/to/openai.log'  # Optional: Path to log OpenAI API calls
 
 [llm.anthropic]
