@@ -1,6 +1,6 @@
 import type { LLMConfigOpenAI } from "@/config";
-import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
+import type { z } from "zod";
 
 import {
   type LLM,

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import type { Config, LLMConfig } from "./config";
 import { createEmbeddingProducer } from "./embedding/mod";
 import {
@@ -13,7 +14,6 @@ import {
   getLanguageFromConfig,
   getLanguagePromptForJson,
 } from "./utility/language";
-import { z } from "zod";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
