@@ -49,7 +49,7 @@
     "jsdom": "^26.1.0",
     "os-name": "^6.0.0",
     "react": "18.2.0",
-    "react-devtools-core": "^4.28.5",
+    "react-devtools-core": "^6.1.2",
     "react-dom": "18.2.0",
     "tiktoken": "^1.0.21",
     "turndown": "^7.2.0",
