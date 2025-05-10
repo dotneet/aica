@@ -1,4 +1,7 @@
 import type { LLMConfigOpenAI } from "@/config";
+import { z } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
+
 import {
   type LLM,
   LLMError,
@@ -43,6 +46,7 @@ export class LLMOpenAI implements LLM {
     systemPrompt: string,
     messages: Message[],
     jsonMode: boolean,
+    responseSchema?: z.ZodSchema,
     options?: LLMOptions,
   ): Promise<string> {
     this.logger.logRequest(systemPrompt, messages);
@@ -55,6 +59,7 @@ export class LLMOpenAI implements LLM {
           systemPrompt,
           messages,
           jsonMode,
+          responseSchema,
         ),
       options,
     );
@@ -69,16 +74,23 @@ export class LLMOpenAI implements LLM {
     systemPrompt: string,
     messages: Message[],
     jsonMode: boolean,
+    responseSchema?: z.ZodSchema,
   ): Promise<GPTResponse> {
     let additionalBody = {};
     // o1 model does not support system role
     const isOSeriesModel = model.indexOf("o") === 0;
     const systemRole = isOSeriesModel ? "user" : "system";
     const temperature = isOSeriesModel ? undefined : this.temperature;
-    if (jsonMode && !isOSeriesModel) {
-      additionalBody = {
-        response_format: { type: "json_object" },
-      };
+    if (jsonMode) {
+      if (isOSeriesModel && responseSchema) {
+        additionalBody = {
+          response_format: zodResponseFormat(responseSchema, "response"),
+        };
+      } else if (!isOSeriesModel) {
+        additionalBody = {
+          response_format: { type: "json_object" },
+        };
+      }
     }
 
     // Set reasoning_effort only for o-series models

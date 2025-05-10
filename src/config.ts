@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { GitRepository } from "./git";
+import type { OpenAIReasoningEffort } from "./llm/openai";
 import { deepAssign } from "./utility/deep-assign";
-import { OpenAIReasoningEffort } from "./llm/openai";
 
 export type LLMProvider = "openai" | "anthropic" | "stub" | "google";
 
@@ -144,7 +144,7 @@ export const defaultConfig: Config = {
       model: Bun.env.OPENAI_MODEL || "o3-mini",
       apiKey: Bun.env.OPENAI_API_KEY || "",
       temperature: 0.5,
-      maxCompletionTokens: 4096,
+      maxCompletionTokens: 20000,
       logFile: Bun.env.OPENAI_LOG_FILE || undefined,
       reasoningEffort: "medium",
     },
@@ -152,14 +152,14 @@ export const defaultConfig: Config = {
       model: Bun.env.ANTHROPIC_MODEL || "claude-3-7-sonnet-20250219",
       apiKey: Bun.env.ANTHROPIC_API_KEY || "",
       temperature: 0.5,
-      maxTokens: 4096,
+      maxTokens: 8000,
       logFile: Bun.env.ANTHROPIC_LOG_FILE || undefined,
     },
     google: {
       model: Bun.env.GOOGLE_MODEL || "gemini-2.0-flash",
       apiKey: Bun.env.GOOGLE_API_KEY || Bun.env.GEMINI_API_KEY || "",
       temperature: 0.5,
-      maxTokens: 4096,
+      maxTokens: 8000,
       logFile: Bun.env.GOOGLE_LOG_FILE || undefined,
     },
     stub: {

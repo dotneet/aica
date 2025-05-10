@@ -5,20 +5,20 @@ provider = 'anthropic'
 [llm.openai]
 model = 'o3-mini'
 temperature = 0.5
-maxCompletionTokens = 4096
+maxCompletionTokens = 20000
 reasoningEffort = 'medium'
 # logFile = '/path/to/openai.log'  # Optional: Path to log OpenAI API calls
 
 [llm.anthropic]
-model = 'claude-3-5-sonnet-20241022'
+model = 'claude-3-7-sonnet-20250219'
 temperature = 0.5
-maxTokens = 4096
+maxTokens = 8000
 # logFile = '/path/to/anthropic.log'  # Optional: Path to log Anthropic API calls
 
 [llm.google]
 model = 'gemini-2.0-flash'
 temperature = 0.5
-maxTokens = 4096
+maxTokens = 8000
 # logFile = '/path/to/google.log'  # Optional: Path to log Google API calls
 
 [rules]

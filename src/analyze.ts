@@ -13,6 +13,7 @@ import {
   getLanguageFromConfig,
   getLanguagePromptForJson,
 } from "./utility/language";
+import { z } from "zod";
 
 export type AnalyzeContext = {
   knowledgeTexts: string[];
@@ -167,6 +168,7 @@ export async function analyzeCodeForBugs(
       systemPrompt,
       [{ role: "user", content: prompt }],
       true,
+      issuesSchema,
     );
     return buildIssuesFromResponse(source, response);
   } catch (error) {
@@ -226,7 +228,8 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
     Issue type definition:"""
     type Issue = {
       line: number;
-      level: "critical" | "high";
+      file: string;
+      level: "critical" | "high" | "medium" | "low";
       description: string;
     }
     """
@@ -235,6 +238,17 @@ function generateSystemPrompt(systemPrompt: string, rules: string[]): string {
     .replace(/\n +/g, "\n")
     .replace("%RULES%", rulesString);
 }
+
+const issuesSchema = z.object({
+  issues: z.array(
+    z.object({
+      line: z.number(),
+      file: z.string(),
+      level: z.enum(["critical", "high", "medium", "low"]),
+      description: z.string(),
+    }),
+  ),
+});
 
 function generatePromptWithCode(
   source: Source,
