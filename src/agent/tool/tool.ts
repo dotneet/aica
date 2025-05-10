@@ -1,5 +1,7 @@
+import type { Message } from "@/llm/llm";
 import type { MCPClientManager } from "@/mcp/client-manager";
 import type { Source } from "@/source";
+import type { AgentConsole } from "../agent-console";
 import {
   AskFollowupQuestionTool,
   AttemptCompletionTool,
@@ -13,8 +15,6 @@ import {
 } from "./tools";
 import { UseMcpResource, UseMcpTool } from "./tools/mcp";
 import { WebFetchTool } from "./tools/web-fetch";
-import type { Message } from "@/llm/llm";
-import type { AgentConsole } from "../agent-console";
 
 export type ToolId =
   | "create_file"

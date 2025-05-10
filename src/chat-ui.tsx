@@ -1,32 +1,32 @@
 #!/usr/bin/env bun
-import { useState, useEffect, useRef } from "react";
+import * as fs from "node:fs";
+import * as path from "node:path";
+// Import Agent
+import { Agent } from "@/agent/agent";
+// Import system prompt builder function
+import { getSystemPrompt } from "@/agent/prompt/system-prompt";
+import { readConfig } from "@/config";
+import type { Config } from "@/config";
+import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/factory";
+// Import Message type
+import type { LLM, Message } from "@/llm/llm";
+// chalk only supports ESM, so fix the import
+import chalk from "chalk";
 import {
-  render,
   Box,
-  Text,
-  useInput,
-  useApp,
   Spacer,
+  Text,
+  render,
+  useApp,
   useFocus,
   useFocusManager,
+  useInput,
 } from "ink";
 // Fix for ink-spinner module import error
 // @ts-ignore
 import Spinner from "ink-spinner";
-// Import Agent
-import { Agent } from "@/agent/agent";
-import { GitRepository } from "@/git";
-import { createLLM } from "@/llm/factory";
-import { readConfig } from "@/config";
-import type { Config } from "@/config";
-import * as path from "node:path";
-import * as fs from "node:fs";
-// chalk only supports ESM, so fix the import
-import chalk from "chalk";
-// Import Message type
-import type { Message, LLM } from "@/llm/llm";
-// Import system prompt builder function
-import { getSystemPrompt } from "@/agent/prompt/system-prompt";
+import { useEffect, useRef, useState } from "react";
 
 // Constants
 const WELCOME_MESSAGE = "Welcome to AICA Project! How can I assist you today?";
@@ -392,10 +392,10 @@ export const main = async () => {
 
     // Initialize LLM
     const llm = createLLM(config.llm);
-    
+
     // Initialize GitRepository
     const gitRepository = new GitRepository(process.cwd());
-    
+
     // Initialize Agent
     await using agent = new Agent(gitRepository, llm, config);
 

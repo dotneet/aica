@@ -4,10 +4,11 @@ import type { LLM, Message } from "@/llm/mod";
 import { getEnvironmentDetailsPrompt } from "@/llmcontext/system-environment";
 import { MCPClientManager } from "@/mcp/client-manager";
 import type { Source } from "@/source";
+import chalk from "chalk";
+import { type AgentConsole, createAgentConsole } from "./agent-console";
 import { AgentHistory } from "./agent-history";
 import { type MessageBlock, parseAssistantMessage } from "./assistant-message";
 import { getSystemPrompt } from "./prompt/system-prompt";
-import chalk from "chalk";
 import {
   type ActionResult,
   type Tool,
@@ -19,7 +20,6 @@ import {
   initializeTools,
   readOnlyToolIds,
 } from "./tool/mod";
-import { type AgentConsole, createAgentConsole } from "./agent-console";
 
 export type TaskExecutionOptions = {
   verbose: boolean;
