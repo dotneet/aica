@@ -10,6 +10,7 @@
     "start": "bun run src/main.ts",
     "build": "bun build --compile --outfile dist/aica src/main.ts",
     "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
+    "build:all": "bun run scripts/create-all-executables.ts",
     "lint": "biome check .",
     "check": "biome check --write src",
     "check:unsafe": "biome check --fix --unsafe src"
