@@ -7,6 +7,7 @@ import type { Config } from "@/config";
 import { Source } from "@/source";
 import { parseDiff } from "@/utility/parse-diff";
 import { createGitHubStyleTableFromIssues } from "../github";
+import { GitRepository } from "@/git";
 
 export async function generateReview(
   config: Config,
@@ -15,10 +16,9 @@ export async function generateReview(
   const fileChanges = parseDiff(diffString);
   const sources: Source[] = [];
   for (const fileChange of fileChanges) {
-    const source = Source.fromPullRequestDiff(
-      config.workingDirectory,
-      fileChange,
-    );
+    const cwd = process.cwd();
+    const root = await GitRepository.getRepositoryRoot(cwd);
+    const source = Source.fromPullRequestDiff(root || cwd, fileChange);
     sources.push(source);
   }
 
