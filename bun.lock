@@ -7,7 +7,7 @@
         "@actions/core": "^1.11.1",
         "@actions/github": "^6.0.1",
         "@modelcontextprotocol/sdk": "^1.11.1",
-        "@mozilla/readability": "^0.5.0",
+        "@mozilla/readability": "^0.6.0",
         "@octokit/core": "^6.1.5",
         "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
         "@orama/orama": "^3.1.6",
@@ -112,7 +112,7 @@
 
     "@modelcontextprotocol/sdk": ["@modelcontextprotocol/sdk@1.11.1", "", { "dependencies": { "content-type": "^1.0.5", "cors": "^2.8.5", "cross-spawn": "^7.0.3", "eventsource": "^3.0.2", "express": "^5.0.1", "express-rate-limit": "^7.5.0", "pkce-challenge": "^5.0.0", "raw-body": "^3.0.0", "zod": "^3.23.8", "zod-to-json-schema": "^3.24.1" } }, "sha512-9LfmxKTb1v+vUS1/emSk1f5ePmTLkb9Le9AxOB5T0XM59EUumwcS45z05h7aiZx3GI0Bl7mjb3FMEglYj+acuQ=="],
 
-    "@mozilla/readability": ["@mozilla/readability@0.5.0", "", {}, "sha512-Z+CZ3QaosfFaTqvhQsIktyGrjFjSC0Fa4EMph4mqKnWhmyoGICsV/8QK+8HpXut6zV7zwfWwqDmEjtk1Qf6EgQ=="],
+    "@mozilla/readability": ["@mozilla/readability@0.6.0", "", {}, "sha512-juG5VWh4qAivzTAeMzvY9xs9HY5rAcr2E4I7tiSSCokRFi7XIZCAu92ZkSTsIj1OPceCifL3cpfteP3pDT9/QQ=="],
 
     "@msgpack/msgpack": ["@msgpack/msgpack@2.8.0", "", {}, "sha512-h9u4u/jiIRKbq25PM+zymTyW6bhTzELvOoUd+AvYriWOAKpLGnIamaET3pnHYoI5iYphAHBI4ayx0MehR+VVPQ=="],
 
