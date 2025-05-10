@@ -6,6 +6,7 @@ import {
   createRawPatch,
   createRawPatchFromString,
 } from "@/agent/patch";
+import { StdoutAgentConsole } from "../agent-console";
 import {
   ToolError,
   type ToolExecutionContext,
@@ -14,10 +15,9 @@ import {
 } from "./tool";
 import { CreateFileTool } from "./tools/create-file";
 import { EditFileTool } from "./tools/edit-file";
-import { UseShellTool } from "./tools/use-shell";
 import { ListFilesTool } from "./tools/list-files";
 import { ReadFileTool } from "./tools/read-file";
-import { StdoutAgentConsole } from "../agent-console";
+import { UseShellTool } from "./tools/use-shell";
 
 describe("Tools", () => {
   const testFilePath = "./tmp/test.ts";

@@ -1,10 +1,10 @@
+import { Agent } from "@/agent/agent";
+import { readConfig } from "@/config";
+import { GitRepository } from "@/git";
+import { createLLM } from "@/llm/mod";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { Agent } from "@/agent/agent";
-import { GitRepository } from "@/git";
-import { createLLM } from "@/llm/mod";
-import { readConfig } from "@/config";
 import { version } from "../../package.json";
 
 export class AicaMcpServer {
@@ -28,7 +28,10 @@ export class AicaMcpServer {
       "Execute a task with the agent",
       {
         prompt: z.string().describe("The task prompt to execute"),
-        maxIterations: z.number().optional().describe("Maximum number of iterations"),
+        maxIterations: z
+          .number()
+          .optional()
+          .describe("Maximum number of iterations"),
         verbose: z.boolean().optional().describe("Enable verbose output"),
       },
       async ({ prompt, maxIterations = 25, verbose = false }) => {
@@ -38,10 +41,14 @@ export class AicaMcpServer {
             verbose,
           });
           return {
-            content: [{
-              type: "text",
-              text: messages.map((m) => `${m.role}: ${m.content}`).join("\n======\n"),
-            }],
+            content: [
+              {
+                type: "text",
+                text: messages
+                  .map((m) => `${m.role}: ${m.content}`)
+                  .join("\n======\n"),
+              },
+            ],
           };
         } catch (error) {
           return {
@@ -49,7 +56,7 @@ export class AicaMcpServer {
             isError: true,
           };
         }
-      }
+      },
     );
   }
 

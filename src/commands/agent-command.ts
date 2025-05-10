@@ -3,10 +3,10 @@ import { Agent } from "@/agent/agent";
 import { readConfig } from "@/config";
 import { GitRepository } from "@/git";
 import { createLLM } from "@/llm/mod";
-import { z } from "zod";
 import { render } from "ink";
-import { Chat, clearConsole } from "../chat-ui";
 import * as React from "react";
+import { z } from "zod";
+import { Chat, clearConsole } from "../chat-ui";
 
 export const agentCommandSchema = z.object({
   prompt: z.string().optional(),
@@ -17,7 +17,6 @@ export const agentCommandSchema = z.object({
 export type AgentCommandValues = z.infer<typeof agentCommandSchema>;
 
 export async function executeAgentCommand(params: AgentCommandValues) {
-
   const values = agentCommandSchema.parse(params);
   let prompt = values.prompt || "";
   const config = await readConfig();

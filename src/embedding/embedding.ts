@@ -1,8 +1,8 @@
 import {
-  get_encoding,
+  type Tiktoken,
+  type TiktokenModel,
   encoding_for_model,
-  TiktokenModel,
-  Tiktoken,
+  get_encoding,
 } from "tiktoken";
 
 export interface EmbeddingProducer {

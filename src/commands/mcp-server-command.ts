@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { startMcpServer } from "@/mcp/server";
+import { z } from "zod";
 
 export const mcpServerCommandSchema = z.object({
   config: z.string().optional(),
