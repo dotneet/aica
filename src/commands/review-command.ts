@@ -9,9 +9,9 @@ import { readConfig } from "@/config";
 import { sendToSlack } from "@/slack";
 import { Source, SourceFinder } from "@/source";
 
-import { z } from "zod";
 import { GitRepository } from "@/git";
 import { parseDiff } from "@/utility/parse-diff";
+import { z } from "zod";
 
 export const reviewCommandSchema = z.object({
   config: z.string().optional(),
