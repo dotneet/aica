@@ -12,7 +12,7 @@ export function parseDiff(diffOutput: string): FileChange[] {
   for (const part of diffParts.slice(1)) {
     const lines = part.split("\n");
     const header = lines[0];
-    const filenameMatch = header.match(/b\/(.*)/);
+    const filenameMatch = header.match(/ b\/(.*)/);
     if (!filenameMatch) continue;
 
     const filename = filenameMatch[1];
