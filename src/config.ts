@@ -338,8 +338,10 @@ export async function readConfig(
     }
   }
 
-  if (!actualConfigPath) {
-    console.warn("No config file found, using default config");
+  if (actualConfigPath) {
+    console.info(`read config file from '${actualConfigPath}'.`);
+  } else {
+    console.info("No config file found.");
     return defaultConfig;
   }
 
