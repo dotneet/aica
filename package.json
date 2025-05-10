@@ -31,7 +31,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@modelcontextprotocol/sdk": "^1.11.1",
-    "@mozilla/readability": "^0.5.0",
+    "@mozilla/readability": "^0.6.0",
     "@octokit/core": "^6.1.5",
     "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
     "@orama/orama": "^3.1.6",
