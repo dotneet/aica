@@ -4,12 +4,13 @@
   "bin": {
     "aica": "dist/aica"
   },
-  "version": "0.1.0",
+  "version": "0.2.3",
   "type": "module",
   "scripts": {
     "start": "bun run src/main.ts",
     "build": "bun build --compile --outfile dist/aica src/main.ts",
     "build:actions": "bun build --compile --outfile dist/actions-runner src/actions-runner.ts",
+    "build:all": "bun run scripts/create-all-executables.ts",
     "lint": "biome check .",
     "check": "biome check --write src",
     "check:unsafe": "biome check --fix --unsafe src"

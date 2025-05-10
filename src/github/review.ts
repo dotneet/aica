@@ -4,10 +4,10 @@ import {
   createAnalyzeContextFromConfig,
 } from "@/analyze";
 import type { Config } from "@/config";
+import { GitRepository } from "@/git";
 import { Source } from "@/source";
 import { parseDiff } from "@/utility/parse-diff";
 import { createGitHubStyleTableFromIssues } from "../github";
-import { GitRepository } from "@/git";
 
 export async function generateReview(
   config: Config,
