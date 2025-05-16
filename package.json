@@ -23,7 +23,7 @@
     "@types/jsdom": "^21.1.7",
     "@types/turndown": "^5.0.5",
     "@types/yargs": "^17.0.33",
-    "lefthook": "^1.11.12"
+    "lefthook": "^1.11.13"
   },
   "peerDependencies": {
     "typescript": "^5.7.3"
