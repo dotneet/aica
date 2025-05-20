@@ -12,7 +12,7 @@ The following package sources and official documentation are helpful references.
 
 ### prepare paylaod and .env
 
-To run actions_runner.ts locally, you need to prepare payload.json and .env.
+To run `actions-runner.ts` locally, prepare a `payload.json` file and an `.env` file.
 
 payload.json example
 
