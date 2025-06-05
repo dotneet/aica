@@ -55,7 +55,7 @@
     "tiktoken": "^1.0.21",
     "turndown": "^7.2.0",
     "winston": "^3.17.0",
-    "yargs": "^17.7.2",
+    "yargs": "^18.0.0",
     "yoga-wasm-web": "^0.3.3",
     "zod": "^3.25.51"
   }
