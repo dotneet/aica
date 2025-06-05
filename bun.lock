@@ -10,7 +10,7 @@
         "@mozilla/readability": "^0.6.0",
         "@octokit/core": "^6.1.5",
         "@octokit/plugin-rest-endpoint-methods": "^14.0.0",
-        "@orama/orama": "^3.1.6",
+        "@orama/orama": "^3.1.7",
         "@orama/plugin-data-persistence": "^3.1.7",
         "@orama/plugin-parsedoc": "^3.1.6",
         "@orama/plugin-secure-proxy": "^3.1.6",
@@ -146,7 +146,7 @@
 
     "@orama/cuid2": ["@orama/cuid2@2.2.3", "", { "dependencies": { "@noble/hashes": "^1.1.5" } }, "sha512-Lcak3chblMejdlSHgYU2lS2cdOhDpU6vkfIJH4m+YKvqQyLqs1bB8+w6NT1MG5bO12NUK2GFc34Mn2xshMIQ1g=="],
 
-    "@orama/orama": ["@orama/orama@3.1.6", "", {}, "sha512-qtSrqCqRU93SjEBedz987tvWao1YQSELjBhGkHYGVP7Dg0lBWP6d+uZEIt5gxTAYio/YWWlhivmRABvRfPLmnQ=="],
+    "@orama/orama": ["@orama/orama@3.1.7", "", {}, "sha512-6yB0117ZjsgNevZw3LP+bkrZa9mU/POPVaXgzMPOBbBc35w2P3R+1vMMhEfC06kYCpd5bf0jodBaTkYQW5TVeQ=="],
 
     "@orama/plugin-data-persistence": ["@orama/plugin-data-persistence@3.1.7", "", { "dependencies": { "@msgpack/msgpack": "^2.7.2", "@orama/orama": "3.1.7", "dpack": "^0.6.22" } }, "sha512-Q/hPX6Na3l4plIAYb57PfkgWQ3pInOFd3Yg2rus4dSURcsAc8EZJTRzYIf7o7ywRn5Zt/lXNaJH3HQfql1AenA=="],
 
@@ -1058,7 +1058,7 @@
 
     "@octokit/request-error/@octokit/types": ["@octokit/types@13.8.0", "", { "dependencies": { "@octokit/openapi-types": "^23.0.1" } }, "sha512-x7DjTIbEpEWXK99DMd01QfWy0hd5h4EN+Q7shkdKds3otGQP+oWE/y0A76i1OvH9fygo4ddvNf7ZvF0t78P98A=="],
 
-    "@orama/plugin-data-persistence/@orama/orama": ["@orama/orama@3.1.7", "", {}, "sha512-6yB0117ZjsgNevZw3LP+bkrZa9mU/POPVaXgzMPOBbBc35w2P3R+1vMMhEfC06kYCpd5bf0jodBaTkYQW5TVeQ=="],
+    "@orama/plugin-parsedoc/@orama/orama": ["@orama/orama@3.1.6", "", {}, "sha512-qtSrqCqRU93SjEBedz987tvWao1YQSELjBhGkHYGVP7Dg0lBWP6d+uZEIt5gxTAYio/YWWlhivmRABvRfPLmnQ=="],
 
     "@oramacloud/client/@orama/orama": ["@orama/orama@2.1.1", "", {}, "sha512-euTV/2kya290SNkl5m8e/H1na8iDygk74nNtl4E0YZNyYIrEMwE1JwamoroMKGZw2Uz+in/8gH3m1+2YfP0j1w=="],
 
